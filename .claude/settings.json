@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm test*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm install*)",
+      "Bash(pnpm --filter*)",
+      "Bash(pnpm run*)",
+      "Bash(docker compose*)",
+      "Bash(npx drizzle-kit*)",
+      "Bash(npx vitest*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git fetch*)",
+      "Bash(ls*)",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_teams",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_projects",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issue_labels",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_milestones",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issues",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issue_statuses",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_cycles",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__get_issue",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__get_project",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__get_milestone",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_issue",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_milestone",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_comment",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_comments",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_documents",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__search_documentation"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"=== Delve Session Start ===\"; echo \"Branch: $(git branch --show-current)\"; echo \"Status: $(git status --short | head -5)\"; echo \"Last commit: $(git log --oneline -1)\"; echo \"=== Packages ===\"; ls packages/ 2>/dev/null || echo \"(no packages/ directory yet)\"; echo \"==========================\"'"
+          }
+        ]
+      }
+    ]
+  }
+}

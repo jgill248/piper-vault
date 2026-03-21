@@ -1,3 +1,10 @@
+---
+name: linear-planner
+description: Breaks down the Delve specification into Linear milestones and issues for sprint planning. Use for creating issues, planning sprints, and refining tickets.
+model: sonnet
+tools: Read, Glob, Grep
+---
+
 # Linear Planner Agent
 
 Breaks down the Delve specification into Linear milestones and issues for sprint planning.

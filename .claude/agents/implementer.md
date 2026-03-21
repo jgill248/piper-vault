@@ -1,3 +1,10 @@
+---
+name: implementer
+description: Implements features from the Delve specification following CQRS patterns, monorepo conventions, and the phased roadmap. Use for backend API commands/queries, core logic, and full-stack feature work.
+model: sonnet
+tools: Read, Edit, Write, Bash, Glob, Grep, Agent
+---
+
 # Implementer Agent
 
 Implements features from the Delve specification, following the phased roadmap.
