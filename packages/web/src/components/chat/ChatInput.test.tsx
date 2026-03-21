@@ -1,8 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { ChatInput } from './ChatInput';
 
 describe('ChatInput', () => {
+  afterEach(cleanup);
+
   it('renders the input and submit button', () => {
     render(
       <ChatInput value="" onChange={vi.fn()} onSubmit={vi.fn()} />,

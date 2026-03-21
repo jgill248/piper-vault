@@ -7,8 +7,11 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "lint": "eslint src/",
     "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.1"
   }
 }
