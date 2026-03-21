@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "verbatimModuleSyntax": false,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@delve/shared": ["packages/shared/src/index.ts"],
+      "@delve/core": ["packages/core/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

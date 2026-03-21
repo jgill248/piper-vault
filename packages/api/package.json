@@ -1,0 +1,36 @@
+{
+  "name": "@delve/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist",
+    "db:migrate": "tsx src/database/migrate.ts"
+  },
+  "dependencies": {
+    "@delve/shared": "workspace:*",
+    "@delve/core": "workspace:*",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/cqrs": "^10.0.0",
+    "@nestjs/platform-fastify": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "drizzle-orm": "^0.30.0",
+    "postgres": "^3.4.0",
+    "zod": "^3.22.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "@nestjs/testing": "^10.0.0",
+    "drizzle-kit": "^0.21.0",
+    "tsx": "^4.0.0",
+    "vitest": "^1.0.0"
+  }
+}
