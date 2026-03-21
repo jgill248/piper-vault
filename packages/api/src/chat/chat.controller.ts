@@ -23,6 +23,10 @@ const ChatRequestSchema = z.object({
   message: z.string().min(1).max(10_000),
   conversationId: z.string().uuid().optional(),
   model: z.string().optional(),
+  sourceIds: z.array(z.string().uuid()).optional(),
+  fileTypes: z.array(z.string().min(1)).optional(),
+  dateFrom: z.string().datetime({ offset: true }).optional(),
+  dateTo: z.string().datetime({ offset: true }).optional(),
 });
 
 @Controller()
@@ -51,9 +55,9 @@ export class ChatController {
       });
     }
 
-    const { message, conversationId, model } = parsed.data;
+    const { message, conversationId, model, sourceIds, fileTypes, dateFrom, dateTo } = parsed.data;
     return this.commandBus.execute(
-      new SendMessageCommand(message, conversationId, model),
+      new SendMessageCommand(message, conversationId, model, sourceIds, fileTypes, dateFrom, dateTo),
     );
   }
 

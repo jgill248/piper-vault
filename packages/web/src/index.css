@@ -8,17 +8,46 @@
     box-sizing: border-box;
   }
 
+  /* Theme variables — dark (default) */
+  :root {
+    --color-base: #05070A;
+    --color-surface: #111417;
+    --color-sunken: #0c0e12;
+    --color-raised: #282a2e;
+    --color-border: #45474a;
+    --color-text: #e1e2e7;
+    --color-muted: #8b8d93;
+    --color-dim: #5a5c62;
+    --scanline-color: rgba(255, 255, 255, 0.015);
+    --scrollbar-track: #0c0e12;
+    --scrollbar-thumb: #45474a;
+    --scrollbar-thumb-hover: #5a5c62;
+  }
+
+  /* Theme variables — light */
+  .light {
+    --color-base: #f0f1f3;
+    --color-surface: #ffffff;
+    --color-sunken: #e8e9eb;
+    --color-raised: #d5d7db;
+    --color-border: #c0c2c6;
+    --color-text: #1a1c20;
+    --color-muted: #5a5c62;
+    --color-dim: #8b8d93;
+    --scanline-color: rgba(0, 0, 0, 0.005);
+    --scrollbar-track: #e8e9eb;
+    --scrollbar-thumb: #c0c2c6;
+    --scrollbar-thumb-hover: #a0a2a6;
+  }
+
   body {
-    @apply bg-obsidian-base text-ui-text font-sans;
+    background-color: var(--color-base);
+    color: var(--color-text);
+    @apply font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
-  }
-
-  /* Light mode body */
-  body.light {
-    @apply bg-light-base text-ui-light-text;
   }
 
   /* Scanline overlay */
@@ -35,19 +64,8 @@
       0deg,
       transparent,
       transparent 2px,
-      rgba(255, 255, 255, 0.015) 2px,
-      rgba(255, 255, 255, 0.015) 4px
-    );
-  }
-
-  /* Lighter scanline in light mode */
-  body.light::after {
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.005) 2px,
-      rgba(0, 0, 0, 0.005) 4px
+      var(--scanline-color) 2px,
+      var(--scanline-color) 4px
     );
   }
 
@@ -57,24 +75,13 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0c0e12;
+    background: var(--scrollbar-track);
   }
   ::-webkit-scrollbar-thumb {
-    background: #45474a;
+    background: var(--scrollbar-thumb);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #5a5c62;
-  }
-
-  /* Light mode scrollbars */
-  body.light ::-webkit-scrollbar-track {
-    background: #e8e9eb;
-  }
-  body.light ::-webkit-scrollbar-thumb {
-    background: #c0c2c6;
-  }
-  body.light ::-webkit-scrollbar-thumb:hover {
-    background: #a0a2a6;
+    background: var(--scrollbar-thumb-hover);
   }
 }
 
@@ -89,20 +96,25 @@
   }
 
   .btn-secondary {
-    @apply border border-obsidian-border text-phosphor font-mono text-xs uppercase tracking-widest px-4 py-2 transition-all duration-150;
+    @apply border font-mono text-xs uppercase tracking-widest px-4 py-2 transition-all duration-150;
+    border-color: var(--color-border);
+    @apply text-phosphor;
   }
   .btn-secondary:hover {
     @apply border-phosphor bg-phosphor/5;
   }
 
   .input-cmd {
-    @apply bg-obsidian-sunken text-ui-text font-mono text-sm px-3 py-2 w-full outline-none border-b border-obsidian-border transition-colors duration-150;
+    @apply font-mono text-sm px-3 py-2 w-full outline-none border-b transition-colors duration-150;
+    background-color: var(--color-sunken);
+    color: var(--color-text);
+    border-color: var(--color-border);
   }
   .input-cmd:focus {
     @apply border-phosphor;
   }
   .input-cmd::placeholder {
-    @apply text-ui-dim;
+    color: var(--color-dim);
   }
 
   .status-pending {
@@ -119,12 +131,16 @@
   }
 
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-widest text-ui-muted transition-all duration-150 cursor-pointer border-l-2 border-transparent;
+    @apply flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-widest transition-all duration-150 cursor-pointer border-l-2 border-transparent;
+    color: var(--color-muted);
   }
   .nav-item:hover {
-    @apply text-ui-text bg-obsidian-surface border-l-obsidian-border;
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    border-left-color: var(--color-border);
   }
   .nav-item.active {
-    @apply text-phosphor bg-obsidian-surface border-l-phosphor;
+    @apply text-phosphor border-l-phosphor;
+    background-color: var(--color-surface);
   }
 }

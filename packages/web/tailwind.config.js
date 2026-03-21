@@ -6,11 +6,11 @@ export default {
     extend: {
       colors: {
         obsidian: {
-          base: '#05070A',
-          surface: '#111417',
-          sunken: '#0c0e12',
-          raised: '#282a2e',
-          border: '#45474a',
+          base: 'var(--color-base)',
+          surface: 'var(--color-surface)',
+          sunken: 'var(--color-sunken)',
+          raised: 'var(--color-raised)',
+          border: 'var(--color-border)',
         },
         phosphor: {
           DEFAULT: '#abd600',
@@ -18,21 +18,9 @@ export default {
           glow: 'rgba(171, 214, 0, 0.15)',
         },
         ui: {
-          text: '#e1e2e7',
-          muted: '#8b8d93',
-          dim: '#5a5c62',
-        },
-        light: {
-          base: '#f0f1f3',
-          surface: '#ffffff',
-          sunken: '#e8e9eb',
-          raised: '#d5d7db',
-          border: '#c0c2c6',
-        },
-        'ui-light': {
-          text: '#1a1c20',
-          muted: '#5a5c62',
-          dim: '#8b8d93',
+          text: 'var(--color-text)',
+          muted: 'var(--color-muted)',
+          dim: 'var(--color-dim)',
         },
       },
       fontFamily: {

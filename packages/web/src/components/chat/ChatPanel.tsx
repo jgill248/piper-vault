@@ -77,8 +77,15 @@ export function ChatPanel() {
     setLocalMessages((prev) => [...prev, optimisticUserMsg]);
     setInputValue('');
 
+    // Build filters — only include non-empty values
+    const filters: Record<string, unknown> = {};
+    if (searchFilters.sourceIds.length > 0) filters.sourceIds = searchFilters.sourceIds;
+    if (searchFilters.fileTypes.length > 0) filters.fileTypes = searchFilters.fileTypes;
+    if (searchFilters.dateFrom) filters.dateFrom = new Date(searchFilters.dateFrom).toISOString();
+    if (searchFilters.dateTo) filters.dateTo = new Date(searchFilters.dateTo).toISOString();
+
     sendMessage.mutate(
-      { message: trimmed, conversationId: activeConversationId },
+      { message: trimmed, conversationId: activeConversationId, ...filters },
       {
         onSuccess: (data) => {
           setActiveConversationId(data.conversationId);

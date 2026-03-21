@@ -150,7 +150,7 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
           <NumberInput
             value={draft.maxContextTokens}
             onChange={(v) => onChange({ maxContextTokens: v })}
-            min={256}
+            min={500}
             max={32000}
             unit="TOKENS"
           />
@@ -247,11 +247,8 @@ export function SettingsPanel() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   // Sync draft when server config loads
-  useEffect(() => {
-    if (config) {
-      setDraft(config);
-    }
-  }, [config]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-time sync from server
+  useEffect(() => { if (config) setDraft(config); }, [config]);
 
   const hasChanges = JSON.stringify(draft) !== JSON.stringify(baseConfig);
 

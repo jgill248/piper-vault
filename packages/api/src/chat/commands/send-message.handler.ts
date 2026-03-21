@@ -132,6 +132,27 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       const embedding = embeddingResult.value;
       const vectorLiteral = `[${[...embedding].join(',')}]`;
 
+      // Build optional filter clauses from command filters
+      const sourceFilter =
+        command.sourceIds !== undefined && command.sourceIds.length > 0
+          ? sql`AND c.source_id = ANY(${command.sourceIds}::uuid[])`
+          : sql``;
+
+      const fileTypeFilter =
+        command.fileTypes !== undefined && command.fileTypes.length > 0
+          ? sql`AND s.file_type = ANY(${command.fileTypes}::text[])`
+          : sql``;
+
+      const dateFromFilter =
+        command.dateFrom !== undefined
+          ? sql`AND s.created_at >= ${command.dateFrom}::timestamptz`
+          : sql``;
+
+      const dateToFilter =
+        command.dateTo !== undefined
+          ? sql`AND s.created_at <= ${command.dateTo}::timestamptz`
+          : sql``;
+
       // Raw SQL for pgvector cosine distance operator <=>
       const rawRows = await this.db.execute(
         sql`
@@ -151,6 +172,10 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
           JOIN sources s ON c.source_id = s.id
           WHERE s.status = 'ready'
             AND c.embedding IS NOT NULL
+            ${sourceFilter}
+            ${fileTypeFilter}
+            ${dateFromFilter}
+            ${dateToFilter}
           ORDER BY c.embedding <=> ${vectorLiteral}::vector
           LIMIT ${topK}
         `,

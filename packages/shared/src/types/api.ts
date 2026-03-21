@@ -28,6 +28,10 @@ export interface ChatRequest {
   readonly message: string;
   readonly conversationId?: string;
   readonly model?: string;
+  readonly sourceIds?: readonly string[];
+  readonly fileTypes?: readonly string[];
+  readonly dateFrom?: string;
+  readonly dateTo?: string;
 }
 
 export interface ChatResponse {

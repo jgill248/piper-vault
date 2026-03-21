@@ -2,6 +2,7 @@
   "name": "delve",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Personal Knowledge Base & Conversational Search",
   "scripts": {
     "build": "nx run-many --target=build",
@@ -16,5 +17,18 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "nx": "^22.6.1",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.2"
   }
 }

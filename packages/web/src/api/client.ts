@@ -62,8 +62,10 @@ export const api = {
     request<ChatResponse>('/chat', { method: 'POST', body: JSON.stringify(body) }),
 
   // Conversations
-  listConversations: (): Promise<readonly Conversation[]> =>
-    request<readonly Conversation[]>('/conversations'),
+  listConversations: async (): Promise<readonly Conversation[]> => {
+    const res = await request<PaginatedResponse<Conversation>>('/conversations');
+    return res.data;
+  },
 
   getConversation: (id: string): Promise<ConversationWithMessages> =>
     request<ConversationWithMessages>(`/conversations/${id}`),
@@ -92,7 +94,7 @@ export const api = {
   updateConfig: (body: Partial<AppConfig>): Promise<AppConfig> =>
     request<AppConfig>('/config', { method: 'PATCH', body: JSON.stringify(body) }),
 
-  getModels: (): Promise<ModelsResponse> => request<ModelsResponse>('/models'),
+  getModels: (): Promise<ModelsResponse> => request<ModelsResponse>('/config/models'),
 
   // Conversations
   deleteConversation: (id: string): Promise<void> =>
