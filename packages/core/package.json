@@ -12,10 +12,15 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@delve/shared": "workspace:*"
+    "@delve/shared": "workspace:*",
+    "cheerio": "^1.0.0",
+    "mammoth": "^1.8.0",
+    "papaparse": "^5.4.1",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/papaparse": "^5.3.14",
     "vitest": "^1.0.0"
   }
 }

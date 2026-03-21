@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   Param,
   Query,
@@ -14,6 +15,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { z } from 'zod';
 import type { ChatResponse, PaginatedResponse, Conversation, ConversationWithMessages } from '@delve/shared';
 import { SendMessageCommand } from './commands/send-message.command';
+import { DeleteConversationCommand } from './commands/delete-conversation.command';
 import { ListConversationsQuery } from './queries/list-conversations.query';
 import { GetConversationQuery } from './queries/get-conversation.query';
 
@@ -80,5 +82,14 @@ export class ChatController {
   @Get('conversations/:id')
   async getConversation(@Param('id') id: string): Promise<ConversationWithMessages> {
     return this.queryBus.execute(new GetConversationQuery(id));
+  }
+
+  /**
+   * DELETE /api/v1/conversations/:id
+   */
+  @Delete('conversations/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteConversation(@Param('id') id: string): Promise<void> {
+    await this.commandBus.execute(new DeleteConversationCommand(id));
   }
 }
