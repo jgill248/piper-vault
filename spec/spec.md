@@ -98,9 +98,9 @@ The retrieval layer converts user queries into vector embeddings, performs appro
 
 | Option | Pros | Cons | Recommendation |
 |--------|------|------|----------------|
-| pgvector (PostgreSQL) | Familiar tooling, SQL queries, joins with metadata, mature ecosystem | Heavier setup, requires running Postgres | Recommended for v1 if Postgres is already in stack |
-| ChromaDB | Lightweight, Python-native, zero-config, built for RAG | Less control over indexing, newer project | Good alternative for rapid prototyping |
-| Qdrant | Purpose-built vector DB, excellent filtering, gRPC support | Another service to run, more complex | Consider for v2 if scale demands it |
+| **pgvector (PostgreSQL)** | Familiar tooling, SQL queries, joins with metadata, mature ecosystem | Heavier setup, requires running Postgres | **Selected for v1.** Single database for relational + vector data. |
+| ChromaDB | Lightweight, Python-native, zero-config, built for RAG | Less control over indexing, newer project | Not selected — pgvector preferred for extensibility |
+| Qdrant | Purpose-built vector DB, excellent filtering, gRPC support | Another service to run, more complex | Not selected — consider only if pgvector hits scale limits |
 
 #### Search Configuration Defaults
 
@@ -243,11 +243,11 @@ Represents a single message in a conversation.
 | Component | Technology | Rationale |
 |-----------|-----------|-----------|
 | Runtime | Node.js (v20+) | Consistent JS/TS across stack, strong async I/O |
-| Framework | Express or Fastify | Lightweight, well-understood, good streaming support |
+| Framework | **NestJS** | Built-in CQRS (`@nestjs/cqrs`), DI, modules, guards, pipes. Structured architecture aligned with CQRS pattern. Uses Fastify under the hood as HTTP adapter. |
 | Language | TypeScript | Type safety across the full stack |
-| Database | PostgreSQL 16+ with pgvector | Mature, handles both relational and vector data |
+| Database | **PostgreSQL 16+ with pgvector** | Mature, handles both relational and vector data. Confirmed as vector store. |
 | ORM / Query | Drizzle ORM or Kysely | Type-safe queries without heavy abstraction |
-| Embedding | Sentence-transformers via API or local model | Flexible: use Ask Sage embeddings, OpenAI, or local |
+| Embedding | **Local: `all-MiniLM-L6-v2` via ONNX (384-dim)** | Zero-cost, zero-dependency local embeddings. Ollama available as upgrade path for higher-quality models. |
 | File parsing | pdf-parse, mammoth, papaparse, cheerio | Proven libraries for each format |
 
 ### 5.2 Frontend
@@ -257,7 +257,7 @@ Represents a single message in a conversation.
 | Framework | React 18+ with Vite | Fast dev experience, wide ecosystem |
 | Language | TypeScript | Shared types with backend |
 | Styling | TailwindCSS | Utility-first, rapid prototyping, consistent design |
-| State | Zustand or React Query | Lightweight, minimal boilerplate |
+| State | **React Query (TanStack Query)** | Server state management with caching, deduplication, background refetch |
 | Markdown | react-markdown + rehype | Render LLM responses with formatting |
 | Icons | Lucide React | Clean, consistent icon set |
 
@@ -267,7 +267,7 @@ Represents a single message in a conversation.
 |-----------|-----------|-----------|
 | Containerization | Docker + Docker Compose | Reproducible local environment |
 | Dev tooling | ESLint, Prettier, Vitest | Code quality and testing from day one |
-| Monorepo | pnpm workspaces or Turborepo | Shared types and configs |
+| Monorepo | **pnpm workspaces + Nx** | pnpm for dependency management, Nx for task orchestration, caching, and dependency graph |
 
 ---
 
@@ -370,7 +370,7 @@ The choice of embedding model directly affects retrieval quality. The system sho
 | Ask Sage built-in | Varies | Via Ask Sage dataset API | Integrated, but couples embedding to Ask Sage platform |
 | Cohere embed-v3 | 1024 | API call | Strong multilingual support; another API dependency |
 
-**Recommendation for v1:** Start with a local model (all-MiniLM-L6-v2 via ONNX) for zero-cost, zero-dependency embedding. This keeps the system fully local and self-contained. Upgrade to an API-based model if retrieval quality needs improvement.
+**Decision for v1:** Use `all-MiniLM-L6-v2` via ONNX runtime for zero-cost, fully local embedding (384 dimensions). This keeps the system self-contained with no external API dependency. Ollama is available as a local upgrade path for higher-quality models (e.g., `nomic-embed-text` at 768-dim) without requiring cloud API calls. The embedding adapter interface supports swapping models — a dimension change requires re-indexing all chunks.
 
 ---
 
@@ -402,29 +402,35 @@ Delve uses a monorepo with clear separation between packages. Shared TypeScript 
 ```
 delve/
 ├── packages/
-│   ├── api/          — Backend Express/Fastify server
+│   ├── api/          — NestJS backend server (CQRS modules)
 │   ├── web/          — React frontend application
 │   ├── shared/       — Shared TypeScript types, constants, and utilities
 │   └── core/         — Ingestion, retrieval, and LLM adapter logic (framework-agnostic)
+├── spec/             — Specification and design mockups
 ├── docker-compose.yml
 ├── .env.example
-└── turbo.json / pnpm-workspace.yaml
+├── nx.json
+└── pnpm-workspace.yaml
 ```
 
-The `core` package is intentionally decoupled from the API framework. This means the ingestion pipeline, retrieval logic, and LLM adapters can be tested independently and reused if the delivery mechanism ever changes (e.g., CLI, desktop app, or different web framework).
+The `core` package is intentionally decoupled from the NestJS API framework. This means the ingestion pipeline, retrieval logic, and LLM adapters can be tested independently and reused if the delivery mechanism ever changes (e.g., CLI, desktop app, or different web framework). NestJS command/query handlers in `packages/api/` delegate to `packages/core/` for all business logic.
 
 ---
 
-## 11. Open Questions
+## 11. Resolved Decisions
 
-The following decisions should be resolved before or during Phase 1 development:
+The following open questions have been resolved (March 2026):
 
-1. **Embedding model:** Run local (ONNX) or use an API? Local is simpler but may limit quality for domain-specific content.
-2. **Vector store:** pgvector (leverage existing Postgres knowledge) vs. ChromaDB (faster to prototype)? Recommendation leans pgvector for long-term extensibility.
-3. **Streaming:** Does Ask Sage support SSE or WebSocket streaming for responses, or is it request/response only? This affects the chat UX significantly.
-4. **Auth for Ask Sage:** Token refresh strategy — how long do access tokens last, and should the backend handle transparent refresh?
-5. **Chunk size tuning:** 512 tokens is a reasonable default, but different content types (dense technical docs vs. meeting transcripts) may benefit from different sizes. Should chunk size be configurable per source?
-6. **Monorepo tooling:** pnpm workspaces (simpler) vs. Turborepo (better caching)? Either works; decide based on preference.
+| # | Question | Decision | Notes |
+|---|----------|----------|-------|
+| 1 | **Embedding model** | **Local: `all-MiniLM-L6-v2` via ONNX (384-dim)** | Zero-cost, fully local. Ollama available as upgrade path for higher-quality local models (e.g., `nomic-embed-text`). Schema uses `vector(384)`. |
+| 2 | **Vector store** | **pgvector (PostgreSQL 16+)** | Leverages existing Postgres, SQL joins with metadata, mature ecosystem. Docker image: `pgvector/pgvector:pg16`. |
+| 3 | **Streaming** | **Request/response for v1** | Ask Sage API used in synchronous request/response mode. LLM adapter interface includes `streamQuery()` method signature for future use but is not wired in v1. |
+| 4 | **Ask Sage token refresh** | **Not needed** | Ask Sage access tokens do not expire. Obtain once, reuse indefinitely. No refresh middleware required. |
+| 5 | **Chunk size tuning** | **512 tokens default, configurable per-source in v2** | Keep a single global default for v1. Per-source configuration deferred to Phase 2+. |
+| 6 | **Monorepo tooling** | **pnpm workspaces + Nx** | pnpm for dependency management, Nx for task orchestration, caching, and dependency graph. |
+| 7 | **Backend framework** | **NestJS** | Built-in CQRS (`@nestjs/cqrs`), dependency injection, modules, guards, pipes. Uses Fastify as HTTP adapter. Replaces raw Express/Fastify from original spec. |
+| 8 | **Frontend state** | **React Query (TanStack Query)** | All server state managed via React Query. No Zustand needed for v1. |
 
 ---
 

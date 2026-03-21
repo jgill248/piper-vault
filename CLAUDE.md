@@ -6,27 +6,42 @@ Delve is a local-first, RAG-powered knowledge base with a conversational chat in
 
 **Status:** Pre-implementation (specification and design phase)
 
-## Tech Stack (Planned)
+## Resolved Decisions
 
-- **Backend:** Node.js v20+, TypeScript, Express or Fastify, PostgreSQL 16+ with pgvector, Drizzle ORM or Kysely
-- **Frontend:** React 18+ with Vite, TypeScript, TailwindCSS, Zustand or React Query
-- **Infrastructure:** Docker + Docker Compose, pnpm workspaces or Turborepo
+The following open questions from the spec (Section 11) have been resolved:
+
+| # | Question | Decision | Rationale |
+|---|----------|----------|-----------|
+| 1 | Embedding model | **Local (ONNX + Ollama)** | Start with `all-MiniLM-L6-v2` via ONNX (384-dim). Ollama available as upgrade path for higher-quality local models. Zero external API dependency. |
+| 2 | Vector store | **pgvector (PostgreSQL)** | Leverages existing Postgres, SQL joins with metadata, mature ecosystem. Long-term extensibility over ChromaDB. |
+| 3 | Streaming | **Request/response first** | Ask Sage API used in request/response mode for v1. LLM adapter interface designed to support streaming later (method signature exists, not wired). |
+| 4 | Ask Sage token refresh | **Not needed** | Ask Sage tokens do not expire. Store token once, reuse indefinitely. No refresh middleware required. |
+| 5 | Monorepo tooling | **pnpm + Nx** | pnpm workspaces for dependency management, Nx for task orchestration, caching, and dependency graph. |
+| 6 | Backend framework | **NestJS** | Provides built-in CQRS (`@nestjs/cqrs`), dependency injection, modules, guards, pipes, and interceptors. Better structure than raw Express/Fastify for this architecture. |
+
+## Tech Stack
+
+- **Backend:** Node.js v20+, TypeScript, NestJS, PostgreSQL 16+ with pgvector, Drizzle ORM or Kysely
+- **Frontend:** React 18+ with Vite, TypeScript, TailwindCSS, React Query (TanStack Query)
+- **Embeddings:** `all-MiniLM-L6-v2` via ONNX (384-dim), Ollama as upgrade path
+- **Infrastructure:** Docker + Docker Compose, pnpm workspaces + Nx
 - **Testing:** Vitest
 - **Linting/Formatting:** ESLint, Prettier
 
-## Project Structure (Planned)
+## Project Structure
 
 ```
 delve/
 ├── packages/
-│   ├── api/          — Backend Express/Fastify server
+│   ├── api/          — NestJS backend server (CQRS modules)
 │   ├── web/          — React frontend application
 │   ├── shared/       — Shared TypeScript types, constants, and utilities
 │   └── core/         — Ingestion, retrieval, and LLM adapter logic (framework-agnostic)
 ├── spec/             — Specification and design mockups
 ├── docker-compose.yml
 ├── .env.example
-└── turbo.json / pnpm-workspace.yaml
+├── nx.json
+└── pnpm-workspace.yaml
 ```
 
 ## Key References
@@ -50,37 +65,68 @@ delve/
 - **Local-first:** All indexed data stays under user control
 - **Core decoupled:** `packages/core/` is framework-agnostic for independent testing and reuse
 
-## CQRS Pattern
+## CQRS Pattern (NestJS)
 
-The API layer follows CQRS. All operations are either a **command** (writes/mutations) or a **query** (reads).
+The API layer follows CQRS using NestJS's built-in `@nestjs/cqrs` module. All operations are either a **command** (writes/mutations) or a **query** (reads). NestJS provides `CommandBus`, `QueryBus`, and `EventBus` for dispatching.
 
 ### Structure
 
 ```
 packages/api/src/
-├── commands/           — Write operations (create, update, delete)
-│   ├── ingest-source.command.ts
-│   ├── delete-source.command.ts
-│   ├── send-message.command.ts
-│   └── update-config.command.ts
-├── queries/            — Read operations (list, get, search)
-│   ├── list-sources.query.ts
-│   ├── get-source.query.ts
-│   ├── search-chunks.query.ts
-│   ├── list-conversations.query.ts
-│   └── get-conversation.query.ts
-├── handlers/           — Route handlers that dispatch to commands/queries
-├── middleware/         — Validation, error handling, request parsing
-└── routes/            — Route definitions (thin, delegate to handlers)
+├── sources/
+│   ├── commands/
+│   │   ├── ingest-source.command.ts      — Command class (data)
+│   │   ├── ingest-source.handler.ts      — CommandHandler (logic)
+│   │   ├── delete-source.command.ts
+│   │   └── delete-source.handler.ts
+│   ├── queries/
+│   │   ├── list-sources.query.ts
+│   │   ├── list-sources.handler.ts
+│   │   ├── get-source.query.ts
+│   │   └── get-source.handler.ts
+│   ├── events/
+│   │   ├── source-ingested.event.ts
+│   │   └── source-ingested.handler.ts
+│   ├── dto/
+│   │   ├── create-source.dto.ts          — Request DTO (Zod validated)
+│   │   └── source-response.dto.ts        — Response DTO
+│   ├── sources.controller.ts             — Thin HTTP layer
+│   └── sources.module.ts                 — NestJS module wiring
+├── chat/
+│   ├── commands/
+│   │   ├── send-message.command.ts
+│   │   └── send-message.handler.ts
+│   ├── queries/
+│   │   ├── list-conversations.query.ts
+│   │   ├── list-conversations.handler.ts
+│   │   ├── get-conversation.query.ts
+│   │   └── get-conversation.handler.ts
+│   ├── dto/
+│   ├── chat.controller.ts
+│   └── chat.module.ts
+├── search/
+│   ├── queries/
+│   │   ├── search-chunks.query.ts
+│   │   └── search-chunks.handler.ts
+│   ├── search.controller.ts
+│   └── search.module.ts
+├── config/
+│   ├── config.controller.ts
+│   └── config.module.ts
+├── health/
+│   ├── health.controller.ts
+│   └── health.module.ts
+└── app.module.ts                         — Root module
 ```
 
 ### Rules
 
-1. **Commands** accept a typed input DTO, perform validation, execute business logic via `packages/core/`, and return a result type (success/failure + minimal data like the created ID)
-2. **Queries** accept filter/pagination params, read from optimized query paths, and return typed response DTOs. Queries never trigger side effects.
-3. **Route handlers** are thin — they parse the request, call the appropriate command or query, and format the response. No business logic in handlers.
-4. **DTOs are separate from domain models.** Request DTOs, response DTOs, and internal domain types are distinct. Map between them explicitly.
-5. **Commands can emit domain events** (e.g., `SourceIngested`, `ChunkCreated`) that other parts of the system can react to asynchronously.
+1. **Commands** are plain classes carrying data. **CommandHandlers** (decorated with `@CommandHandler`) execute business logic via `packages/core/` and return a result type (success/failure + minimal data like the created ID).
+2. **Queries** are plain classes carrying filter/pagination params. **QueryHandlers** (decorated with `@QueryHandler`) read from optimized query paths and return typed response DTOs. Queries never trigger side effects.
+3. **Controllers** are thin — they parse the request, dispatch to `CommandBus` or `QueryBus`, and format the response. No business logic in controllers.
+4. **DTOs are separate from domain models.** Request DTOs, response DTOs, and internal domain types are distinct. Map between them explicitly. Use NestJS pipes or Zod for validation.
+5. **Events** are emitted by command handlers via `EventBus` (e.g., `SourceIngestedEvent`, `ChunkCreatedEvent`). Event handlers react asynchronously and must not be called directly.
+6. **Modules** encapsulate feature boundaries. Each domain area (sources, chat, search, config) is a self-contained NestJS module that declares its controllers, providers, commands, queries, and events.
 
 ## Best Practices
 
@@ -132,8 +178,8 @@ packages/api/src/
 - Consistent error response shape: `{ error: { code: string, message: string, details?: unknown } }`
 - HTTP status codes: 201 for created, 204 for deleted, 400 for validation, 404 for not found, 422 for business rule violations, 500 for unexpected errors
 - Pagination on all list endpoints: cursor-based preferred, offset-based acceptable
-- Input validation at the boundary — use Zod schemas for request parsing
-- Log structured JSON (not console.log) — include request ID for tracing
+- Input validation at the boundary — use Zod schemas (via NestJS pipes) for request parsing
+- Log structured JSON (not console.log) — include request ID for tracing. Use NestJS's built-in `Logger` or a structured logger like `pino`.
 - Idempotency: POST endpoints that create resources should handle duplicate submissions gracefully (content_hash dedup for sources)
 
 ### Testing
@@ -197,5 +243,6 @@ This is a hard gate — no exceptions. Skipping the QA gate or closing a milesto
 - API routes prefixed with `/api/v1`
 - Environment variables for secrets, config file for application settings
 - All chunks carry source metadata for citation transparency
-- Commands and queries are the unit of work on the API side — no "service" grab-bags
+- Commands and queries are the unit of work on the API side — no "service" grab-bags. Use NestJS `CommandBus`/`QueryBus` for dispatch.
+- Each domain area is a NestJS module — controllers, commands, queries, events, and DTOs are colocated within the module
 - No barrel re-exports deeper than one level — keep import paths explicit
