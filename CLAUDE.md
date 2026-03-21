@@ -178,6 +178,18 @@ Project management is tracked in Linear. Agents and skills have access to Linear
 - Backend issues should note whether the work is a CQRS command or query
 - Frontend issues should reference relevant Obsidian Protocol design rules
 
+### Milestone Completion Policy
+
+A milestone **cannot be marked complete** until the following process is satisfied:
+
+1. **Run the `qa-gate` agent** against the milestone. This runs the full QA checklist (tests, build, spec compliance, smoke tests, security, performance).
+2. **Linear issues are created for every failure.** The qa-gate agent creates a `Bug` issue with the `qa-blocker` label for each distinct failure found. Issues are filed in the Delve project under the milestone being validated.
+3. **All `qa-blocker` issues must reach Done status.** No milestone can close while any `qa-blocker` issue remains open. Fix the issues, then proceed to step 4.
+4. **Re-run the `qa-gate` agent** to confirm all fixes pass. If new failures are found, repeat from step 2.
+5. **Only after the qa-gate issues APPROVE** can the milestone be moved to Done in Linear.
+
+This is a hard gate — no exceptions. Skipping the QA gate or closing a milestone with open `qa-blocker` issues is not allowed.
+
 ## Conventions
 
 - TypeScript strict mode across all packages
