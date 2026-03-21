@@ -9,6 +9,8 @@ import type {
   AppConfig,
 } from '@delve/shared';
 
+export type { AppConfig };
+
 const BASE_URL = API_PREFIX;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -78,13 +80,23 @@ export const api = {
   deleteSource: (id: string): Promise<void> =>
     request<void>(`/sources/${id}`, { method: 'DELETE' }),
 
+  reindexSource: (id: string): Promise<void> =>
+    request<void>(`/sources/${id}/reindex`, { method: 'POST' }),
+
   // Search
   search: (body: SearchBody) => request<unknown>('/search', { method: 'POST', body: JSON.stringify(body) }),
 
   // Config
   getConfig: (): Promise<AppConfig> => request<AppConfig>('/config'),
 
+  updateConfig: (body: Partial<AppConfig>): Promise<AppConfig> =>
+    request<AppConfig>('/config', { method: 'PATCH', body: JSON.stringify(body) }),
+
   getModels: (): Promise<ModelsResponse> => request<ModelsResponse>('/models'),
+
+  // Conversations
+  deleteConversation: (id: string): Promise<void> =>
+    request<void>(`/conversations/${id}`, { method: 'DELETE' }),
 
   // Health
   health: (): Promise<HealthResponse> => request<HealthResponse>('/health'),

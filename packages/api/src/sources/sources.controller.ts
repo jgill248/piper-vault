@@ -16,6 +16,7 @@ import type { Source, PaginatedResponse } from '@delve/shared';
 import { IngestSourceCommand } from './commands/ingest-source.command';
 import type { IngestSourceResult } from './commands/ingest-source.handler';
 import { DeleteSourceCommand } from './commands/delete-source.command';
+import { ReindexSourceCommand } from './commands/reindex-source.command';
 import { ListSourcesQuery } from './queries/list-sources.query';
 import { GetSourceQuery } from './queries/get-source.query';
 import { CreateSourceSchema, decodeSourceBuffer } from './dto/create-source.dto';
@@ -108,5 +109,16 @@ export class SourcesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string): Promise<void> {
     await this.commandBus.execute(new DeleteSourceCommand(id));
+  }
+
+  /**
+   * POST /api/v1/sources/:id/reindex
+   * Triggers re-ingestion of an existing source.
+   * Phase 2 stub — returns 501 until Phase 3 implements stored content.
+   */
+  @Post(':id/reindex')
+  @HttpCode(HttpStatus.OK)
+  async reindex(@Param('id') id: string): Promise<{ message: string }> {
+    return this.commandBus.execute(new ReindexSourceCommand(id));
   }
 }

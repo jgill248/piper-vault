@@ -1,0 +1,213 @@
+import { useState } from 'react';
+import { X, Trash2, Plus } from 'lucide-react';
+import type { Conversation } from '@delve/shared';
+import { useConversations, useDeleteConversation } from '../../hooks/use-chat';
+
+function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const isToday =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+interface ConversationItemProps {
+  conversation: Conversation;
+  isActive: boolean;
+  onSelect: (id: string) => void;
+}
+
+function ConversationItem({ conversation, isActive, onSelect }: ConversationItemProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const deleteConversation = useDeleteConversation();
+
+  function handleDeleteClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    deleteConversation.mutate(conversation.id, {
+      onSettled: () => setConfirmDelete(false),
+    });
+  }
+
+  function handleCancelDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    setConfirmDelete(false);
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-current={isActive ? 'page' : undefined}
+      onClick={() => onSelect(conversation.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onSelect(conversation.id);
+      }}
+      className={`
+        group relative flex flex-col gap-0.5 px-3 py-2.5 cursor-pointer
+        border-l-2 transition-all duration-100
+        ${
+          isActive
+            ? 'border-l-phosphor bg-phosphor/5'
+            : 'border-l-transparent hover:border-l-obsidian-border hover:bg-obsidian-raised/20'
+        }
+      `}
+    >
+      {/* Active indicator glow */}
+      {isActive && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-0.5 bg-phosphor"
+          style={{ boxShadow: '0 0 8px rgba(171,214,0,0.6)' }}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className="flex items-start justify-between gap-2 pr-6">
+        <span
+          className={`font-sans text-[11px] leading-snug truncate flex-1 ${
+            isActive ? 'text-ui-text' : 'text-ui-muted group-hover:text-ui-text'
+          }`}
+          title={conversation.title}
+        >
+          {conversation.title.length > 36
+            ? `${conversation.title.slice(0, 36)}...`
+            : conversation.title}
+        </span>
+      </div>
+
+      <span className="font-mono text-[9px] text-ui-dim tabular-nums">
+        {formatDate(conversation.updatedAt)}
+      </span>
+
+      {/* Delete action */}
+      <div
+        className="absolute right-2 top-1/2 -translate-y-1/2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {confirmDelete ? (
+          <div className="flex items-center gap-1 bg-obsidian-raised border border-obsidian-border/30 px-1.5 py-0.5">
+            <button
+              onClick={handleDeleteClick}
+              disabled={deleteConversation.isPending}
+              aria-label="Confirm delete conversation"
+              className="font-mono text-[9px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors duration-100 disabled:cursor-not-allowed"
+            >
+              Y
+            </button>
+            <span className="font-mono text-[9px] text-ui-dim">/</span>
+            <button
+              onClick={handleCancelDelete}
+              aria-label="Cancel delete"
+              className="font-mono text-[9px] text-ui-muted hover:text-ui-text uppercase tracking-wider transition-colors duration-100"
+            >
+              N
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleDeleteClick}
+            aria-label={`Delete conversation: ${conversation.title}`}
+            className="opacity-0 group-hover:opacity-100 text-ui-dim hover:text-red-400 transition-all duration-100 p-0.5"
+          >
+            <Trash2 size={10} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface ConversationHistoryProps {
+  activeConversationId: string | undefined;
+  onSelect: (id: string) => void;
+  onNewSession: () => void;
+  onClose: () => void;
+}
+
+export function ConversationHistory({
+  activeConversationId,
+  onSelect,
+  onNewSession,
+  onClose,
+}: ConversationHistoryProps) {
+  const { data: conversations, isLoading } = useConversations();
+
+  return (
+    <div className="flex flex-col w-56 shrink-0 bg-obsidian-surface border-r border-obsidian-border/20 h-full">
+      {/* Panel header */}
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-obsidian-border/20 shrink-0">
+        <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          SESSIONS
+        </span>
+        <button
+          onClick={onClose}
+          aria-label="Close conversation history"
+          className="text-ui-dim hover:text-ui-text transition-colors duration-100 p-0.5"
+        >
+          <X size={12} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* New session button */}
+      <div className="px-3 py-2 border-b border-obsidian-border/20 shrink-0">
+        <button
+          onClick={onNewSession}
+          className="flex items-center gap-2 w-full btn-primary text-[10px] px-3 py-1.5 justify-center"
+          aria-label="Start new session"
+        >
+          <Plus size={10} strokeWidth={2} />
+          NEW SESSION_
+        </button>
+      </div>
+
+      {/* Conversation list */}
+      <div className="flex-1 overflow-y-auto">
+        {isLoading && (
+          <div className="flex items-center justify-center py-6">
+            <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+              LOADING...
+            </span>
+          </div>
+        )}
+
+        {!isLoading && (!conversations || conversations.length === 0) && (
+          <div className="flex flex-col items-center justify-center py-8 gap-2 px-3">
+            <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider text-center">
+              NO SESSIONS YET
+            </span>
+          </div>
+        )}
+
+        {!isLoading && conversations && conversations.length > 0 && (
+          <div>
+            {[...conversations]
+              .sort(
+                (a, b) =>
+                  new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+              )
+              .map((conv) => (
+                <ConversationItem
+                  key={conv.id}
+                  conversation={conv}
+                  isActive={conv.id === activeConversationId}
+                  onSelect={onSelect}
+                />
+              ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

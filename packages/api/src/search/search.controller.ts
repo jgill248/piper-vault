@@ -16,6 +16,9 @@ const SearchRequestSchema = z.object({
   topK: z.number().int().min(1).max(50).optional(),
   threshold: z.number().min(0).max(1).optional(),
   sourceIds: z.array(z.string().uuid()).optional(),
+  fileTypes: z.array(z.string().min(1)).optional(),
+  dateFrom: z.string().datetime({ offset: true }).optional(),
+  dateTo: z.string().datetime({ offset: true }).optional(),
 });
 
 @Controller('search')
@@ -39,9 +42,9 @@ export class SearchController {
       });
     }
 
-    const { query, topK, threshold, sourceIds } = parsed.data;
+    const { query, topK, threshold, sourceIds, fileTypes, dateFrom, dateTo } = parsed.data;
     return this.queryBus.execute(
-      new SearchChunksQuery(query, topK, threshold, sourceIds),
+      new SearchChunksQuery(query, topK, threshold, sourceIds, fileTypes, dateFrom, dateTo),
     );
   }
 }

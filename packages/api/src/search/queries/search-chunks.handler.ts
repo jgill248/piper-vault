@@ -49,10 +49,25 @@ export class SearchChunksHandler implements IQueryHandler<SearchChunksQuery> {
     const embedding = embeddingResult.value;
     const vectorLiteral = `[${[...embedding].join(',')}]`;
 
-    // Build optional source_id filter clause
+    // Build optional filter clauses
     const sourceFilter =
       query.sourceIds !== undefined && query.sourceIds.length > 0
         ? sql`AND c.source_id = ANY(${query.sourceIds}::uuid[])`
+        : sql``;
+
+    const fileTypeFilter =
+      query.fileTypes !== undefined && query.fileTypes.length > 0
+        ? sql`AND s.file_type = ANY(${query.fileTypes}::text[])`
+        : sql``;
+
+    const dateFromFilter =
+      query.dateFrom !== undefined
+        ? sql`AND s.created_at >= ${query.dateFrom}::timestamptz`
+        : sql``;
+
+    const dateToFilter =
+      query.dateTo !== undefined
+        ? sql`AND s.created_at <= ${query.dateTo}::timestamptz`
         : sql``;
 
     const rawRows = await this.db.execute(
@@ -74,6 +89,9 @@ export class SearchChunksHandler implements IQueryHandler<SearchChunksQuery> {
         WHERE s.status = 'ready'
           AND c.embedding IS NOT NULL
           ${sourceFilter}
+          ${fileTypeFilter}
+          ${dateFromFilter}
+          ${dateToFilter}
         ORDER BY c.embedding <=> ${vectorLiteral}::vector
         LIMIT ${topK}
       `,

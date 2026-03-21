@@ -1,10 +1,18 @@
-import { Trash2, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { Trash2, FileText, RefreshCw } from 'lucide-react';
 import type { Source } from '@delve/shared';
 import { SOURCE_STATUS } from '@delve/shared';
-import { useDeleteSource } from '../../hooks/use-sources';
+import { useDeleteSource, useReindexSource } from '../../hooks/use-sources';
+
+export interface SourceFilters {
+  search: string;
+  fileType: string;
+  status: string;
+}
 
 interface SourceLedgerProps {
   sources: readonly Source[];
+  filters: SourceFilters;
 }
 
 function formatBytes(bytes: number): string {
@@ -27,6 +35,14 @@ function formatFileType(mimeType: string): string {
   return map[mimeType] ?? mimeType.split('/')[1]?.toUpperCase() ?? 'UNK';
 }
 
+function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function StatusChip({ status }: { status: Source['status'] }) {
   switch (status) {
     case SOURCE_STATUS.PENDING:
@@ -42,15 +58,155 @@ function StatusChip({ status }: { status: Source['status'] }) {
   }
 }
 
-const COLUMNS = ['FILENAME', 'TYPE', 'SIZE', 'STATUS', 'CHUNKS', 'ACTIONS'];
+function matchesFileType(source: Source, fileType: string): boolean {
+  if (fileType === 'all') return true;
+  return formatFileType(source.fileType) === fileType.toUpperCase();
+}
 
-export function SourceLedger({ sources }: SourceLedgerProps) {
+function matchesStatus(source: Source, status: string): boolean {
+  if (status === 'all') return true;
+  return source.status.toLowerCase() === status.toLowerCase();
+}
+
+function matchesSearch(source: Source, search: string): boolean {
+  if (!search) return true;
+  return source.filename.toLowerCase().includes(search.toLowerCase());
+}
+
+interface SourceRowProps {
+  source: Source;
+}
+
+function SourceRow({ source }: SourceRowProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteSource = useDeleteSource();
+  const reindexSource = useReindexSource();
 
-  function handleDelete(id: string, filename: string) {
-    if (!window.confirm(`Delete "${filename}"? This cannot be undone.`)) return;
-    deleteSource.mutate(id);
+  function handleDeleteClick() {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    deleteSource.mutate(source.id, {
+      onSettled: () => setConfirmDelete(false),
+    });
   }
+
+  function handleReindex() {
+    reindexSource.mutate(source.id);
+  }
+
+  return (
+    <tr className="border-b border-obsidian-border/10 hover:bg-obsidian-raised/30 transition-colors duration-75 group">
+      {/* Filename */}
+      <td className="px-3 py-2">
+        <div className="flex items-center gap-2">
+          <FileText size={11} className="text-ui-dim shrink-0" strokeWidth={1.5} />
+          <span
+            className="font-mono text-[11px] text-ui-text truncate max-w-[180px]"
+            title={source.filename}
+          >
+            {source.filename}
+          </span>
+        </div>
+      </td>
+
+      {/* Type */}
+      <td className="px-3 py-2">
+        <span className="font-mono text-[10px] text-ui-muted">
+          {formatFileType(source.fileType)}
+        </span>
+      </td>
+
+      {/* Size */}
+      <td className="px-3 py-2">
+        <span className="font-mono text-[10px] text-ui-muted tabular-nums">
+          {formatBytes(source.fileSize)}
+        </span>
+      </td>
+
+      {/* Status */}
+      <td className="px-3 py-2">
+        <StatusChip status={source.status} />
+      </td>
+
+      {/* Chunks */}
+      <td className="px-3 py-2">
+        <span className="font-mono text-[10px] text-ui-muted tabular-nums">
+          {source.chunkCount}
+        </span>
+      </td>
+
+      {/* Date */}
+      <td className="px-3 py-2">
+        <span className="font-mono text-[10px] text-ui-dim tabular-nums">
+          {formatDate(source.createdAt)}
+        </span>
+      </td>
+
+      {/* Actions */}
+      <td className="px-3 py-2">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+          <button
+            onClick={handleReindex}
+            disabled={reindexSource.isPending}
+            aria-label={`Reindex ${source.filename}`}
+            title="Reindex"
+            className="text-ui-dim hover:text-phosphor disabled:cursor-not-allowed p-1 transition-colors duration-100"
+          >
+            <RefreshCw
+              size={12}
+              strokeWidth={1.5}
+              className={reindexSource.isPending ? 'animate-spin' : ''}
+            />
+          </button>
+
+          {confirmDelete ? (
+            <div className="flex items-center gap-1">
+              <span className="font-mono text-[9px] text-yellow-400 uppercase tracking-wider">
+                CONFIRM?
+              </span>
+              <button
+                onClick={handleDeleteClick}
+                disabled={deleteSource.isPending}
+                aria-label={`Confirm delete ${source.filename}`}
+                className="font-mono text-[9px] text-red-400 hover:text-red-300 uppercase tracking-wider px-1 transition-colors duration-100 disabled:cursor-not-allowed"
+              >
+                YES
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                aria-label="Cancel delete"
+                className="font-mono text-[9px] text-ui-muted hover:text-ui-text uppercase tracking-wider px-1 transition-colors duration-100"
+              >
+                NO
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleDeleteClick}
+              disabled={deleteSource.isPending}
+              aria-label={`Delete ${source.filename}`}
+              className="text-ui-dim hover:text-red-400 disabled:cursor-not-allowed p-1 transition-colors duration-100"
+            >
+              <Trash2 size={12} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+const COLUMNS = ['FILENAME', 'TYPE', 'SIZE', 'STATUS', 'CHUNKS', 'CREATED', 'ACTIONS'];
+
+export function SourceLedger({ sources, filters }: SourceLedgerProps) {
+  const filtered = sources.filter(
+    (s) =>
+      matchesSearch(s, filters.search) &&
+      matchesFileType(s, filters.fileType) &&
+      matchesStatus(s, filters.status),
+  );
 
   if (sources.length === 0) {
     return (
@@ -58,6 +214,17 @@ export function SourceLedger({ sources }: SourceLedgerProps) {
         <FileText size={24} className="text-ui-dim/40" strokeWidth={1} />
         <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
           NO SOURCES INDEXED
+        </p>
+      </div>
+    );
+  }
+
+  if (filtered.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-2">
+        <FileText size={24} className="text-ui-dim/40" strokeWidth={1} />
+        <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
+          NO SOURCES MATCH FILTERS
         </p>
       </div>
     );
@@ -80,62 +247,8 @@ export function SourceLedger({ sources }: SourceLedgerProps) {
           </tr>
         </thead>
         <tbody>
-          {sources.map((source) => (
-            <tr
-              key={source.id}
-              className="border-b border-obsidian-border/10 hover:bg-obsidian-raised/30 transition-colors duration-75 group"
-            >
-              {/* Filename */}
-              <td className="px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <FileText size={11} className="text-ui-dim shrink-0" strokeWidth={1.5} />
-                  <span
-                    className="font-mono text-[11px] text-ui-text truncate max-w-[220px]"
-                    title={source.filename}
-                  >
-                    {source.filename}
-                  </span>
-                </div>
-              </td>
-
-              {/* Type */}
-              <td className="px-3 py-2">
-                <span className="font-mono text-[10px] text-ui-muted">
-                  {formatFileType(source.fileType)}
-                </span>
-              </td>
-
-              {/* Size */}
-              <td className="px-3 py-2">
-                <span className="font-mono text-[10px] text-ui-muted tabular-nums">
-                  {formatBytes(source.fileSize)}
-                </span>
-              </td>
-
-              {/* Status */}
-              <td className="px-3 py-2">
-                <StatusChip status={source.status} />
-              </td>
-
-              {/* Chunks */}
-              <td className="px-3 py-2">
-                <span className="font-mono text-[10px] text-ui-muted tabular-nums">
-                  {source.chunkCount}
-                </span>
-              </td>
-
-              {/* Actions */}
-              <td className="px-3 py-2">
-                <button
-                  onClick={() => handleDelete(source.id, source.filename)}
-                  disabled={deleteSource.isPending}
-                  aria-label={`Delete ${source.filename}`}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-100 text-ui-dim hover:text-red-400 disabled:cursor-not-allowed p-1"
-                >
-                  <Trash2 size={12} strokeWidth={1.5} />
-                </button>
-              </td>
-            </tr>
+          {filtered.map((source) => (
+            <SourceRow key={source.id} source={source} />
           ))}
         </tbody>
       </table>
