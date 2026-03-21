@@ -29,17 +29,60 @@ When creating React components in `packages/web/`:
 - Primary color: #abd600 with phosphor glow effects
 - Surface hierarchy: base (#111417), inset (#0c0e12), raised (#282a2e)
 
+### API Command Scaffolding
+
+When creating a new command in `packages/api/src/commands/`:
+- Create `<name>.command.ts` with a typed input DTO and result type
+- Validate input with a Zod schema
+- Execute business logic via `packages/core/` — no ORM/DB calls directly in the command
+- Return a `Result<T, E>` — don't throw for expected failures
+- Emit domain events if other parts of the system need to react
+- Create a corresponding route handler in `packages/api/src/handlers/`
+- Include a `<name>.command.test.ts` integration test
+
+### API Query Scaffolding
+
+When creating a new query in `packages/api/src/queries/`:
+- Create `<name>.query.ts` with typed filter/pagination params and a response DTO
+- Queries must never trigger side effects or mutations
+- Use optimized read paths — join/project only needed columns
+- Support cursor-based or offset pagination on list queries
+- Create a corresponding route handler in `packages/api/src/handlers/`
+- Include a `<name>.query.test.ts` test
+
 ### API Route Scaffolding
 
-When creating API routes in `packages/api/`:
+When creating routes in `packages/api/src/routes/`:
 - Prefix all routes with `/api/v1`
-- Include request/response type definitions from `packages/shared/`
-- Add input validation
-- Return consistent error response shapes
+- Routes are thin — define method + path + middleware, delegate to handlers
+- Use Zod schemas for request validation middleware
+- Consistent error shape: `{ error: { code: string, message: string, details?: unknown } }`
+
+### React Component Scaffolding
+
+When creating components in `packages/web/`:
+- Colocate files: `ComponentName/index.tsx`, `ComponentName.test.tsx`
+- Use React Query for server state — no manual fetch + useState
+- Custom hooks (prefixed `use`) for reusable logic
+- Event handlers named `handleXxx`
+- Accessible by default: semantic HTML, ARIA labels, keyboard nav
+- Suspense boundary for async content, error boundary for fault isolation
 
 ### Adapter Scaffolding
 
 When creating adapters in `packages/core/`:
 - Implement the provider interface pattern from the spec
 - Keep framework-agnostic (no Express/Fastify imports)
+- Use `Result<T, E>` for operations that can fail
 - Include unit tests with mock implementations
+
+### Database Migration Scaffolding
+
+When creating migrations:
+- Versioned migration files with timestamp prefix
+- snake_case for tables and columns, plural table names
+- Parameterized queries only
+- Include `up` and `down` functions
+- Add indexes on foreign keys and frequently filtered columns
+- IVFFlat or HNSW index on vector embedding columns
+- GIN index on JSONB columns that are queried
