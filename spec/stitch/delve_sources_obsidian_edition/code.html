@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SOVEREIGN_CONSOLE // DELVE_SOURCE_INGESTION</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;700&amp;family=Space+Grotesk:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#050800",
+                        "on-primary-fixed": "#161e00",
+                        "surface-container-highest": "#323539",
+                        "tertiary-fixed-dim": "#ffb693",
+                        "surface-container-low": "#191c1f",
+                        "outline": "#8f9195",
+                        "surface-bright": "#37393d",
+                        "on-surface": "#e1e2e7",
+                        "surface-container-lowest": "#0c0e12",
+                        "on-background": "#e1e2e7",
+                        "inverse-primary": "#506600",
+                        "secondary": "#c1c1ff",
+                        "on-surface-variant": "#c6c6ca",
+                        "tertiary": "#ffb693",
+                        "on-tertiary-fixed": "#351000",
+                        "primary-fixed": "#c3f400",
+                        "on-primary-container": "#678200",
+                        "surface-dim": "#111417",
+                        "error-container": "#93000a",
+                        "surface-variant": "#323539",
+                        "secondary-fixed-dim": "#c1c1ff",
+                        "tertiary-container": "#130300",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#abd600",
+                        "background": "#111417",
+                        "on-secondary": "#1200a9",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "on-secondary-container": "#b0b1ff",
+                        "on-secondary-fixed": "#07006c",
+                        "surface-container-high": "#282a2e",
+                        "secondary-fixed": "#e1e0ff",
+                        "on-tertiary": "#561f00",
+                        "surface": "#111417",
+                        "secondary-container": "#312ec5",
+                        "inverse-on-surface": "#2e3134",
+                        "error": "#ffb4ab",
+                        "on-primary": "#283500",
+                        "on-tertiary-fixed-variant": "#7a3000",
+                        "on-tertiary-container": "#ca5300",
+                        "inverse-surface": "#e1e2e7",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#abd600",
+                        "outline-variant": "#45474a",
+                        "surface-container": "#1d2023",
+                        "on-secondary-fixed-variant": "#2e2bc2",
+                        "tertiary-fixed": "#ffdbcc",
+                        "surface-tint": "#abd600"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["JetBrains Mono"]
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 18px;
+        }
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(171, 214, 0, 0.02) 50%, transparent 50%);
+            background-size: 100% 2px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .glow-primary {
+            box-shadow: 0 0 12px rgba(171, 214, 0, 0.2);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0e12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #45474a;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #abd600;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary overflow-hidden">
+<div class="scanline"></div>
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-[#111417] border-b border-[#45474a]/15 shadow-[0_0_15px_rgba(171,214,0,0.05)] flex justify-between items-center px-6 h-14">
+<div class="flex items-center gap-4">
+<span class="font-['JetBrains_Mono'] text-[#abd600] font-black tracking-widest text-lg">SOVEREIGN_CONSOLE</span>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<nav class="flex gap-6">
+<a class="font-['Manrope'] tracking-tighter uppercase font-bold text-sm text-[#abd600] border-b-2 border-[#abd600] pb-1 cursor-crosshair active:scale-95 transition-all" href="#">Ingestion</a>
+<a class="font-['Manrope'] tracking-tighter uppercase font-bold text-sm text-[#45474a] hover:text-[#abd600] transition-colors cursor-crosshair active:scale-95" href="#">Explorer</a>
+<a class="font-['Manrope'] tracking-tighter uppercase font-bold text-sm text-[#45474a] hover:text-[#abd600] transition-colors cursor-crosshair active:scale-95" href="#">Intelligence</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="bg-surface-container-lowest border-0 border-b border-outline-variant/30 text-[10px] font-label uppercase px-10 py-1 w-64 focus:ring-0 focus:border-primary transition-all" placeholder="SEARCH_SYSTEM..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 text-outline hover:bg-[#282a2e] transition-all cursor-crosshair"><span class="material-symbols-outlined">sensors</span></button>
+<button class="p-2 text-outline hover:bg-[#282a2e] transition-all cursor-crosshair"><span class="material-symbols-outlined">memory</span></button>
+<button class="p-2 text-[#abd600] hover:bg-[#282a2e] transition-all cursor-crosshair"><span class="material-symbols-outlined">terminal</span></button>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-64 bg-[#0c0e12] border-r border-[#45474a]/15 flex flex-col py-4 z-40">
+<div class="px-6 mb-8">
+<div class="flex flex-col">
+<span class="font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest text-primary">LOCAL_RAG</span>
+<span class="font-['JetBrains_Mono'] text-[9px] text-outline tracking-tighter">v1.0.4-STABLE</span>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-slate-500 hover:text-[#abd600] pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest hover:bg-[#111417] hover:pl-6 active:bg-[#282a2e]" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Analysis</span>
+</a>
+<a class="text-slate-500 hover:text-[#abd600] pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest hover:bg-[#111417] hover:pl-6 active:bg-[#282a2e]" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Archive</span>
+</a>
+<a class="bg-[#111417] text-[#abd600] border-l-4 border-[#abd600] pl-4 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest active:bg-[#282a2e]" href="#">
+<span class="material-symbols-outlined">database</span>
+<span>Sources</span>
+</a>
+<a class="text-slate-500 hover:text-[#abd600] pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest hover:bg-[#111417] hover:pl-6 active:bg-[#282a2e]" href="#">
+<span class="material-symbols-outlined">security</span>
+<span>Protocols</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/10 pt-4 space-y-1">
+<a class="text-slate-500 hover:text-[#abd600] pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest hover:bg-[#111417] hover:pl-6" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+<div class="px-5 py-3 flex items-center gap-3">
+<div class="w-6 h-6 bg-surface-container-highest border border-outline-variant/30"></div>
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-on-surface">SYS_ADMIN</span>
+<span class="text-[8px] font-label text-primary">AUTHORIZED</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-14 p-6 h-[calc(100vh-3.5rem)] overflow-y-auto bg-surface-container-lowest">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 mb-6 font-label text-[10px] uppercase tracking-widest text-outline">
+<span class="hover:text-primary cursor-pointer transition-colors">ROOT</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="hover:text-primary cursor-pointer transition-colors">WORKSPACE</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-primary font-bold">SOURCES</span>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<!-- Header Section -->
+<div class="col-span-12 mb-2">
+<h1 class="font-headline text-3xl font-extrabold tracking-tighter uppercase text-on-surface">Source Ingestion <span class="text-primary">_</span></h1>
+<p class="font-label text-xs text-outline mt-1 tracking-widest">PROTOCOL: OBSIDIAN_V4 // MODE: HIGH_FIDELITY</p>
+</div>
+<!-- Ingestion Zone -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+<!-- Drop Zone -->
+<div class="aspect-[16/10] border border-dashed border-outline-variant/50 bg-surface flex flex-col items-center justify-center p-8 group hover:border-primary transition-colors cursor-crosshair relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors mb-4" style="font-variation-settings: 'FILL' 1;">cloud_upload</span>
+<h2 class="font-headline text-lg font-bold tracking-tight uppercase text-on-surface">Drop assets for ingestion</h2>
+<p class="font-label text-[10px] text-outline mt-2 tracking-widest">PDF, MD, CSV, OR TXT // MAX 128MB PER UNIT</p>
+<button class="mt-6 px-6 py-2 bg-primary text-on-primary font-label text-[10px] font-bold uppercase tracking-widest glow-primary active:scale-95 transition-all">Browse System_</button>
+</div>
+<!-- Active Jobs -->
+<div class="bg-surface border border-outline-variant/15 p-4 space-y-4">
+<div class="flex justify-between items-center border-b border-outline-variant/10 pb-2">
+<span class="font-label text-[10px] uppercase text-primary">Active_Processes</span>
+<span class="font-label text-[10px] text-outline">02 TOTAL</span>
+</div>
+<div class="space-y-4">
+<!-- Job 1 -->
+<div class="space-y-1">
+<div class="flex justify-between items-end font-label text-[10px] uppercase">
+<span class="text-on-surface">financial_ledger_2024.pdf</span>
+<span class="text-primary">82%</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary" style="width: 82%"></div>
+</div>
+<div class="flex justify-between text-[8px] font-label text-outline uppercase tracking-tighter">
+<span>Tokenizing segments...</span>
+<span>12.4 MB / 15.1 MB</span>
+</div>
+</div>
+<!-- Job 2 -->
+<div class="space-y-1">
+<div class="flex justify-between items-end font-label text-[10px] uppercase">
+<span class="text-on-surface">network_logs_x99.log</span>
+<span class="text-secondary">INDEXING</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-secondary" style="width: 100%"></div>
+</div>
+<div class="flex justify-between text-[8px] font-label text-outline uppercase tracking-tighter">
+<span>Embedding vectors...</span>
+<span>COMPLETE</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Source Ledger -->
+<div class="col-span-12 lg:col-span-7">
+<div class="bg-surface border border-outline-variant/15 h-full flex flex-col">
+<div class="p-4 border-b border-outline-variant/15 flex justify-between items-center">
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-surface-container-high font-label text-[10px] uppercase text-on-surface hover:text-primary transition-colors">ALL_SOURCES</button>
+<button class="px-3 py-1 font-label text-[10px] uppercase text-outline hover:text-on-surface transition-colors">VECTORS</button>
+<button class="px-3 py-1 font-label text-[10px] uppercase text-outline hover:text-on-surface transition-colors">RECORDS</button>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary">filter_list</span>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary">sort</span>
+</div>
+</div>
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/10">
+<th class="p-3 font-label text-[9px] uppercase tracking-widest text-outline">Filename</th>
+<th class="p-3 font-label text-[9px] uppercase tracking-widest text-outline">Type</th>
+<th class="p-3 font-label text-[9px] uppercase tracking-widest text-outline">Size</th>
+<th class="p-3 font-label text-[9px] uppercase tracking-widest text-outline">Status</th>
+<th class="p-3 font-label text-[9px] uppercase tracking-widest text-outline">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="hover:bg-surface-container-high transition-all cursor-default">
+<td class="p-3 font-label text-[10px] uppercase text-on-surface">Q3_MARKET_TRENDS.PDF</td>
+<td class="p-3">
+<span class="bg-surface-container-highest px-2 py-0.5 font-label text-[8px] uppercase text-outline">Document</span>
+</td>
+<td class="p-3 font-label text-[10px] text-outline">4.2 MB</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary"></div>
+<span class="font-label text-[9px] uppercase text-primary">Indexed</span>
+</div>
+</td>
+<td class="p-3">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-all cursor-default">
+<td class="p-3 font-label text-[10px] uppercase text-on-surface">CUSTOMER_CHURN_DATA.CSV</td>
+<td class="p-3">
+<span class="bg-surface-container-highest px-2 py-0.5 font-label text-[8px] uppercase text-outline">Dataset</span>
+</td>
+<td class="p-3 font-label text-[10px] text-outline">128.5 KB</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary"></div>
+<span class="font-label text-[9px] uppercase text-primary">Indexed</span>
+</div>
+</td>
+<td class="p-3">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-all cursor-default">
+<td class="p-3 font-label text-[10px] uppercase text-on-surface">LEGAL_COMPLIANCE_A.PDF</td>
+<td class="p-3">
+<span class="bg-surface-container-highest px-2 py-0.5 font-label text-[8px] uppercase text-outline">Document</span>
+</td>
+<td class="p-3 font-label text-[10px] text-outline">8.1 MB</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-secondary"></div>
+<span class="font-label text-[9px] uppercase text-secondary">Pending</span>
+</div>
+</td>
+<td class="p-3">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-all cursor-default">
+<td class="p-3 font-label text-[10px] uppercase text-on-surface">PROTOCOL_OBSIDIAN.MD</td>
+<td class="p-3">
+<span class="bg-surface-container-highest px-2 py-0.5 font-label text-[8px] uppercase text-outline">Text</span>
+</td>
+<td class="p-3 font-label text-[10px] text-outline">12 KB</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary"></div>
+<span class="font-label text-[9px] uppercase text-primary">Indexed</span>
+</div>
+</td>
+<td class="p-3">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-all cursor-default">
+<td class="p-3 font-label text-[10px] uppercase text-on-surface">USER_INTERVIEWS_24.TXT</td>
+<td class="p-3">
+<span class="bg-surface-container-highest px-2 py-0.5 font-label text-[8px] uppercase text-outline">Text</span>
+</td>
+<td class="p-3 font-label text-[10px] text-outline">45 KB</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-error"></div>
+<span class="font-label text-[9px] uppercase text-error">Failed</span>
+</div>
+</td>
+<td class="p-3">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">refresh</span></button>
+<button class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-all cursor-default">
+<td class="p-3 font-label text-[10px] uppercase text-on-surface">SCHEMATIC_v2.PNG</td>
+<td class="p-3">
+<span class="bg-surface-container-highest px-2 py-0.5 font-label text-[8px] uppercase text-outline">Image</span>
+</td>
+<td class="p-3 font-label text-[10px] text-outline">1.2 MB</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary"></div>
+<span class="font-label text-[9px] uppercase text-primary">Indexed</span>
+</div>
+</td>
+<td class="p-3">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="text-outline hover:text-error transition-colors ml-2"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-3 bg-surface-container-low border-t border-outline-variant/15 flex justify-between items-center">
+<span class="font-label text-[9px] text-outline uppercase">Showing 06 of 42 records</span>
+<div class="flex gap-1">
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all"><span class="material-symbols-outlined text-xs">chevron_left</span></button>
+<button class="w-6 h-6 flex items-center justify-center border border-primary text-primary font-label text-[9px]">01</button>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all font-label text-[9px]">02</button>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all"><span class="material-symbols-outlined text-xs">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Contextual Stats -->
+<div class="col-span-12 grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+<div class="bg-surface border border-outline-variant/15 p-4 relative overflow-hidden">
+<div class="absolute right-2 top-2 opacity-5">
+<span class="material-symbols-outlined text-4xl">storage</span>
+</div>
+<span class="block font-label text-[10px] uppercase text-outline mb-1">Total_Capacity</span>
+<span class="block font-headline text-2xl font-black text-on-surface">1.2 TB</span>
+<div class="mt-2 h-1 w-full bg-surface-container-high">
+<div class="h-full bg-primary" style="width: 35%"></div>
+</div>
+</div>
+<div class="bg-surface border border-outline-variant/15 p-4 relative overflow-hidden">
+<div class="absolute right-2 top-2 opacity-5">
+<span class="material-symbols-outlined text-4xl">share</span>
+</div>
+<span class="block font-label text-[10px] uppercase text-outline mb-1">Index_Density</span>
+<span class="block font-headline text-2xl font-black text-on-surface">4.2M <span class="text-xs font-normal text-outline">VECTORS</span></span>
+</div>
+<div class="bg-surface border border-outline-variant/15 p-4 relative overflow-hidden">
+<div class="absolute right-2 top-2 opacity-5">
+<span class="material-symbols-outlined text-4xl">lan</span>
+</div>
+<span class="block font-label text-[10px] uppercase text-outline mb-1">Active_Nodes</span>
+<span class="block font-headline text-2xl font-black text-on-surface">12 / 12</span>
+</div>
+<div class="bg-surface border border-outline-variant/15 p-4 relative overflow-hidden">
+<div class="absolute right-2 top-2 opacity-5">
+<span class="material-symbols-outlined text-4xl">bolt</span>
+</div>
+<span class="block font-label text-[10px] uppercase text-outline mb-1">Ingest_Rate</span>
+<span class="block font-headline text-2xl font-black text-primary">124 MB/s</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Overlay Terminal Button (Floating) -->
+<button class="fixed bottom-6 right-6 w-12 h-12 bg-primary text-on-primary flex items-center justify-center glow-primary active:scale-90 transition-all z-50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</button>
+</body></html>

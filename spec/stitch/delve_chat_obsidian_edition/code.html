@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SOVEREIGN_CONSOLE | DELVE_INTERFACE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#050800",
+                        "on-primary-fixed": "#161e00",
+                        "surface-container-highest": "#323539",
+                        "surface-container-low": "#191c1f",
+                        "outline": "#8f9195",
+                        "on-surface": "#e1e2e7",
+                        "surface-container-lowest": "#0c0e12",
+                        "on-background": "#e1e2e7",
+                        "primary": "#abd600",
+                        "background": "#111417",
+                        "surface-dim": "#111417",
+                        "surface-container-high": "#282a2e",
+                        "surface": "#111417",
+                        "outline-variant": "#45474a",
+                        "surface-container": "#1d2023",
+                        "accent-blue": "#38BDF8" // Requested custom accent
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.03;
+        }
+        .terminal-glow {
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0c0e12; }
+        ::-webkit-scrollbar-thumb { background: #45474a; }
+        ::-webkit-scrollbar-thumb:hover { background: #38BDF8; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-accent-blue/30 overflow-hidden">
+<div class="scanline"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#111417] text-[#abd600] font-['Manrope'] tracking-tighter uppercase font-bold text-sm border-b border-[#45474a]/15 shadow-[0_0_15px_rgba(171,214,0,0.05)] flex justify-between items-center px-6 h-14 w-full">
+<div class="flex items-center gap-4">
+<span class="font-['JetBrains_Mono'] text-[#abd600] font-black tracking-widest text-lg">SOVEREIGN_CONSOLE</span>
+<div class="hidden md:flex gap-6 ml-8">
+<a class="text-[#abd600] border-b-2 border-[#abd600] pb-1" href="#">Protocols</a>
+<a class="text-[#45474a] hover:text-[#abd600] transition-colors" href="#">Neural_Net</a>
+<a class="text-[#45474a] hover:text-[#abd600] transition-colors" href="#">Directives</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest border border-outline-variant/20 px-3 py-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="sensors">sensors</span>
+<span class="font-mono text-[10px] text-accent-blue">UP_LINK: ACTIVE</span>
+</div>
+<span class="material-symbols-outlined cursor-crosshair hover:bg-[#282a2e] p-2 transition-all" data-icon="memory">memory</span>
+<span class="material-symbols-outlined cursor-crosshair hover:bg-[#282a2e] p-2 transition-all" data-icon="terminal">terminal</span>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-64 bg-[#0c0e12] border-r border-[#45474a]/15 flex flex-col py-4 z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-2 h-2 bg-accent-blue rounded-full"></div>
+<span class="font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest text-on-surface">LOCAL_RAG</span>
+</div>
+<div class="font-['JetBrains_Mono'] text-[9px] text-slate-500 tracking-[0.2em]">v1.0.4-STABLE</div>
+</div>
+<nav class="flex-1">
+<a class="bg-[#111417] text-[#abd600] border-l-4 border-[#abd600] pl-4 py-3 flex items-center gap-3 font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="analytics">analytics</span>
+                Analysis
+            </a>
+<a class="text-slate-500 hover:text-[#abd600] hover:bg-[#111417] hover:pl-6 pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="inventory_2">inventory_2</span>
+                Archive
+            </a>
+<a class="text-slate-500 hover:text-[#abd600] hover:bg-[#111417] hover:pl-6 pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="security">security</span>
+                Protocols
+            </a>
+<a class="text-slate-500 hover:text-[#abd600] hover:bg-[#111417] hover:pl-6 pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="database">database</span>
+                Sources
+            </a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/10 pt-4">
+<a class="text-slate-500 hover:text-[#abd600] pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+                Settings
+            </a>
+<a class="text-slate-500 hover:text-[#abd600] pl-5 py-3 flex items-center gap-3 transition-all font-['JetBrains_Mono'] text-[11px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="code">code</span>
+                Terminal
+            </a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-64 mr-80 pt-14 h-screen flex flex-col bg-surface-container-lowest">
+<!-- Chat Header -->
+<div class="h-12 border-b border-outline-variant/15 flex items-center justify-between px-6 bg-surface">
+<div class="flex items-center gap-4">
+<span class="font-mono text-[10px] text-accent-blue tracking-tighter">SESSION_ID: 7FA-2291-K</span>
+<span class="w-[1px] h-3 bg-outline-variant/30"></span>
+<span class="font-mono text-[10px] text-on-surface-variant">MODEL: DELVE_V4_LATEST</span>
+</div>
+<div class="flex gap-2">
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant/20 hover:border-accent-blue transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="download">download</span>
+</button>
+<button class="w-6 h-6 flex items-center justify-center border border-outline-variant/20 hover:border-accent-blue transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="history">history</span>
+</button>
+</div>
+</div>
+<!-- Conversation Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-12">
+<!-- User Message -->
+<div class="max-w-3xl mx-auto flex gap-6">
+<div class="flex-shrink-0 w-8 h-8 bg-surface-container-high flex items-center justify-center border border-outline-variant/30">
+<span class="font-mono text-xs font-bold text-accent-blue">USR</span>
+</div>
+<div class="space-y-2">
+<div class="text-on-surface leading-relaxed">Analyze the current infrastructure vulnerabilities identified in the Q3 audit report and cross-reference them with the proposed mapping for 2024. Are there any critical oversights?</div>
+<div class="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Timestamp: 14:22:01.002</div>
+</div>
+</div>
+<!-- AI Response -->
+<div class="max-w-3xl mx-auto flex gap-6">
+<div class="flex-shrink-0 w-8 h-8 bg-primary/10 flex items-center justify-center border border-primary/30">
+<span class="font-mono text-xs font-bold text-primary">DLV</span>
+</div>
+<div class="space-y-4">
+<div class="text-on-surface leading-relaxed border-l border-primary/20 pl-6 py-1">
+                        I have cross-referenced <span class="text-accent-blue font-mono text-[13px] underline decoration-accent-blue/30 cursor-pointer">audit_report_final.pdf</span> with the <span class="text-accent-blue font-mono text-[13px] underline decoration-accent-blue/30 cursor-pointer">infra_map_2024.docx</span> schemas.
+                        <br/><br/>
+                        Analysis reveals two critical discrepancies in the Load Balancer redundancy configuration. The audit highlights a single point of failure at Node 7-B 
+                        <span class="inline-flex items-center bg-surface-container-high px-2 py-0.5 font-mono text-[10px] text-accent-blue border border-outline-variant/30 ml-1">
+                            [Source: audit_report_final.pdf, chunk 3]
+                        </span>, which is not addressed in the 2024 infrastructure map.
+                        <br/><br/>
+                        Furthermore, the firewall rules documented in the audit 
+                        <span class="inline-flex items-center bg-surface-container-high px-2 py-0.5 font-mono text-[10px] text-accent-blue border border-outline-variant/30 ml-1">
+                            [Source: audit_report_final.pdf, chunk 12]
+                        </span> 
+                        seem to conflict with the proposed Zero-Trust migration layer shown in the map's DMZ segment 
+                        <span class="inline-flex items-center bg-surface-container-high px-2 py-0.5 font-mono text-[10px] text-accent-blue border border-outline-variant/30 ml-1">
+                            [Source: infra_map_2024.docx, chunk 7]
+                        </span>.
+                    </div>
+<!-- Insight Card -->
+<div class="bg-surface-container-low border border-outline-variant/15 p-4 space-y-3">
+<div class="flex items-center justify-between border-b border-outline-variant/10 pb-2">
+<span class="font-mono text-[10px] text-primary uppercase tracking-widest flex items-center gap-2">
+<span class="w-1 h-1 bg-primary rounded-full"></span> Priority_Alert
+                            </span>
+<span class="font-mono text-[9px] text-outline-variant">CONFIDENCE: 98.4%</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<div class="font-mono text-[9px] text-outline-variant uppercase">Asset_ID</div>
+<div class="font-mono text-xs text-on-surface">NODE-LB-07B</div>
+</div>
+<div class="space-y-1">
+<div class="font-mono text-[9px] text-outline-variant uppercase">Risk_Level</div>
+<div class="font-mono text-xs text-error text-[#ffb4ab]">CRITICAL_OVEREXPOSURE</div>
+</div>
+</div>
+</div>
+<div class="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Processing_Time: 412ms</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-6 bg-surface border-t border-outline-variant/15">
+<div class="max-w-3xl mx-auto">
+<div class="relative group">
+<div class="absolute -top-6 left-0 flex gap-4">
+<span class="font-mono text-[9px] text-accent-blue flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]" data-icon="attachment">attachment</span> 
+                            2_FILES_ATTACHED
+                        </span>
+<span class="font-mono text-[9px] text-outline-variant hover:text-on-surface cursor-pointer">CLEAR_CONTEXT</span>
+</div>
+<div class="flex items-end gap-4 bg-surface-container-lowest border border-outline-variant/30 focus-within:border-accent-blue transition-colors p-4">
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline-variant font-body resize-none h-12 leading-relaxed" placeholder="Awaiting next directive..."></textarea>
+<button class="bg-primary hover:shadow-[0_0_15px_rgba(171,214,0,0.3)] text-on-primary font-mono text-[11px] font-bold px-4 py-2 uppercase flex items-center gap-2 group active:scale-95 transition-all">
+                            Execute
+                            <span class="material-symbols-outlined text-sm" data-icon="keyboard_return">keyboard_return</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Context Sidebar (Right) -->
+<aside class="fixed right-0 top-14 h-[calc(100vh-3.5rem)] w-80 bg-surface border-l border-outline-variant/15 flex flex-col z-40">
+<div class="p-6 space-y-8">
+<!-- Header -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-extrabold text-sm uppercase tracking-tighter">Current Context</h2>
+<span class="font-mono text-[10px] text-accent-blue">2_ENTITIES</span>
+</div>
+<div class="h-[1px] bg-gradient-to-r from-accent-blue to-transparent"></div>
+</div>
+<!-- Active Sources -->
+<div class="space-y-4">
+<div class="group cursor-pointer">
+<div class="bg-surface-container-low border border-outline-variant/15 group-hover:border-accent-blue/50 transition-colors p-3 space-y-2 relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-blue text-lg" data-icon="description">description</span>
+<span class="font-mono text-[11px] text-on-surface truncate max-w-[140px]">audit_report_final.pdf</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-sm group-hover:text-accent-blue" data-icon="open_in_new">open_in_new</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[8px] text-outline-variant border border-outline-variant/10">PDF</span>
+<span class="bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[8px] text-outline-variant border border-outline-variant/10">1.2MB</span>
+<span class="bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[8px] text-accent-blue border border-accent-blue/20">QUERIED</span>
+</div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="bg-surface-container-low border border-outline-variant/15 group-hover:border-accent-blue/50 transition-colors p-3 space-y-2 relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-blue text-lg" data-icon="map">map</span>
+<span class="font-mono text-[11px] text-on-surface truncate max-w-[140px]">infra_map_2024.docx</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-sm group-hover:text-accent-blue" data-icon="open_in_new">open_in_new</span>
+</div>
+<div class="flex gap-2">
+<span class="bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[8px] text-outline-variant border border-outline-variant/10">DOCX</span>
+<span class="bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[8px] text-outline-variant border border-outline-variant/10">4.8MB</span>
+<span class="bg-surface-container-lowest px-1.5 py-0.5 font-mono text-[8px] text-accent-blue border border-accent-blue/20">QUERIED</span>
+</div>
+</div>
+</div>
+</div>
+<!-- System Health Section -->
+<div class="space-y-4 pt-4">
+<div class="font-mono text-[10px] text-outline-variant uppercase tracking-widest border-b border-outline-variant/10 pb-2">Intelligence_Metrics</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="font-mono text-[10px] text-on-surface-variant">Semantic Depth</span>
+<div class="w-24 h-1 bg-surface-container-highest">
+<div class="w-3/4 h-full bg-accent-blue"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-mono text-[10px] text-on-surface-variant">Context Window</span>
+<div class="w-24 h-1 bg-surface-container-highest">
+<div class="w-1/2 h-full bg-accent-blue"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-mono text-[10px] text-on-surface-variant">GPU Load</span>
+<span class="font-mono text-[10px] text-primary">12%</span>
+</div>
+</div>
+</div>
+<!-- Mini Map / Viz -->
+<div class="border border-outline-variant/15 p-1 bg-surface-container-lowest aspect-video relative group overflow-hidden">
+<img alt="Server network infrastructure" class="w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Abstract glowing network server node connectivity visualization" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQseUI5DQnJnNOnkwroVairf5sVluZ00R9q8sxPIooqg-JxBPGFgo2H2wcmv1zpLrJm7BDiXxLRXddCYEh39FsfxOmTJ3gzMOxSAJISU_Q3b93K3W8CKsFV2sgjtZfrkowgDiOvO6cQ2POosGvxRKr_IzY7EHFhF5vYkbD27Ib_AHp_fAA1LZKvOT-AuLfWys05RjSowV2RinCFHYpuiaxjyCBnRwZCjlTGc7VhzqnSciXN7Ma4KBl-2xJoR6rLEnqmUUeGQxDIg"/>
+<div class="absolute inset-0 bg-accent-blue/5"></div>
+<div class="absolute top-2 left-2 flex items-center gap-1">
+<div class="w-1.5 h-1.5 bg-accent-blue rounded-full animate-pulse"></div>
+<span class="font-mono text-[7px] text-on-surface-variant">REALTIME_NET_SCAN</span>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6 bg-surface-container-low border-t border-outline-variant/15">
+<button class="w-full py-2 border border-outline-variant/30 hover:bg-surface-container-high transition-colors font-mono text-[10px] uppercase tracking-widest text-on-surface-variant flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="cloud_sync">cloud_sync</span>
+                Sync External Knowledge
+            </button>
+</div>
+</aside>
+</body></html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DELVE | System Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#abd600",
+                        "background": "#111417",
+                        "surface": "#111417",
+                        "surface-container-lowest": "#0c0e12",
+                        "surface-container-low": "#191c1f",
+                        "surface-container-high": "#282a2e",
+                        "surface-container-highest": "#323539",
+                        "on-primary": "#283500",
+                        "outline-variant": "#45474a",
+                        "on-surface": "#e1e2e7",
+                        "on-surface-variant": "#c6c6ca"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070A;
+            color: #e1e2e7;
+            font-family: 'Inter', sans-serif;
+        }
+        .scanline-overlay::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.05;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .phosphor-glow {
+            box-shadow: 0 0 10px rgba(171, 214, 0, 0.2);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #1d2023;
+            height: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            background: #abd600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-[#05070A] scanline-overlay">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#05070A] flex flex-col border-r border-white/5 z-50">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-8 h-8 bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-sm" data-icon="terminal">terminal</span>
+</div>
+<div>
+<h1 class="text-primary font-mono font-bold text-sm tracking-tighter">DELVE_OS</h1>
+<p class="text-slate-500 font-mono text-[10px]">v4.2.0-stable</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 text-slate-500 hover:text-slate-300 pl-4 py-3 font-mono text-[11px] uppercase tracking-tighter transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="analytics">analytics</span>
+                    Analysis
+                </a>
+<a class="flex items-center gap-3 text-slate-500 hover:text-slate-300 pl-4 py-3 font-mono text-[11px] uppercase tracking-tighter transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="database">database</span>
+                    Archive
+                </a>
+<a class="flex items-center gap-3 text-slate-500 hover:text-slate-300 pl-4 py-3 font-mono text-[11px] uppercase tracking-tighter transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+                    Protocols
+                </a>
+<a class="flex items-center gap-3 text-slate-500 hover:text-slate-300 pl-4 py-3 font-mono text-[11px] uppercase tracking-tighter transition-all duration-75" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="menu_book">menu_book</span>
+                    Sources
+                </a>
+<!-- Active Navigation: Settings maps to specialized terminal view -->
+<a class="flex items-center gap-3 bg-[#0c0e12] text-[#abd600] border-l-2 border-[#abd600] pl-4 py-3 font-mono text-[11px] uppercase tracking-tighter translate-x-1" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+                    System_Cfg
+                </a>
+</nav>
+</div>
+<div class="mt-auto p-6 space-y-4">
+<button class="w-full bg-primary text-on-primary py-3 font-mono text-[11px] font-bold tracking-widest hover:opacity-90 phosphor-glow transition-all">
+                INITIALIZE_SCAN
+            </button>
+<div class="pt-4 border-t border-white/5 space-y-2">
+<a class="flex items-center gap-3 text-slate-500 hover:text-slate-300 font-mono text-[10px] uppercase" href="#">
+<span class="material-symbols-outlined text-xs" data-icon="help_outline">help_outline</span>
+                    Docs
+                </a>
+<a class="flex items-center gap-3 text-slate-500 hover:text-slate-300 font-mono text-[10px] uppercase" href="#">
+<span class="material-symbols-outlined text-xs" data-icon="power_settings_new">power_settings_new</span>
+                    Logout
+                </a>
+</div>
+</div>
+</aside>
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-[#111417] flex justify-between items-center w-full px-8 py-3 h-14 border-b border-white/5 sticky top-0 z-40">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black text-[#abd600] tracking-tighter font-headline">DELVE</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 font-mono text-[10px] uppercase tracking-widest hover:text-[#abd600]" href="#">Local Agent: Active</a>
+<a class="text-slate-500 font-mono text-[10px] uppercase tracking-widest hover:text-[#abd600]" href="#">Llama 3.1</a>
+<a class="text-slate-500 font-mono text-[10px] uppercase tracking-widest hover:text-[#abd600]" href="#">RAG: Enabled</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-[#282a2e] hover:text-[#abd600] transition-colors"><span class="material-symbols-outlined text-lg" data-icon="memory">memory</span></button>
+<button class="p-2 text-slate-500 hover:bg-[#282a2e] hover:text-[#abd600] transition-colors"><span class="material-symbols-outlined text-lg" data-icon="settings_input_component">settings_input_component</span></button>
+<button class="p-2 text-slate-500 hover:bg-[#282a2e] hover:text-[#abd600] transition-colors"><span class="material-symbols-outlined text-lg" data-icon="terminal">terminal</span></button>
+</div>
+</header>
+<!-- Main Settings Content -->
+<section class="p-10 max-w-6xl w-full mx-auto grid grid-cols-12 gap-12">
+<!-- Header Section -->
+<div class="col-span-12 mb-8">
+<div class="flex items-baseline justify-between border-b border-outline-variant/20 pb-4">
+<h2 class="font-headline font-black text-4xl tracking-tighter text-on-surface uppercase">System Control</h2>
+<span class="font-mono text-[10px] text-primary tracking-widest">STABLE_BUILD_4.2.0</span>
+</div>
+</div>
+<!-- Left Column: Core Intelligence -->
+<div class="col-span-12 lg:col-span-7 space-y-12">
+<!-- LLM Provider & Keys -->
+<div class="space-y-8">
+<div class="flex items-center gap-3">
+<span class="text-primary font-mono text-xs">01</span>
+<h3 class="font-mono text-xs font-bold uppercase tracking-widest text-on-surface-variant">Core_Processing_Parameters</h3>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<div class="group">
+<label class="block font-mono text-[10px] text-slate-500 uppercase mb-2 tracking-tighter">LLM_PROVIDER_ID</label>
+<select class="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 text-primary font-mono text-sm py-3 px-0 focus:ring-0 focus:border-primary transition-all cursor-pointer">
+<option>meta-llama/Llama-3.1-405B-Instruct</option>
+<option>anthropic/Claude-3.5-Sonnet</option>
+<option>openai/GPT-4o-Mini</option>
+<option>mistral/Mistral-Large-2</option>
+</select>
+</div>
+<div class="group">
+<label class="block font-mono text-[10px] text-slate-500 uppercase mb-2 tracking-tighter">ACCESS_KEY_ENCRYPTED</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 text-on-surface font-mono text-sm py-3 px-0 focus:ring-0 focus:border-primary transition-all" type="password" value="sk-proj-••••••••••••••••••••••••"/>
+<button class="absolute right-0 top-1/2 -translate-y-1/2 text-slate-600 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="visibility_off">visibility_off</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Retrieval Settings -->
+<div class="space-y-8 pt-6">
+<div class="flex items-center gap-3">
+<span class="text-primary font-mono text-xs">02</span>
+<h3 class="font-mono text-xs font-bold uppercase tracking-widest text-on-surface-variant">Retrieval_Heuristics</h3>
+</div>
+<div class="space-y-10">
+<div class="grid grid-cols-12 gap-8 items-center">
+<div class="col-span-4">
+<label class="block font-mono text-[10px] text-slate-500 uppercase tracking-tighter">RETRIEVAL_DEPTH_(K)</label>
+<p class="text-[9px] text-slate-600 font-mono mt-1 italic">Source count per query</p>
+</div>
+<div class="col-span-6">
+<input class="w-full" max="50" min="1" type="range" value="12"/>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-mono text-sm text-primary">12_u</span>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-8 items-center">
+<div class="col-span-4">
+<label class="block font-mono text-[10px] text-slate-500 uppercase tracking-tighter">SIMILARITY_THRESHOLD</label>
+<p class="text-[9px] text-slate-600 font-mono mt-1 italic">Cosine distance min</p>
+</div>
+<div class="col-span-6">
+<input class="w-full" max="100" min="0" type="range" value="82"/>
+</div>
+<div class="col-span-2 text-right">
+<span class="font-mono text-sm text-primary">0.82_σ</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Data Structure & Hardware -->
+<div class="col-span-12 lg:col-span-5 space-y-12">
+<!-- Chunking Strategy -->
+<div class="bg-surface-container-lowest p-6 border-l border-primary/20">
+<div class="flex items-center gap-3 mb-6">
+<span class="text-primary font-mono text-xs">03</span>
+<h3 class="font-mono text-xs font-bold uppercase tracking-widest text-on-surface-variant">Data_Segmentation</h3>
+</div>
+<div class="space-y-6">
+<div class="border-b border-outline-variant/10 pb-4">
+<label class="block font-mono text-[10px] text-slate-500 uppercase mb-3">CHUNK_SIZE_LIMIT</label>
+<div class="flex justify-between items-center">
+<span class="font-mono text-sm text-on-surface">1024_tokens</span>
+<div class="flex gap-1">
+<button class="w-6 h-6 border border-outline-variant/30 flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors">-</button>
+<button class="w-6 h-6 border border-outline-variant/30 flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors">+</button>
+</div>
+</div>
+</div>
+<div class="border-b border-outline-variant/10 pb-4">
+<label class="block font-mono text-[10px] text-slate-500 uppercase mb-3">CHUNK_OVERLAP</label>
+<div class="flex justify-between items-center">
+<span class="font-mono text-sm text-on-surface">128_tokens</span>
+<div class="flex gap-1">
+<button class="w-6 h-6 border border-outline-variant/30 flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors">-</button>
+<button class="w-6 h-6 border border-outline-variant/30 flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors">+</button>
+</div>
+</div>
+</div>
+<div>
+<label class="block font-mono text-[10px] text-slate-500 uppercase mb-3">SEGMENTATION_STRATEGY</label>
+<div class="grid grid-cols-2 gap-2">
+<button class="bg-primary text-on-primary font-mono text-[10px] py-2 uppercase tracking-tighter">SEMANTIC</button>
+<button class="border border-outline-variant/30 text-slate-500 font-mono text-[10px] py-2 uppercase tracking-tighter hover:text-primary transition-colors">RECURSIVE</button>
+</div>
+</div>
+</div>
+</div>
+<!-- System Telemetry / Visual Polish -->
+<div class="space-y-4">
+<div class="flex justify-between font-mono text-[9px] text-slate-600 uppercase">
+<span>Buffer_Saturation</span>
+<span>42%_NOMINAL</span>
+</div>
+<div class="h-1 bg-surface-container-high w-full overflow-hidden">
+<div class="h-full bg-primary/40 w-[42%]"></div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4">
+<div class="border border-outline-variant/20 p-4 font-mono">
+<p class="text-[9px] text-slate-500 uppercase">Latency_Avg</p>
+<p class="text-lg text-primary">124ms</p>
+</div>
+<div class="border border-outline-variant/20 p-4 font-mono">
+<p class="text-[9px] text-slate-500 uppercase">Throughput</p>
+<p class="text-lg text-primary">8.4k/s</p>
+</div>
+</div>
+</div>
+<!-- Hardware Action -->
+<div class="pt-6">
+<button class="group w-full border border-primary/50 text-primary py-4 font-mono text-xs font-bold uppercase tracking-[0.2em] hover:bg-primary hover:text-on-primary transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+                        COMMIT_SYSTEM_CHANGES_
+                    </button>
+<p class="text-center font-mono text-[9px] text-slate-600 mt-4 uppercase">Direct hardware override active. proceed with caution.</p>
+</div>
+</div>
+</section>
+<!-- Status Ledger Footer -->
+<footer class="mt-auto border-t border-white/5 bg-[#0c0e12] px-8 py-2 flex justify-between items-center font-mono text-[9px] text-slate-600">
+<div class="flex gap-6">
+<span>COORD: 37.7749N, 122.4194W</span>
+<span class="text-primary animate-pulse">● SYSTEM_IDLE</span>
+<span>SEC_PROTOCOL: AES-256-GCM</span>
+</div>
+<div class="flex gap-4">
+<span class="hover:text-primary cursor-pointer transition-colors">HELP_CMD</span>
+<span class="hover:text-primary cursor-pointer transition-colors">V_LOGS</span>
+</div>
+</footer>
+</main>
+<!-- Contextual FAB Suppression: FAB is not rendered on settings pages as per UX mandate -->
+</body></html>
