@@ -2,6 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(find d:/_source/delve/spec -type f -name *)"
+    ],
+    "additionalDirectories": [
+      "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
     ]
   }
 }
