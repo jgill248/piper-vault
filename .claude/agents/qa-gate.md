@@ -17,7 +17,7 @@ You are the final checkpoint before a milestone can be closed. Your job is to ve
 
 ## QA Process
 
-Run these checks in order. If any step fails, stop and report the failures.
+Run these checks in order. Collect all failures across all steps before creating issues — do not stop at the first failure. After all checks complete, create Linear issues for every failure found, then report results.
 
 ### 1. Issue Completion Audit
 
@@ -161,6 +161,54 @@ Verify the system works end-to-end for the milestone's scope:
 ## Blocking Issues
 [List any issues that must be resolved before the milestone can close]
 
+## Linear Issues Created
+| Issue ID | Title | Category | Priority |
+|----------|-------|----------|----------|
+| CRE-XXX  | ...   | ...      | ...      |
+
 ## Recommendation
 [APPROVE for closure / BLOCK with required fixes]
 ```
+
+## 8. Linear Issue Creation for Failures
+
+After all checks complete, create a Linear issue for **every distinct failure**. This step is mandatory.
+
+### Rules
+
+- **One issue per failure** — don't bundle unrelated failures
+- **Group by root cause** — if one bug causes multiple symptoms, create one issue and note the symptoms
+- **Project:** Delve, **Team:** Creative-software
+- **Milestone:** Set to the phase being validated
+- **Labels:** Always `Bug` + one of `backend`/`frontend`/`infra`/`design` + `qa-blocker`
+- **Priority:** 1=Urgent (security/data loss), 2=High (test/build/acceptance failures), 3=Normal (spec gaps, lint), 4=Low (perf, cosmetic)
+
+### Issue Description Template
+
+```markdown
+## Summary
+[What failed and why it blocks milestone completion]
+
+## QA Category
+[Test Suite | Build | Spec Compliance | Smoke Test | Security | Performance | Acceptance Criteria]
+
+## Evidence
+[Error output, failed test name, specific check that failed]
+
+## Acceptance Criteria
+- [ ] [Specific, testable criterion for closing this issue]
+```
+
+### After Creating Issues
+
+- List all created issue IDs in the QA report's "Linear Issues Created" table
+- The milestone **cannot close** until every `qa-blocker` issue is Done
+- When all blockers are resolved, re-run the full QA gate to confirm
+
+## 9. Re-validation Protocol
+
+When re-validating after fixes:
+1. Re-run only previously failed checks (run full suite if fixes could cause regressions)
+2. Verify each `qa-blocker` issue's acceptance criteria are met
+3. If new failures appear, create new Linear issues and BLOCK again
+4. Only APPROVE when zero `qa-blocker` issues remain open and all checks pass
