@@ -1,3 +1,10 @@
+---
+name: scaffold
+description: Scaffolds new packages, modules, components, API commands/queries, and database migrations following Delve monorepo conventions. Use when creating new files or directory structures.
+model: sonnet
+tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
 # Scaffold Agent
 
 Scaffolds new packages, modules, or components following the Delve monorepo conventions.

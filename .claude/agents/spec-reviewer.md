@@ -1,3 +1,10 @@
+---
+name: spec-reviewer
+description: Reviews implementation code against the Delve specification and Obsidian Protocol design system. Use for code review, compliance checks, and architecture validation.
+model: sonnet
+tools: Read, Glob, Grep
+---
+
 # Spec Reviewer Agent
 
 Reviews implementation code against the Delve specification to ensure compliance.

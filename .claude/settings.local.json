@@ -8,7 +8,9 @@
       "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_milestones",
       "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issues",
       "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issue_statuses",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_cycles"
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_cycles",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_milestone",
+      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_issue"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
