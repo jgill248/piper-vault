@@ -38,3 +38,32 @@ export function useReindexSource() {
     },
   });
 }
+
+export function useListTags() {
+  return useQuery({
+    queryKey: ['tags'],
+    queryFn: () => api.listTags(),
+  });
+}
+
+export function useUpdateSourceTags() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, tags }: { id: string; tags: string[] }) => api.updateSourceTags(id, tags),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sources'] });
+      void queryClient.invalidateQueries({ queryKey: ['tags'] });
+    },
+  });
+}
+
+export function useBulkImport() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ directoryPath, tags }: { directoryPath: string; tags?: string[] }) =>
+      api.bulkImport(directoryPath, tags),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sources'] });
+    },
+  });
+}

@@ -80,6 +80,35 @@ async function migrate(): Promise<void> {
   `;
   console.log('  table: messages');
 
+  // Phase 3: add tags column to sources (idempotent via IF NOT EXISTS check)
+  await sql`
+    ALTER TABLE sources
+    ADD COLUMN IF NOT EXISTS tags text[] NOT NULL DEFAULT ARRAY[]::text[]
+  `;
+  console.log('  migration: sources.tags column');
+
+  // Phase 3: add search_vector column for hybrid BM25 / full-text search
+  await sql`ALTER TABLE chunks ADD COLUMN IF NOT EXISTS search_vector tsvector`;
+  await sql`CREATE INDEX IF NOT EXISTS chunks_search_vector_idx ON chunks USING gin(search_vector)`;
+  // Backfill any existing rows that pre-date the trigger
+  await sql`UPDATE chunks SET search_vector = to_tsvector('english', content) WHERE search_vector IS NULL`;
+  // Trigger: auto-populate search_vector on INSERT or content UPDATE
+  await sql`
+    CREATE OR REPLACE FUNCTION chunks_search_vector_trigger() RETURNS trigger AS $$
+    BEGIN
+      NEW.search_vector := to_tsvector('english', NEW.content);
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql
+  `;
+  await sql`DROP TRIGGER IF EXISTS chunks_search_vector_update ON chunks`;
+  await sql`
+    CREATE TRIGGER chunks_search_vector_update
+    BEFORE INSERT OR UPDATE OF content ON chunks
+    FOR EACH ROW EXECUTE FUNCTION chunks_search_vector_trigger()
+  `;
+  console.log('  migration: chunks.search_vector + trigger');
+
   // Indexes
   await sql`CREATE INDEX IF NOT EXISTS chunks_source_id_idx ON chunks(source_id)`;
   await sql`CREATE INDEX IF NOT EXISTS sources_content_hash_idx ON sources(content_hash)`;

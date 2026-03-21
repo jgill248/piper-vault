@@ -8,6 +8,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Header,
   BadRequestException,
   Logger,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { SendMessageCommand } from './commands/send-message.command';
 import { DeleteConversationCommand } from './commands/delete-conversation.command';
 import { ListConversationsQuery } from './queries/list-conversations.query';
 import { GetConversationQuery } from './queries/get-conversation.query';
+import { ExportConversationQuery } from './queries/export-conversation.query';
 
 const ChatRequestSchema = z.object({
   message: z.string().min(1).max(10_000),
@@ -25,6 +27,7 @@ const ChatRequestSchema = z.object({
   model: z.string().optional(),
   sourceIds: z.array(z.string().uuid()).optional(),
   fileTypes: z.array(z.string().min(1)).optional(),
+  tags: z.array(z.string().min(1)).optional(),
   dateFrom: z.string().datetime({ offset: true }).optional(),
   dateTo: z.string().datetime({ offset: true }).optional(),
 });
@@ -55,9 +58,9 @@ export class ChatController {
       });
     }
 
-    const { message, conversationId, model, sourceIds, fileTypes, dateFrom, dateTo } = parsed.data;
+    const { message, conversationId, model, sourceIds, fileTypes, tags, dateFrom, dateTo } = parsed.data;
     return this.commandBus.execute(
-      new SendMessageCommand(message, conversationId, model, sourceIds, fileTypes, dateFrom, dateTo),
+      new SendMessageCommand(message, conversationId, model, sourceIds, fileTypes, tags, dateFrom, dateTo),
     );
   }
 
@@ -86,6 +89,16 @@ export class ChatController {
   @Get('conversations/:id')
   async getConversation(@Param('id') id: string): Promise<ConversationWithMessages> {
     return this.queryBus.execute(new GetConversationQuery(id));
+  }
+
+  /**
+   * GET /api/v1/conversations/:id/export
+   * Returns the conversation as a downloadable markdown document.
+   */
+  @Get('conversations/:id/export')
+  @Header('Content-Type', 'text/markdown')
+  async exportConversation(@Param('id') id: string): Promise<string> {
+    return this.queryBus.execute(new ExportConversationQuery(id));
   }
 
   /**

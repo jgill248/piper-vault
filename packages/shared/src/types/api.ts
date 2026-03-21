@@ -22,6 +22,7 @@ export interface SearchRequest {
   readonly threshold?: number;
   readonly sourceIds?: readonly string[];
   readonly fileTypes?: readonly string[];
+  readonly tags?: readonly string[];
 }
 
 export interface ChatRequest {
@@ -32,9 +33,11 @@ export interface ChatRequest {
   readonly fileTypes?: readonly string[];
   readonly dateFrom?: string;
   readonly dateTo?: string;
+  readonly tags?: readonly string[];
 }
 
 export interface ChatResponse {
   readonly conversationId: string;
   readonly message: Message;
+  readonly suggestedFollowUps?: readonly string[];
 }

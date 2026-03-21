@@ -7,7 +7,7 @@ import { MessageBubble } from './MessageBubble';
 import { ConversationHistory } from './ConversationHistory';
 import { SearchFilters, EMPTY_FILTERS } from './SearchFilters';
 import type { SearchFilterState } from './SearchFilters';
-import { useConversations, useSendMessage, useConversation } from '../../hooks/use-chat';
+import { useConversations, useSendMessage, useConversation, useExportConversation } from '../../hooks/use-chat';
 
 function EmptyState() {
   return (
@@ -34,9 +34,11 @@ export function ChatPanel() {
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(EMPTY_FILTERS);
+  const [followUps, setFollowUps] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const sendMessage = useSendMessage();
+  const exportConversation = useExportConversation();
   const { data: conversation } = useConversation(activeConversationId);
   const { data: conversations } = useConversations();
 
@@ -56,16 +58,40 @@ export function ChatPanel() {
   function handleNewSession() {
     setActiveConversationId(undefined);
     setLocalMessages([]);
+    setFollowUps([]);
   }
 
   function handleSelectConversation(id: string) {
     setActiveConversationId(id);
     setLocalMessages([]);
+    setFollowUps([]);
+  }
+
+  function handleFollowUpClick(question: string) {
+    setInputValue(question);
+    setFollowUps([]);
+  }
+
+  function handleExport() {
+    if (!activeConversationId) return;
+    exportConversation.mutate(activeConversationId, {
+      onSuccess: (markdown) => {
+        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `conversation-${activeConversationId.slice(0, 8)}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+    });
   }
 
   function handleSubmit() {
     const trimmed = inputValue.trim();
     if (!trimmed || sendMessage.isPending) return;
+
+    setFollowUps([]);
 
     const optimisticUserMsg: Message = {
       id: `optimistic-${Date.now()}`,
@@ -81,6 +107,7 @@ export function ChatPanel() {
     const filters: Record<string, unknown> = {};
     if (searchFilters.sourceIds.length > 0) filters.sourceIds = searchFilters.sourceIds;
     if (searchFilters.fileTypes.length > 0) filters.fileTypes = searchFilters.fileTypes;
+    if (searchFilters.tags.length > 0) filters.tags = searchFilters.tags;
     if (searchFilters.dateFrom) filters.dateFrom = new Date(searchFilters.dateFrom).toISOString();
     if (searchFilters.dateTo) filters.dateTo = new Date(searchFilters.dateTo).toISOString();
 
@@ -90,6 +117,7 @@ export function ChatPanel() {
         onSuccess: (data) => {
           setActiveConversationId(data.conversationId);
           setLocalMessages([]);
+          setFollowUps(data.suggestedFollowUps ? [...data.suggestedFollowUps] : []);
         },
         onError: () => {
           setLocalMessages((prev) =>
@@ -142,12 +170,22 @@ export function ChatPanel() {
           </div>
 
           {activeConversationId && (
-            <button
-              onClick={handleNewSession}
-              className="btn-secondary text-[10px] px-3 py-1.5 shrink-0"
-            >
-              NEW SESSION_
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleExport}
+                disabled={exportConversation.isPending}
+                className="btn-secondary text-[10px] px-3 py-1.5"
+                aria-label="Export conversation as markdown"
+              >
+                {exportConversation.isPending ? 'EXPORTING...' : 'EXPORT_'}
+              </button>
+              <button
+                onClick={handleNewSession}
+                className="btn-secondary text-[10px] px-3 py-1.5"
+              >
+                NEW SESSION_
+              </button>
+            </div>
           )}
         </div>
 
@@ -168,6 +206,24 @@ export function ChatPanel() {
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} />
               ))}
+
+              {/* Suggested follow-ups */}
+              {followUps.length > 0 && !sendMessage.isPending && (
+                <div className="flex flex-col gap-1.5 mb-4 max-w-[80%]">
+                  <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+                    SUGGESTED FOLLOW-UPS
+                  </span>
+                  {followUps.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleFollowUpClick(q)}
+                      className="text-left bg-obsidian-surface border border-obsidian-border/30 hover:border-phosphor/40 px-3 py-2 font-sans text-[12px] text-ui-muted hover:text-ui-text transition-all duration-100 cursor-pointer"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Pending indicator */}
               {sendMessage.isPending && (

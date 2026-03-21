@@ -14,6 +14,7 @@ export function toSourceResponse(row: SourceRow): Source {
     contentHash: row.contentHash,
     status: row.status as Source['status'],
     chunkCount: row.chunkCount,
+    tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
     metadata: (row.metadata ?? {}) as Record<string, unknown>,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

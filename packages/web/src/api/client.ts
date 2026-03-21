@@ -100,6 +100,37 @@ export const api = {
   deleteConversation: (id: string): Promise<void> =>
     request<void>(`/conversations/${id}`, { method: 'DELETE' }),
 
+  // Tags
+  listTags: (): Promise<string[]> => request<string[]>('/sources/tags'),
+
+  updateSourceTags: (id: string, tags: string[]): Promise<{ tags: string[] }> =>
+    request<{ tags: string[] }>(`/sources/${id}/tags`, {
+      method: 'PATCH',
+      body: JSON.stringify({ tags }),
+    }),
+
+  // Bulk import
+  bulkImport: (directoryPath: string, tags?: string[]): Promise<{
+    directoryPath: string;
+    filesFound: number;
+    filesIngested: number;
+    filesSkipped: number;
+    errors: string[];
+  }> =>
+    request(`/sources/bulk-import`, {
+      method: 'POST',
+      body: JSON.stringify({ directoryPath, tags }),
+    }),
+
+  // Export conversation
+  exportConversation: async (id: string): Promise<string> => {
+    const response = await fetch(`${BASE_URL}/conversations/${id}/export`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Export failed');
+    return response.text();
+  },
+
   // Health
   health: (): Promise<HealthResponse> => request<HealthResponse>('/health'),
 };

@@ -1,23 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { InternalServerErrorException } from '@nestjs/common';
 import { SendMessageHandler } from './send-message.handler';
 import { SendMessageCommand } from './send-message.command';
-import type { Embedder } from '@delve/core';
 import type { LlmProvider } from '@delve/core';
 import type { Database } from '../../database/connection';
+import type { RetrievalService } from '../../search/services/retrieval.service';
+import type { ConfigStore } from '../../config/config.store';
+import type { ChunkSearchResult } from '@delve/shared';
+import { DEFAULT_CONFIG } from '@delve/shared';
 
 // ---------------------------------------------------------------------------
 // Factory helpers
 // ---------------------------------------------------------------------------
-
-function makeEmbedder(override?: Partial<Embedder>): Embedder {
-  return {
-    dimensions: 384,
-    embed: vi.fn().mockResolvedValue({ ok: true, value: new Array(384).fill(0.1) }),
-    embedBatch: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-    ...override,
-  };
-}
 
 function makeLlm(override?: Partial<LlmProvider>): LlmProvider {
   return {
@@ -28,6 +22,19 @@ function makeLlm(override?: Partial<LlmProvider>): LlmProvider {
     getModels: vi.fn().mockResolvedValue({ ok: true, value: ['claude-3.5-sonnet'] }),
     ...override,
   };
+}
+
+function makeConfigStore(followUpQuestionsEnabled = false): ConfigStore {
+  return {
+    get: vi.fn().mockReturnValue({ ...DEFAULT_CONFIG, followUpQuestionsEnabled }),
+    update: vi.fn(),
+  } as unknown as ConfigStore;
+}
+
+function makeRetrievalService(results: ChunkSearchResult[] = []): RetrievalService {
+  return {
+    search: vi.fn().mockResolvedValue(results),
+  } as unknown as RetrievalService;
 }
 
 function makeDb(): Database {
@@ -72,7 +79,7 @@ function makeDb(): Database {
         }),
       }),
     }),
-    execute: vi.fn().mockResolvedValue([]), // vector search returns empty
+    execute: vi.fn().mockResolvedValue([]),
     update: vi.fn().mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
     }),
@@ -86,9 +93,9 @@ function makeDb(): Database {
 describe('SendMessageHandler', () => {
   it('creates a conversation and returns a ChatResponse on success', async () => {
     const db = makeDb();
-    const embedder = makeEmbedder();
     const llm = makeLlm();
-    const handler = new SendMessageHandler(db, embedder, llm);
+    const retrievalService = makeRetrievalService();
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore());
 
     const result = await handler.execute(new SendMessageCommand('Hello?'));
 
@@ -97,13 +104,11 @@ describe('SendMessageHandler', () => {
     expect(result.message.content).toBe('Answer text.');
   });
 
-  it('still returns a result when embedding fails (graceful degradation)', async () => {
+  it('still returns a result when RetrievalService returns no results (graceful degradation)', async () => {
     const db = makeDb();
-    const embedder = makeEmbedder({
-      embed: vi.fn().mockResolvedValue({ ok: false, error: 'unavailable' }),
-    });
     const llm = makeLlm();
-    const handler = new SendMessageHandler(db, embedder, llm);
+    const retrievalService = makeRetrievalService([]);
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore());
 
     // Should not throw — falls back to no context, still calls LLM
     const result = await handler.execute(new SendMessageCommand('Hello?'));
@@ -113,14 +118,34 @@ describe('SendMessageHandler', () => {
 
   it('throws InternalServerErrorException when LLM fails', async () => {
     const db = makeDb();
-    const embedder = makeEmbedder();
     const llm = makeLlm({
       query: vi.fn().mockResolvedValue({ ok: false, error: 'API error' }),
     });
-    const handler = new SendMessageHandler(db, embedder, llm);
+    const retrievalService = makeRetrievalService();
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore());
 
     await expect(handler.execute(new SendMessageCommand('Hello?'))).rejects.toThrow(
       InternalServerErrorException,
+    );
+  });
+
+  it('delegates retrieval options from the command to RetrievalService', async () => {
+    const db = makeDb();
+    const llm = makeLlm();
+    const retrievalService = makeRetrievalService();
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore());
+
+    await handler.execute(
+      new SendMessageCommand('Hello?', undefined, undefined, ['src-1'], ['text/plain'], undefined, '2026-01-01', '2026-12-31'),
+    );
+
+    expect(retrievalService.search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceIds: ['src-1'],
+        fileTypes: ['text/plain'],
+        dateFrom: '2026-01-01',
+        dateTo: '2026-12-31',
+      }),
     );
   });
 });

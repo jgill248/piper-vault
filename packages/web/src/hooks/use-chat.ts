@@ -36,3 +36,9 @@ export function useDeleteConversation() {
     },
   });
 }
+
+export function useExportConversation() {
+  return useMutation({
+    mutationFn: (id: string) => api.exportConversation(id),
+  });
+}

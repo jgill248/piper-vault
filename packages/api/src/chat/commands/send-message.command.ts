@@ -5,6 +5,7 @@ export class SendMessageCommand {
     public readonly model?: string,
     public readonly sourceIds?: string[],
     public readonly fileTypes?: string[],
+    public readonly tags?: string[],
     public readonly dateFrom?: string,
     public readonly dateTo?: string,
   ) {}

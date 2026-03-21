@@ -1,46 +1,47 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { SearchChunksHandler } from './search-chunks.handler';
 import { SearchChunksQuery } from './search-chunks.query';
-import type { Embedder } from '@delve/core';
-import type { Database } from '../../database/connection';
+import type { RetrievalService } from '../services/retrieval.service';
+import type { ChunkSearchResult } from '@delve/shared';
 
-function makeEmbedder(override?: Partial<Embedder>): Embedder {
+function makeChunkResult(score = 0.9): ChunkSearchResult {
   return {
-    dimensions: 384,
-    embed: vi.fn().mockResolvedValue({ ok: true, value: new Array(384).fill(0.1) }),
-    embedBatch: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-    ...override,
-  };
-}
-
-function makeChunkRow(score = 0.9) {
-  return {
-    id: 'chunk-uuid',
-    source_id: 'source-uuid',
-    chunk_index: 0,
-    content: 'relevant content',
-    token_count: 5,
-    page_number: null,
-    metadata: {},
-    created_at: new Date('2026-01-01'),
-    filename: 'notes.txt',
-    file_type: 'text/plain',
+    chunk: {
+      id: 'chunk-uuid',
+      sourceId: 'source-uuid',
+      chunkIndex: 0,
+      content: 'relevant content',
+      tokenCount: 5,
+      pageNumber: undefined,
+      metadata: {},
+      createdAt: new Date('2026-01-01'),
+    },
     score,
+    source: {
+      id: 'source-uuid',
+      filename: 'notes.txt',
+      fileType: 'text/plain',
+    },
   };
 }
 
-function makeDb(rows: ReturnType<typeof makeChunkRow>[]): Database {
+function makeRetrievalService(
+  results: ChunkSearchResult[] = [],
+  shouldThrow = false,
+): RetrievalService {
   return {
-    execute: vi.fn().mockResolvedValue(rows),
-  } as unknown as Database;
+    search: vi.fn().mockImplementation(async () => {
+      if (shouldThrow) throw new Error('embedding failed');
+      return results;
+    }),
+  } as unknown as RetrievalService;
 }
 
 describe('SearchChunksHandler', () => {
-  it('returns mapped ChunkSearchResults above threshold', async () => {
-    const db = makeDb([makeChunkRow(0.95)]);
-    const embedder = makeEmbedder();
-    const handler = new SearchChunksHandler(db, embedder);
+  it('returns mapped ChunkSearchResults from RetrievalService', async () => {
+    const retrievalService = makeRetrievalService([makeChunkResult(0.95)]);
+    const handler = new SearchChunksHandler(retrievalService);
 
     const results = await handler.execute(new SearchChunksQuery('test query', 5, 0.7));
 
@@ -50,25 +51,42 @@ describe('SearchChunksHandler', () => {
     expect(results[0]?.source.filename).toBe('notes.txt');
   });
 
-  it('filters out results below the threshold', async () => {
-    const db = makeDb([makeChunkRow(0.3)]); // score below default threshold
-    const embedder = makeEmbedder();
-    const handler = new SearchChunksHandler(db, embedder);
+  it('returns empty array when RetrievalService returns no results', async () => {
+    const retrievalService = makeRetrievalService([]);
+    const handler = new SearchChunksHandler(retrievalService);
 
     const results = await handler.execute(new SearchChunksQuery('test query', 5, 0.72));
 
     expect(results).toHaveLength(0);
   });
 
-  it('throws BadRequestException when embedding fails', async () => {
-    const db = makeDb([]);
-    const embedder = makeEmbedder({
-      embed: vi.fn().mockResolvedValue({ ok: false, error: 'model unavailable' }),
-    });
-    const handler = new SearchChunksHandler(db, embedder);
+  it('throws BadRequestException when RetrievalService throws', async () => {
+    const retrievalService = makeRetrievalService([], true);
+    const handler = new SearchChunksHandler(retrievalService);
 
     await expect(handler.execute(new SearchChunksQuery('test query'))).rejects.toThrow(
       BadRequestException,
+    );
+  });
+
+  it('passes query options through to RetrievalService', async () => {
+    const retrievalService = makeRetrievalService([]);
+    const handler = new SearchChunksHandler(retrievalService);
+
+    await handler.execute(
+      new SearchChunksQuery('test query', 10, 0.8, ['src-1'], ['text/plain'], undefined, '2026-01-01', '2026-12-31'),
+    );
+
+    expect(retrievalService.search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: 'test query',
+        topK: 10,
+        threshold: 0.8,
+        sourceIds: ['src-1'],
+        fileTypes: ['text/plain'],
+        dateFrom: '2026-01-01',
+        dateTo: '2026-12-31',
+      }),
     );
   });
 });

@@ -11,6 +11,25 @@ import { customType } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 /**
+ * Custom Drizzle column type for PostgreSQL `text[]`.
+ * Drizzle ORM does not ship a built-in text-array column type, so we define
+ * one that serialises a JS string[] to the `{a,b,c}` literal that postgres.js
+ * returns and accepts.
+ */
+const textArray = customType<{ data: string[]; driverParam: string[] }>({
+  dataType() {
+    return 'text[]';
+  },
+  toDriver(value: string[]) {
+    return value;
+  },
+  fromDriver(value: unknown) {
+    if (Array.isArray(value)) return value as string[];
+    return [];
+  },
+});
+
+/**
  * Custom Drizzle column type for pgvector's `vector(384)` type.
  * Serialises a JS number[] to the `[x,y,z,...]` literal that pgvector expects,
  * and deserialises the returned string back to number[].
@@ -36,6 +55,7 @@ export const sources = pgTable('sources', {
   contentHash: varchar('content_hash', { length: 64 }).notNull().unique(),
   status: varchar('status', { length: 20 }).notNull().default('pending'),
   chunkCount: integer('chunk_count').notNull().default(0),
+  tags: textArray('tags').notNull().default(sql`ARRAY[]::text[]`),
   metadata: jsonb('metadata').notNull().default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -49,6 +69,8 @@ export const chunks = pgTable('chunks', {
   chunkIndex: integer('chunk_index').notNull(),
   content: text('content').notNull(),
   embedding: vector('embedding'),
+  // tsvector column managed by a DB trigger — read-only from the application layer
+  searchVector: text('search_vector'),
   tokenCount: integer('token_count').notNull(),
   pageNumber: integer('page_number'),
   metadata: jsonb('metadata').notNull().default({}),

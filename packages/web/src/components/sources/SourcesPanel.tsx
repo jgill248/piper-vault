@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useListSources } from '../../hooks/use-sources';
+import { useListSources, useBulkImport } from '../../hooks/use-sources';
 import { UploadZone } from './UploadZone';
 import { SourceLedger } from './SourceLedger';
 import type { SourceFilters } from './SourceLedger';
@@ -28,6 +28,8 @@ const STATUS_OPTIONS = [
 export function SourcesPanel() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
+  const [bulkImportPath, setBulkImportPath] = useState('');
+  const bulkImport = useBulkImport();
 
   const [filters, setFilters] = useState<SourceFilters>({
     search: '',
@@ -95,11 +97,66 @@ export function SourcesPanel() {
           <UploadZone />
         </div>
 
+        {/* Bulk import section */}
+        <div className="px-4 py-4 border-b border-obsidian-border/20">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">
+              02
+            </span>
+            <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+              BULK_IMPORT
+            </span>
+            <div className="flex-1 h-px bg-obsidian-border/20" />
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={bulkImportPath}
+              onChange={(e) => setBulkImportPath(e.target.value)}
+              placeholder="/PATH/TO/DIRECTORY..."
+              aria-label="Directory path for bulk import"
+              className="input-cmd flex-1"
+            />
+            <button
+              onClick={() => {
+                if (bulkImportPath.trim()) {
+                  bulkImport.mutate({ directoryPath: bulkImportPath.trim() });
+                }
+              }}
+              disabled={!bulkImportPath.trim() || bulkImport.isPending}
+              className="btn-primary text-[10px] px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shrink-0"
+            >
+              {bulkImport.isPending ? 'IMPORTING...' : 'IMPORT_'}
+            </button>
+          </div>
+          {bulkImport.isSuccess && (
+            <div className="mt-2 bg-phosphor/5 border border-phosphor/20 px-3 py-2">
+              <p className="font-mono text-[10px] text-phosphor uppercase tracking-wider">
+                {bulkImport.data.filesIngested} FILES INGESTED / {bulkImport.data.filesSkipped} SKIPPED / {bulkImport.data.filesFound} FOUND
+              </p>
+              {bulkImport.data.errors.length > 0 && (
+                <div className="mt-1">
+                  {bulkImport.data.errors.slice(0, 5).map((err, i) => (
+                    <p key={i} className="font-mono text-[9px] text-yellow-400">{err}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {bulkImport.isError && (
+            <div className="mt-2 bg-red-950/30 border border-red-500/20 px-3 py-2">
+              <p className="font-mono text-[10px] text-red-400 uppercase tracking-wider">
+                ERROR: {bulkImport.error instanceof Error ? bulkImport.error.message : 'Import failed'}
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Ledger section */}
         <div className="px-4 py-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">
-              02
+              03
             </span>
             <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
               SOURCE_LEDGER

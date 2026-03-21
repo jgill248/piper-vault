@@ -137,6 +137,23 @@ function SourceRow({ source }: SourceRowProps) {
         </span>
       </td>
 
+      {/* Tags */}
+      <td className="px-3 py-2">
+        <div className="flex flex-wrap gap-1">
+          {source.tags.map((tag) => (
+            <span
+              key={tag}
+              className="font-mono text-[9px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider"
+            >
+              {tag}
+            </span>
+          ))}
+          {source.tags.length === 0 && (
+            <span className="font-mono text-[9px] text-ui-dim">—</span>
+          )}
+        </div>
+      </td>
+
       {/* Date */}
       <td className="px-3 py-2">
         <span className="font-mono text-[10px] text-ui-dim tabular-nums">
@@ -198,7 +215,7 @@ function SourceRow({ source }: SourceRowProps) {
   );
 }
 
-const COLUMNS = ['FILENAME', 'TYPE', 'SIZE', 'STATUS', 'CHUNKS', 'CREATED', 'ACTIONS'];
+const COLUMNS = ['FILENAME', 'TYPE', 'SIZE', 'STATUS', 'CHUNKS', 'TAGS', 'CREATED', 'ACTIONS'];
 
 export function SourceLedger({ sources, filters }: SourceLedgerProps) {
   const filtered = sources.filter(

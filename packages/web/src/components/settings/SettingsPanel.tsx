@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DEFAULT_CONFIG } from '@delve/shared';
+import { DEFAULT_CONFIG, LLM_PROVIDERS } from '@delve/shared';
 import type { AppConfig } from '@delve/shared';
 import { useConfig, useUpdateConfig } from '../../hooks/use-config';
 import { useTheme } from '../../hooks/use-theme';
@@ -94,6 +94,57 @@ function TextInput({ value, onChange }: TextInputProps) {
   );
 }
 
+interface SelectInputProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly { value: string; label: string }[];
+}
+
+function SelectInput({ value, onChange, options }: SelectInputProps) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-48 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none focus:border-phosphor transition-colors duration-100 appearance-none cursor-pointer"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value} className="bg-obsidian-raised text-ui-text">
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+interface ToggleInputProps {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  label?: string;
+}
+
+function ToggleInput({ value, onChange, label }: ToggleInputProps) {
+  return (
+    <button
+      onClick={() => onChange(!value)}
+      aria-pressed={value}
+      aria-label={label}
+      className={`flex items-center gap-2 border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all duration-150 ${
+        value
+          ? 'border-phosphor text-phosphor bg-phosphor/5'
+          : 'border-obsidian-border text-ui-muted hover:border-phosphor hover:text-phosphor'
+      }`}
+    >
+      <span
+        className={`inline-block w-3 h-3 border shrink-0 transition-all duration-150 ${
+          value ? 'bg-phosphor border-phosphor' : 'bg-transparent border-obsidian-border'
+        }`}
+        aria-hidden="true"
+      />
+      {value ? 'ENABLED' : 'DISABLED'}
+    </button>
+  );
+}
+
 interface SliderInputProps {
   value: number;
   onChange: (v: number) => void;
@@ -134,6 +185,16 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
   return (
     <>
       <Section index="01" title="LLM_CONFIGURATION">
+        <FieldRow
+          label="LLM_PROVIDER"
+          description="Backend provider for language model queries"
+        >
+          <SelectInput
+            value={draft.llmProvider}
+            onChange={(v) => onChange({ llmProvider: v as AppConfig['llmProvider'] })}
+            options={LLM_PROVIDERS.map(p => ({ value: p, label: p.toUpperCase().replace('-', '_') }))}
+          />
+        </FieldRow>
         <FieldRow
           label="LLM_MODEL"
           description="Language model used for answer generation via Ask Sage"
@@ -233,6 +294,67 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
           />
         </FieldRow>
       </Section>
+
+      <Section index="05" title="RETRIEVAL_INTELLIGENCE">
+        <FieldRow
+          label="HYBRID_SEARCH"
+          description="Combine vector similarity with keyword (BM25) scoring"
+        >
+          <ToggleInput
+            value={draft.hybridSearchEnabled}
+            onChange={(v) => onChange({ hybridSearchEnabled: v })}
+            label="Toggle hybrid search"
+          />
+        </FieldRow>
+        {draft.hybridSearchEnabled && (
+          <FieldRow
+            label="HYBRID_WEIGHT"
+            description="Balance between vector (1.0) and keyword (0.0) results"
+          >
+            <SliderInput
+              value={draft.hybridSearchWeight}
+              onChange={(v) => onChange({ hybridSearchWeight: v })}
+              min={0}
+              max={1}
+              step={0.05}
+            />
+          </FieldRow>
+        )}
+        <FieldRow
+          label="RE_RANKING"
+          description="LLM-based re-ranking of retrieved chunks for better precision"
+        >
+          <ToggleInput
+            value={draft.rerankEnabled}
+            onChange={(v) => onChange({ rerankEnabled: v })}
+            label="Toggle re-ranking"
+          />
+        </FieldRow>
+        {draft.rerankEnabled && (
+          <FieldRow
+            label="RERANK_TOP_N"
+            description="Number of chunks to keep after re-ranking"
+          >
+            <NumberInput
+              value={draft.rerankTopN}
+              onChange={(v) => onChange({ rerankTopN: v })}
+              min={1}
+              max={20}
+              unit="CHUNKS"
+            />
+          </FieldRow>
+        )}
+        <FieldRow
+          label="FOLLOW_UP_QUESTIONS"
+          description="Generate suggested follow-up questions after each response"
+        >
+          <ToggleInput
+            value={draft.followUpQuestionsEnabled}
+            onChange={(v) => onChange({ followUpQuestionsEnabled: v })}
+            label="Toggle follow-up questions"
+          />
+        </FieldRow>
+      </Section>
     </>
   );
 }
@@ -320,12 +442,12 @@ export function SettingsPanel() {
             <ConfigEditor draft={draft} onChange={handleChange} />
 
             {/* System information (read-only) */}
-            <Section index="05" title="SYSTEM_INFORMATION">
+            <Section index="06" title="SYSTEM_INFORMATION">
               {[
                 { label: 'VECTOR_STORE', value: 'PGVECTOR' },
                 { label: 'EMBEDDING_DIMS', value: '384 DIM' },
                 { label: 'VECTOR_INDEX', value: 'HNSW' },
-                { label: 'LLM_PROVIDER', value: 'ASK SAGE' },
+                { label: 'LLM_PROVIDER', value: (config?.llmProvider ?? 'ask-sage').toUpperCase().replace('-', '_') },
               ].map(({ label, value }) => (
                 <div
                   key={label}
@@ -340,7 +462,7 @@ export function SettingsPanel() {
             </Section>
 
             {/* Interface / Theme toggle */}
-            <Section index="06" title="INTERFACE">
+            <Section index="07" title="INTERFACE">
               <div className="flex items-start justify-between py-2.5">
                 <div>
                   <label className="font-mono text-[10px] text-ui-muted uppercase tracking-widest block">

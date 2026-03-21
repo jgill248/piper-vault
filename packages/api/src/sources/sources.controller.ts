@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Delete,
+  Patch,
   Body,
   Param,
   Query,
@@ -12,14 +13,28 @@ import {
   Logger,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { z } from 'zod';
 import type { Source, PaginatedResponse } from '@delve/shared';
 import { IngestSourceCommand } from './commands/ingest-source.command';
 import type { IngestSourceResult } from './commands/ingest-source.handler';
 import { DeleteSourceCommand } from './commands/delete-source.command';
 import { ReindexSourceCommand } from './commands/reindex-source.command';
+import { UpdateSourceTagsCommand } from './commands/update-source-tags.command';
 import { ListSourcesQuery } from './queries/list-sources.query';
 import { GetSourceQuery } from './queries/get-source.query';
+import { ListTagsQuery } from './queries/list-tags.query';
 import { CreateSourceSchema, decodeSourceBuffer } from './dto/create-source.dto';
+import { BulkImportCommand } from './commands/bulk-import.command';
+import type { BulkImportResult } from './commands/bulk-import.handler';
+
+const UpdateTagsSchema = z.object({
+  tags: z.array(z.string().min(1).max(50)).max(100),
+});
+
+const BulkImportSchema = z.object({
+  directoryPath: z.string().min(1),
+  tags: z.array(z.string().min(1).max(50)).optional(),
+});
 
 @Controller('sources')
 export class SourcesController {
@@ -76,6 +91,16 @@ export class SourcesController {
   }
 
   /**
+   * GET /api/v1/sources/tags
+   * Returns all unique tags across all sources, sorted alphabetically.
+   * Declared before GET /:id so NestJS does not match "tags" as an id param.
+   */
+  @Get('tags')
+  async listTags(): Promise<string[]> {
+    return this.queryBus.execute(new ListTagsQuery());
+  }
+
+  /**
    * GET /api/v1/sources
    */
   @Get()
@@ -91,6 +116,24 @@ export class SourcesController {
         isNaN(parsedPage) ? 1 : parsedPage,
         isNaN(parsedPageSize) ? 20 : Math.min(parsedPageSize, 100),
       ),
+    );
+  }
+
+  /**
+   * POST /api/v1/sources/bulk-import
+   * Accepts a local filesystem directory path and ingests all supported files found within it.
+   */
+  @Post('bulk-import')
+  @HttpCode(HttpStatus.OK)
+  async bulkImport(@Body() body: unknown): Promise<BulkImportResult> {
+    const parsed = BulkImportSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() },
+      });
+    }
+    return this.commandBus.execute(
+      new BulkImportCommand(parsed.data.directoryPath, parsed.data.tags),
     );
   }
 
@@ -120,5 +163,27 @@ export class SourcesController {
   @HttpCode(HttpStatus.OK)
   async reindex(@Param('id') id: string): Promise<{ message: string }> {
     return this.commandBus.execute(new ReindexSourceCommand(id));
+  }
+
+  /**
+   * PATCH /api/v1/sources/:id/tags
+   * Replaces the full set of tags on the specified source.
+   */
+  @Patch(':id/tags')
+  async updateTags(
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ): Promise<{ tags: string[] }> {
+    const parsed = UpdateTagsSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request body',
+          details: parsed.error.flatten(),
+        },
+      });
+    }
+    return this.commandBus.execute(new UpdateSourceTagsCommand(id, parsed.data.tags));
   }
 }

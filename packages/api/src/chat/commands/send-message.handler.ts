@@ -1,34 +1,17 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger, InternalServerErrorException } from '@nestjs/common';
 import { eq, asc } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
 import type { ChatResponse, Message } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
-import type { Embedder } from '@delve/core';
 import type { LlmProvider } from '@delve/core';
-import { buildPrompt } from '@delve/core';
+import { buildPrompt, generateFollowUpQuestions } from '@delve/core';
 import { SendMessageCommand } from './send-message.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { conversations, messages, chunks, sources } from '../../database/schema';
-import { toMessageResponse, toConversationResponse } from '../dto/conversation-response.dto';
-
-/**
- * Row shape returned by the raw vector-search query.
- */
-interface ChunkSearchRow {
-  id: string;
-  source_id: string;
-  chunk_index: number;
-  content: string;
-  token_count: number;
-  page_number: number | null;
-  metadata: Record<string, unknown>;
-  created_at: Date;
-  filename: string;
-  file_type: string;
-  score: number;
-}
+import { conversations, messages } from '../../database/schema';
+import { toMessageResponse } from '../dto/conversation-response.dto';
+import { RetrievalService } from '../../search/services/retrieval.service';
+import { ConfigStore } from '../../config/config.store';
 
 @CommandHandler(SendMessageCommand)
 export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
@@ -36,8 +19,9 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
-    @Inject('EMBEDDER') private readonly embedder: Embedder,
     @Inject('LLM_PROVIDER') private readonly llm: LlmProvider,
+    private readonly retrievalService: RetrievalService,
+    private readonly configStore: ConfigStore,
   ) {}
 
   async execute(command: SendMessageCommand): Promise<ChatResponse> {
@@ -46,7 +30,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
 
     // --- Step 1: Resolve or create the conversation ---
     const trimmed = userMessage.trim();
-    let conversationTitle =
+    const conversationTitle =
       trimmed.length === 0
         ? 'New conversation'
         : trimmed.length > 80
@@ -118,93 +102,17 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       .filter((r) => r.id !== savedUserMsg.id)
       .map(toMessageResponse);
 
-    // --- Step 4: Embed the user query ---
-    const embeddingResult = await this.embedder.embed(userMessage);
-    if (!embeddingResult.ok) {
-      this.logger.warn(`Embedding failed: ${embeddingResult.error}`);
-    }
-
-    // --- Step 5: Vector search for relevant chunks ---
-    const topK = DEFAULT_CONFIG.topKResults;
-    let chunkResults: ChunkSearchRow[] = [];
-
-    if (embeddingResult.ok) {
-      const embedding = embeddingResult.value;
-      const vectorLiteral = `[${[...embedding].join(',')}]`;
-
-      // Build optional filter clauses from command filters
-      const sourceFilter =
-        command.sourceIds !== undefined && command.sourceIds.length > 0
-          ? sql`AND c.source_id = ANY(${command.sourceIds}::uuid[])`
-          : sql``;
-
-      const fileTypeFilter =
-        command.fileTypes !== undefined && command.fileTypes.length > 0
-          ? sql`AND s.file_type = ANY(${command.fileTypes}::text[])`
-          : sql``;
-
-      const dateFromFilter =
-        command.dateFrom !== undefined
-          ? sql`AND s.created_at >= ${command.dateFrom}::timestamptz`
-          : sql``;
-
-      const dateToFilter =
-        command.dateTo !== undefined
-          ? sql`AND s.created_at <= ${command.dateTo}::timestamptz`
-          : sql``;
-
-      // Raw SQL for pgvector cosine distance operator <=>
-      const rawRows = await this.db.execute(
-        sql`
-          SELECT
-            c.id,
-            c.source_id,
-            c.chunk_index,
-            c.content,
-            c.token_count,
-            c.page_number,
-            c.metadata,
-            c.created_at,
-            s.filename,
-            s.file_type,
-            1 - (c.embedding <=> ${vectorLiteral}::vector) AS score
-          FROM chunks c
-          JOIN sources s ON c.source_id = s.id
-          WHERE s.status = 'ready'
-            AND c.embedding IS NOT NULL
-            ${sourceFilter}
-            ${fileTypeFilter}
-            ${dateFromFilter}
-            ${dateToFilter}
-          ORDER BY c.embedding <=> ${vectorLiteral}::vector
-          LIMIT ${topK}
-        `,
-      );
-
-      chunkResults = rawRows as unknown as ChunkSearchRow[];
-    }
-
-    // Map to ChunkSearchResult for the prompt builder
-    const contextResults = chunkResults
-      .filter((r) => (r.score ?? 0) >= DEFAULT_CONFIG.similarityThreshold)
-      .map((r) => ({
-        chunk: {
-          id: r.id,
-          sourceId: r.source_id,
-          chunkIndex: r.chunk_index,
-          content: r.content,
-          tokenCount: r.token_count,
-          pageNumber: r.page_number ?? undefined,
-          metadata: r.metadata,
-          createdAt: r.created_at,
-        },
-        score: r.score,
-        source: {
-          id: r.source_id,
-          filename: r.filename,
-          fileType: r.file_type,
-        },
-      }));
+    // --- Steps 4-5: Retrieve relevant chunks via hybrid search + re-ranking ---
+    const contextResults = await this.retrievalService.search({
+      query: userMessage,
+      topK: DEFAULT_CONFIG.topKResults,
+      threshold: DEFAULT_CONFIG.similarityThreshold,
+      sourceIds: command.sourceIds,
+      fileTypes: command.fileTypes,
+      tags: command.tags,
+      dateFrom: command.dateFrom,
+      dateTo: command.dateTo,
+    });
 
     // --- Step 6: Build the prompt ---
     const { prompt, systemPrompt } = buildPrompt(
@@ -247,9 +155,22 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       throw new InternalServerErrorException('Failed to save assistant message');
     }
 
+    // Generate follow-up questions if enabled
+    let suggestedFollowUps: string[] | undefined;
+    const config = this.configStore.get();
+    if (config.followUpQuestionsEnabled && contextResults.length > 0) {
+      suggestedFollowUps = await generateFollowUpQuestions(
+        this.llm,
+        userMessage,
+        assistantContent,
+        contextResults,
+      );
+    }
+
     return {
       conversationId,
       message: toMessageResponse(savedAssistantMsg),
+      ...(suggestedFollowUps && suggestedFollowUps.length > 0 ? { suggestedFollowUps } : {}),
     };
   }
 }

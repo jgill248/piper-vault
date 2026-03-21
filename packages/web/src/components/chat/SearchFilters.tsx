@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
-import { useListSources } from '../../hooks/use-sources';
+import { useListSources, useListTags } from '../../hooks/use-sources';
 
 export interface SearchFilterState {
   sourceIds: string[];
   fileTypes: string[];
+  tags: string[];
   dateFrom: string;
   dateTo: string;
 }
@@ -12,6 +13,7 @@ export interface SearchFilterState {
 export const EMPTY_FILTERS: SearchFilterState = {
   sourceIds: [],
   fileTypes: [],
+  tags: [],
   dateFrom: '',
   dateTo: '',
 };
@@ -27,6 +29,7 @@ function activeFilterCount(filters: SearchFilterState): number {
   let count = 0;
   if (filters.sourceIds.length > 0) count++;
   if (filters.fileTypes.length > 0) count++;
+  if (filters.tags.length > 0) count++;
   if (filters.dateFrom || filters.dateTo) count++;
   return count;
 }
@@ -34,6 +37,7 @@ function activeFilterCount(filters: SearchFilterState): number {
 export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
   const [expanded, setExpanded] = useState(false);
   const { data: sourcesData } = useListSources(1, 100);
+  const { data: availableTags } = useListTags();
   const sources = sourcesData?.data ?? [];
 
   const activeCount = activeFilterCount(filters);
@@ -54,6 +58,13 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
       ? filters.fileTypes.filter((t) => t !== ft)
       : [...filters.fileTypes, ft];
     onChange({ ...filters, fileTypes: next });
+  }
+
+  function toggleTag(tag: string) {
+    const next = filters.tags.includes(tag)
+      ? filters.tags.filter((t) => t !== tag)
+      : [...filters.tags, tag];
+    onChange({ ...filters, tags: next });
   }
 
   return (
@@ -98,7 +109,7 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
       {expanded && (
         <div
           id="search-filter-panel"
-          className="px-4 pb-3 pt-1 grid grid-cols-3 gap-4 border-t border-obsidian-border/10"
+          className="px-4 pb-3 pt-1 grid grid-cols-4 gap-4 border-t border-obsidian-border/10"
         >
           {/* Source multi-select */}
           <div>
@@ -158,6 +169,36 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
                 );
               })}
             </div>
+          </div>
+
+          {/* Tags multi-select */}
+          <div>
+            <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mb-2">
+              TAGS
+            </p>
+            {(!availableTags || availableTags.length === 0) ? (
+              <span className="font-mono text-[9px] text-ui-dim uppercase">NO TAGS</span>
+            ) : (
+              <div className="flex flex-wrap gap-1">
+                {availableTags.map((tag) => {
+                  const active = filters.tags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      aria-pressed={active}
+                      className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border transition-all duration-100 ${
+                        active
+                          ? 'border-phosphor text-phosphor bg-phosphor/10'
+                          : 'border-obsidian-border/40 text-ui-dim hover:border-obsidian-border hover:text-ui-muted'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Date range */}
