@@ -1,0 +1,20 @@
+{
+  "name": "delve",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal Knowledge Base & Conversational Search",
+  "scripts": {
+    "build": "nx run-many --target=build",
+    "test": "nx run-many --target=test",
+    "lint": "nx run-many --target=lint",
+    "dev": "nx run-many --target=dev --parallel",
+    "dev:api": "nx run @delve/api:dev",
+    "dev:web": "nx run @delve/web:dev",
+    "db:migrate": "nx run @delve/api:db:migrate",
+    "clean": "nx run-many --target=clean"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
