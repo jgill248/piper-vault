@@ -147,6 +147,37 @@ packages/api/src/
 - Test the public interface, not internal details
 - Factory functions for test data — avoid fixtures that rot
 
+## Linear Project Management
+
+Project management is tracked in Linear. Agents and skills have access to Linear MCP tools.
+
+### Workspace
+
+- **Team:** Creative-software (key: `CRE`)
+- **Project:** Delve
+- **Issue labels:** `design`, `frontend`, `backend`, `infra`, `Feature`, `Bug`, `Improvement`
+- **Statuses:** Backlog → Todo → In Progress → Done (also: Canceled, Duplicate)
+
+### Milestone ↔ Spec Phase Mapping
+
+| Linear Milestone | Spec Section | Focus |
+|-----------------|--------------|-------|
+| Phase 1: Foundation | Section 7, Phase 1 | Scaffolding, .md/.txt ingestion, vector storage, basic chat UI |
+| Phase 2: Expand Ingestion & Polish | Section 7, Phase 2 | All file formats, source browser, conversation history, settings |
+| Phase 3: Intelligence & Refinement | Section 7, Phase 3 | Hybrid search, re-ranking, follow-ups, export, provider adapters |
+| Phase 4: Scale & Ecosystem | Section 7, Phase 4 | Watched folders, webhooks, multi-collection, auth, plugins |
+
+### Issue Conventions
+
+- One deliverable per issue — single, testable unit of work
+- Include acceptance criteria in every issue description
+- Apply labels (`backend`, `frontend`, `design`, `infra`) on every issue
+- Use parent issues as epics to group related work
+- Mark `blocks`/`blockedBy` dependencies between issues
+- Reference the spec section in issue descriptions
+- Backend issues should note whether the work is a CQRS command or query
+- Frontend issues should reference relevant Obsidian Protocol design rules
+
 ## Conventions
 
 - TypeScript strict mode across all packages
