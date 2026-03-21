@@ -16,22 +16,7 @@
       "Bash(git branch*)",
       "Bash(git fetch*)",
       "Bash(ls*)",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_teams",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_projects",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issue_labels",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_milestones",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issues",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_issue_statuses",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_cycles",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__get_issue",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__get_project",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__get_milestone",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_issue",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_milestone",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__save_comment",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_comments",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__list_documents",
-      "mcp__d1d4ed9b-fe1f-4284-8ef8-a7bfd072bb87__search_documentation"
+      "mcp__linear__*"
     ]
   },
   "hooks": {

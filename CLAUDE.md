@@ -4,7 +4,7 @@
 
 Delve is a local-first, RAG-powered knowledge base with a conversational chat interface. Users ingest notes, transcripts, documents, and unstructured data, then query it through natural language powered by an LLM API (Ask Sage). The system indexes content locally, performs semantic similarity search, and feeds context to a language model for grounded, citation-backed answers.
 
-**Status:** Pre-implementation (specification and design phase)
+**Status:** Phase 1 complete, Phase 2 complete — entering Phase 3
 
 ## Resolved Decisions
 
@@ -212,6 +212,18 @@ Project management is tracked in Linear. Agents and skills have access to Linear
 | Phase 2: Expand Ingestion & Polish | Section 7, Phase 2 | All file formats, source browser, conversation history, settings |
 | Phase 3: Intelligence & Refinement | Section 7, Phase 3 | Hybrid search, re-ranking, follow-ups, export, provider adapters |
 | Phase 4: Scale & Ecosystem | Section 7, Phase 4 | Watched folders, webhooks, multi-collection, auth, plugins |
+
+### Linear Sync Workflow
+
+When working on Delve, keep Linear in sync with the codebase:
+
+1. **Starting work:** Move the relevant Linear issue to `In Progress` before beginning implementation.
+2. **Completing work:** Move the issue to `Done` after the implementation is committed and tests pass.
+3. **Discovering bugs:** Create a new `Bug` issue in Linear with the appropriate labels and milestone.
+4. **New work not in Linear:** If you implement something that doesn't have a Linear issue, create one and immediately mark it `Done` so the record exists.
+5. **Blocked work:** Add `blockedBy` relations to the blocking issue and leave a comment explaining the blocker.
+
+Use the Linear MCP tools (`save_issue`, `list_issues`, `get_issue`, etc.) to read and update issues directly. Never let Linear drift out of sync with the repo.
 
 ### Issue Conventions
 
