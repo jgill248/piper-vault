@@ -16,6 +16,11 @@
     padding: 0;
   }
 
+  /* Light mode body */
+  body.light {
+    @apply bg-light-base text-ui-light-text;
+  }
+
   /* Scanline overlay */
   body::after {
     content: '';
@@ -35,6 +40,17 @@
     );
   }
 
+  /* Lighter scanline in light mode */
+  body.light::after {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.005) 2px,
+      rgba(0, 0, 0, 0.005) 4px
+    );
+  }
+
   /* Scrollbar styling */
   ::-webkit-scrollbar {
     width: 6px;
@@ -48,6 +64,17 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #5a5c62;
+  }
+
+  /* Light mode scrollbars */
+  body.light ::-webkit-scrollbar-track {
+    background: #e8e9eb;
+  }
+  body.light ::-webkit-scrollbar-thumb {
+    background: #c0c2c6;
+  }
+  body.light ::-webkit-scrollbar-thumb:hover {
+    background: #a0a2a6;
   }
 }
 

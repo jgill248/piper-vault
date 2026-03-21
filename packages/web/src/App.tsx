@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { SourcesPanel } from './components/sources/SourcesPanel';
 import { SettingsPanel } from './components/settings/SettingsPanel';
+import { useTheme } from './hooks/use-theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,16 +17,24 @@ const queryClient = new QueryClient({
 
 type View = 'chat' | 'sources' | 'settings';
 
-export function App() {
+function AppShell() {
   const [view, setView] = useState<View>('chat');
+  // Initialize theme at top level so it applies on mount
+  useTheme();
 
   return (
+    <Layout activeView={view} onNavigate={setView}>
+      {view === 'chat' && <ChatPanel />}
+      {view === 'sources' && <SourcesPanel />}
+      {view === 'settings' && <SettingsPanel />}
+    </Layout>
+  );
+}
+
+export function App() {
+  return (
     <QueryClientProvider client={queryClient}>
-      <Layout activeView={view} onNavigate={setView}>
-        {view === 'chat' && <ChatPanel />}
-        {view === 'sources' && <SourcesPanel />}
-        {view === 'settings' && <SettingsPanel />}
-      </Layout>
+      <AppShell />
     </QueryClientProvider>
   );
 }

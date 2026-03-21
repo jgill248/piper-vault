@@ -26,3 +26,13 @@ export function useConversation(id: string | undefined) {
     enabled: !!id,
   });
 }
+
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteConversation(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+}

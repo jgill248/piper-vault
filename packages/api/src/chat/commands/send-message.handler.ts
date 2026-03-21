@@ -45,8 +45,13 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
     let { conversationId } = command;
 
     // --- Step 1: Resolve or create the conversation ---
-    let conversationTitle = userMessage.slice(0, 80).trim();
-    if (conversationTitle.length === 0) conversationTitle = 'New conversation';
+    const trimmed = userMessage.trim();
+    let conversationTitle =
+      trimmed.length === 0
+        ? 'New conversation'
+        : trimmed.length > 80
+          ? `${trimmed.slice(0, 80)}...`
+          : trimmed;
 
     if (conversationId === undefined) {
       const [inserted] = await this.db
@@ -78,6 +83,12 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
           throw new InternalServerErrorException('Failed to create conversation');
         }
         conversationId = inserted.id;
+      } else {
+        // Touch updatedAt so list ordering reflects last activity.
+        await this.db
+          .update(conversations)
+          .set({ updatedAt: new Date() })
+          .where(eq(conversations.id, conversationId));
       }
     }
 

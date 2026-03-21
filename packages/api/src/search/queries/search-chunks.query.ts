@@ -3,6 +3,9 @@ export class SearchChunksQuery {
     public readonly query: string,
     public readonly topK?: number,
     public readonly threshold?: number,
-    public readonly sourceIds?: readonly string[],
+    public readonly sourceIds?: string[],
+    public readonly fileTypes?: string[],
+    public readonly dateFrom?: string,
+    public readonly dateTo?: string,
   ) {}
 }

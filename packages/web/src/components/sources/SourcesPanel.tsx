@@ -3,15 +3,57 @@ import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useListSources } from '../../hooks/use-sources';
 import { UploadZone } from './UploadZone';
 import { SourceLedger } from './SourceLedger';
+import type { SourceFilters } from './SourceLedger';
+
+const FILE_TYPE_OPTIONS = [
+  { value: 'all', label: 'ALL TYPES' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'docx', label: 'DOCX' },
+  { value: 'csv', label: 'CSV' },
+  { value: 'tsv', label: 'TSV' },
+  { value: 'json', label: 'JSON' },
+  { value: 'html', label: 'HTML' },
+  { value: 'md', label: 'MD' },
+  { value: 'txt', label: 'TXT' },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'ALL STATUS' },
+  { value: 'ready', label: 'READY' },
+  { value: 'processing', label: 'PROCESSING' },
+  { value: 'pending', label: 'PENDING' },
+  { value: 'error', label: 'ERROR' },
+];
 
 export function SourcesPanel() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
 
+  const [filters, setFilters] = useState<SourceFilters>({
+    search: '',
+    fileType: 'all',
+    status: 'all',
+  });
+
   const { data, isLoading, isError, error, refetch, isFetching } = useListSources(page, PAGE_SIZE);
 
   const sources = data?.data ?? [];
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setFilters((prev) => ({ ...prev, search: e.target.value }));
+    setPage(1);
+  }
+
+  function handleFileTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setFilters((prev) => ({ ...prev, fileType: e.target.value }));
+    setPage(1);
+  }
+
+  function handleStatusChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setFilters((prev) => ({ ...prev, status: e.target.value }));
+    setPage(1);
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -65,6 +107,49 @@ export function SourcesPanel() {
             <div className="flex-1 h-px bg-obsidian-border/20" />
           </div>
 
+          {/* Filter bar */}
+          <div className="flex items-center gap-2 mb-3 bg-obsidian-sunken border border-obsidian-border/20 px-3 py-2">
+            <div className="flex-1 relative">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 font-mono text-[10px] text-ui-dim pointer-events-none">
+                /
+              </span>
+              <input
+                type="text"
+                value={filters.search}
+                onChange={handleSearchChange}
+                placeholder="FILTER BY FILENAME..."
+                aria-label="Filter sources by filename"
+                className="w-full bg-transparent font-mono text-[10px] text-ui-text placeholder:text-ui-dim outline-none pl-4 pr-2 py-0.5 uppercase tracking-wider"
+              />
+            </div>
+            <div className="w-px h-4 bg-obsidian-border/30 shrink-0" />
+            <select
+              value={filters.fileType}
+              onChange={handleFileTypeChange}
+              aria-label="Filter by file type"
+              className="bg-transparent font-mono text-[10px] text-ui-muted uppercase tracking-wider outline-none cursor-pointer border-0 appearance-none pr-1"
+            >
+              {FILE_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-obsidian-raised text-ui-text">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <div className="w-px h-4 bg-obsidian-border/30 shrink-0" />
+            <select
+              value={filters.status}
+              onChange={handleStatusChange}
+              aria-label="Filter by status"
+              className="bg-transparent font-mono text-[10px] text-ui-muted uppercase tracking-wider outline-none cursor-pointer border-0 appearance-none pr-1"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-obsidian-raised text-ui-text">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {isLoading && (
             <div className="flex items-center justify-center py-8">
               <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest animate-pulse">
@@ -83,7 +168,7 @@ export function SourcesPanel() {
 
           {!isLoading && !isError && (
             <div className="bg-obsidian-sunken border border-obsidian-border/20">
-              <SourceLedger sources={sources} />
+              <SourceLedger sources={sources} filters={filters} />
             </div>
           )}
 

@@ -28,3 +28,13 @@ export function useDeleteSource() {
     },
   });
 }
+
+export function useReindexSource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.reindexSource(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sources'] });
+    },
+  });
+}

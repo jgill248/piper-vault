@@ -1,9 +1,18 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, FileText } from 'lucide-react';
+import { Upload, FileText, Loader2 } from 'lucide-react';
 import { useUploadSource } from '../../hooks/use-sources';
 
-const ACCEPTED_EXTENSIONS = ['.md', '.txt'];
-const ACCEPTED_MIME = ['text/plain', 'text/markdown'];
+const ACCEPTED_EXTENSIONS = ['.md', '.txt', '.pdf', '.docx', '.csv', '.tsv', '.json', '.html'];
+const ACCEPTED_MIME = [
+  'text/plain',
+  'text/markdown',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/csv',
+  'text/tab-separated-values',
+  'application/json',
+  'text/html',
+];
 
 function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -11,7 +20,6 @@ function readFileAsBase64(file: File): Promise<string> {
     reader.onload = () => {
       const result = reader.result;
       if (typeof result === 'string') {
-        // Strip the data URL prefix: "data:<mime>;base64,"
         const base64 = result.split(',')[1] ?? '';
         resolve(base64);
       } else {
@@ -29,8 +37,15 @@ function isAcceptedFile(file: File): boolean {
   return ACCEPTED_EXTENSIONS.includes(ext);
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
 interface UploadStatus {
   filename: string;
+  fileSize: number;
   state: 'uploading' | 'done' | 'error';
   error?: string;
 }
@@ -46,7 +61,10 @@ export function UploadZone() {
     if (accepted.length === 0) return;
 
     for (const file of accepted) {
-      setUploads((prev) => [...prev, { filename: file.name, state: 'uploading' }]);
+      setUploads((prev) => [
+        ...prev,
+        { filename: file.name, fileSize: file.size, state: 'uploading' },
+      ]);
 
       try {
         const content = await readFileAsBase64(file);
@@ -58,7 +76,6 @@ export function UploadZone() {
           prev.map((u) => (u.filename === file.name ? { ...u, state: 'done' } : u)),
         );
 
-        // Clear done status after 3s
         setTimeout(() => {
           setUploads((prev) => prev.filter((u) => u.filename !== file.name));
         }, 3000);
@@ -95,7 +112,6 @@ export function UploadZone() {
   async function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     await processFiles(files);
-    // Reset input so same file can be re-uploaded
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
@@ -131,7 +147,7 @@ export function UploadZone() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".md,.txt"
+          accept=".md,.txt,.pdf,.docx,.csv,.tsv,.json,.html"
           multiple
           onChange={(e) => void handleFileInput(e)}
           className="sr-only"
@@ -148,7 +164,7 @@ export function UploadZone() {
             {isDragOver ? 'RELEASE TO UPLOAD' : 'DROP FILES / CLICK TO BROWSE'}
           </p>
           <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
-            ACCEPTED: .MD · .TXT — PHASE 1
+            ACCEPTED: .MD · .TXT · .PDF · .DOCX · .CSV · .TSV · .JSON · .HTML
           </p>
         </div>
       </div>
@@ -165,19 +181,23 @@ export function UploadZone() {
               <span className="font-mono text-[10px] text-ui-muted flex-1 truncate">
                 {u.filename}
               </span>
+              <span className="font-mono text-[9px] text-ui-dim tabular-nums shrink-0">
+                {formatBytes(u.fileSize)}
+              </span>
               {u.state === 'uploading' && (
-                <span className="font-mono text-[9px] text-blue-400 uppercase tracking-wider">
-                  UPLOADING...
+                <span className="flex items-center gap-1 font-mono text-[9px] text-blue-400 uppercase tracking-wider shrink-0">
+                  <Loader2 size={10} className="animate-spin" />
+                  UPLOADING
                 </span>
               )}
               {u.state === 'done' && (
-                <span className="font-mono text-[9px] text-phosphor uppercase tracking-wider">
+                <span className="font-mono text-[9px] text-phosphor uppercase tracking-wider shrink-0">
                   INGESTED
                 </span>
               )}
               {u.state === 'error' && (
                 <span
-                  className="font-mono text-[9px] text-red-400 uppercase tracking-wider"
+                  className="font-mono text-[9px] text-red-400 uppercase tracking-wider shrink-0"
                   title={u.error}
                 >
                   ERROR
