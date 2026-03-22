@@ -3,11 +3,20 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { SendMessageHandler } from './send-message.handler';
 import { SendMessageCommand } from './send-message.command';
 import type { LlmProvider } from '@delve/core';
+import * as core from '@delve/core';
 import type { Database } from '../../database/connection';
 import type { RetrievalService } from '../../search/services/retrieval.service';
 import type { ConfigStore } from '../../config/config.store';
 import type { ChunkSearchResult } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
+
+vi.mock('@delve/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof core>();
+  return {
+    ...actual,
+    generateFollowUpQuestions: vi.fn().mockResolvedValue(['Q1?', 'Q2?']),
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Factory helpers
@@ -147,5 +156,72 @@ describe('SendMessageHandler', () => {
         dateTo: '2026-12-31',
       }),
     );
+  });
+
+  it('includes suggestedFollowUps when enabled and context exists', async () => {
+    const db = makeDb();
+    const llm = makeLlm();
+    const contextResult: ChunkSearchResult = {
+      chunk: {
+        id: 'c-1', sourceId: 'src-1', chunkIndex: 0, content: 'context',
+        tokenCount: 5, metadata: {}, createdAt: new Date(),
+      },
+      score: 0.9,
+      source: { id: 'src-1', filename: 'test.md', fileType: 'text/markdown' },
+    };
+    const retrievalService = makeRetrievalService([contextResult]);
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore(true));
+
+    const result = await handler.execute(new SendMessageCommand('Hello?'));
+
+    expect(result.suggestedFollowUps).toBeDefined();
+    expect(result.suggestedFollowUps).toEqual(['Q1?', 'Q2?']);
+  });
+
+  it('omits suggestedFollowUps when disabled', async () => {
+    const db = makeDb();
+    const llm = makeLlm();
+    const retrievalService = makeRetrievalService();
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore(false));
+
+    const result = await handler.execute(new SendMessageCommand('Hello?'));
+
+    expect(result.suggestedFollowUps).toBeUndefined();
+  });
+
+  it('omits suggestedFollowUps when context is empty', async () => {
+    const db = makeDb();
+    const llm = makeLlm();
+    const retrievalService = makeRetrievalService([]);
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore(true));
+
+    const result = await handler.execute(new SendMessageCommand('Hello?'));
+
+    expect(result.suggestedFollowUps).toBeUndefined();
+  });
+
+  it('returns response without follow-ups when generation fails', async () => {
+    vi.mocked(core.generateFollowUpQuestions).mockRejectedValue(
+      new Error('LLM provider unavailable'),
+    );
+
+    const db = makeDb();
+    const llm = makeLlm();
+    const contextResult: ChunkSearchResult = {
+      chunk: {
+        id: 'c-1', sourceId: 'src-1', chunkIndex: 0, content: 'context',
+        tokenCount: 5, metadata: {}, createdAt: new Date(),
+      },
+      score: 0.9,
+      source: { id: 'src-1', filename: 'test.md', fileType: 'text/markdown' },
+    };
+    const retrievalService = makeRetrievalService([contextResult]);
+    const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore(true));
+
+    const result = await handler.execute(new SendMessageCommand('Hello?'));
+
+    // Should still return the message even though follow-ups failed
+    expect(result.suggestedFollowUps).toBeUndefined();
+    expect(result.message.content).toBe('Answer text.');
   });
 });

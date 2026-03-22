@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { API_PREFIX } from '@delve/shared';
+import { GlobalExceptionFilter } from './filters/http-exception.filter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -11,6 +12,7 @@ async function bootstrap(): Promise<void> {
   );
 
   app.setGlobalPrefix(API_PREFIX);
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.enableCors({
     origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',

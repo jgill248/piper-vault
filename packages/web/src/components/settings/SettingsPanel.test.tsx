@@ -1,0 +1,137 @@
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
+
+// ---------------------------------------------------------------------------
+// Mock hooks — factories must not reference top-level variables (hoisted)
+// ---------------------------------------------------------------------------
+
+const mockMutate = vi.fn();
+
+vi.mock('../../hooks/use-config', () => {
+  // IMPORTANT: must be a stable reference — returning a new object each render
+  // would cause useEffect([config]) to loop infinitely.
+  const stableConfig = Object.freeze({
+    llmModel: 'gpt-4',
+    llmProvider: 'ask-sage',
+    embeddingModel: 'all-MiniLM-L6-v2',
+    chunkSize: 512,
+    chunkOverlap: 64,
+    topKResults: 8,
+    similarityThreshold: 0.72,
+    maxContextTokens: 4000,
+    maxConversationTurns: 10,
+    hybridSearchEnabled: false,
+    hybridSearchWeight: 0.5,
+    rerankEnabled: false,
+    rerankStrategy: 'none',
+    rerankTopN: 5,
+    followUpQuestionsEnabled: true,
+  });
+  return {
+    useConfig: () => ({
+      data: stableConfig,
+      isLoading: false,
+      isError: false,
+    }),
+    useUpdateConfig: () => ({
+      mutate: (...args: unknown[]) => (globalThis as any).__mockMutate?.(...args),
+      isPending: false,
+    }),
+  };
+});
+
+vi.mock('../../hooks/use-theme', () => ({
+  useTheme: () => ({
+    theme: 'dark' as const,
+    toggle: vi.fn(),
+    setTheme: vi.fn(),
+  }),
+}));
+
+import { SettingsPanel } from './SettingsPanel';
+
+// Wire up mockMutate via globalThis to avoid hoisting issue
+(globalThis as any).__mockMutate = mockMutate;
+
+describe('SettingsPanel', () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it('renders the settings header', () => {
+    render(<SettingsPanel />);
+    expect(screen.getByText('System Configuration')).toBeDefined();
+  });
+
+  it('renders LLM provider dropdown with all options', () => {
+    render(<SettingsPanel />);
+    // ASK_SAGE appears in both config editor and system info, so use getAllByText
+    expect(screen.getAllByText('ASK_SAGE').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('ANTHROPIC')).toBeDefined();
+    expect(screen.getByText('OPENAI')).toBeDefined();
+    expect(screen.getByText('OLLAMA')).toBeDefined();
+  });
+
+  it('renders hybrid search toggle', () => {
+    render(<SettingsPanel />);
+    expect(screen.getByLabelText('Toggle hybrid search')).toBeDefined();
+  });
+
+  it('renders re-ranking toggle', () => {
+    render(<SettingsPanel />);
+    expect(screen.getByLabelText('Toggle re-ranking')).toBeDefined();
+  });
+
+  it('renders follow-up questions toggle', () => {
+    render(<SettingsPanel />);
+    expect(screen.getByLabelText('Toggle follow-up questions')).toBeDefined();
+  });
+
+  it('save button is disabled when no changes are made', () => {
+    render(<SettingsPanel />);
+    const saveBtn = screen.getByLabelText('Save configuration changes');
+    expect((saveBtn as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('enables save button after a change is made', () => {
+    render(<SettingsPanel />);
+    fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
+    const saveBtn = screen.getByLabelText('Save configuration changes');
+    expect((saveBtn as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('shows HYBRID_WEIGHT slider when hybrid search is enabled', () => {
+    render(<SettingsPanel />);
+    expect(screen.queryByText('HYBRID_WEIGHT')).toBeNull();
+    fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
+    expect(screen.getByText('HYBRID_WEIGHT')).toBeDefined();
+  });
+
+  it('shows RERANK_TOP_N when re-ranking is enabled', () => {
+    render(<SettingsPanel />);
+    expect(screen.queryByText('RERANK_TOP_N')).toBeNull();
+    fireEvent.click(screen.getByLabelText('Toggle re-ranking'));
+    expect(screen.getByText('RERANK_TOP_N')).toBeDefined();
+  });
+
+  it('resets draft when reset button is clicked', () => {
+    render(<SettingsPanel />);
+    fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
+    expect((screen.getByLabelText('Save configuration changes') as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByLabelText('Reset to last saved values'));
+    expect((screen.getByLabelText('Save configuration changes') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('calls mutate when save is clicked', () => {
+    render(<SettingsPanel />);
+    fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
+    fireEvent.click(screen.getByLabelText('Save configuration changes'));
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders theme toggle', () => {
+    render(<SettingsPanel />);
+    expect(screen.getByLabelText('Switch to light mode')).toBeDefined();
+  });
+});

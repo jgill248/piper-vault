@@ -155,16 +155,26 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       throw new InternalServerErrorException('Failed to save assistant message');
     }
 
-    // Generate follow-up questions if enabled
+    // Generate follow-up questions if enabled (capped at 3s to avoid blocking the response)
     let suggestedFollowUps: string[] | undefined;
     const config = this.configStore.get();
     if (config.followUpQuestionsEnabled && contextResults.length > 0) {
-      suggestedFollowUps = await generateFollowUpQuestions(
-        this.llm,
-        userMessage,
-        assistantContent,
-        contextResults,
-      );
+      const FOLLOW_UP_TIMEOUT_MS = 3000;
+      try {
+        suggestedFollowUps = await Promise.race([
+          generateFollowUpQuestions(
+            this.llm,
+            userMessage,
+            assistantContent,
+            contextResults,
+          ),
+          new Promise<string[]>((_, reject) =>
+            setTimeout(() => reject(new Error('Follow-up generation timed out')), FOLLOW_UP_TIMEOUT_MS),
+          ),
+        ]);
+      } catch (err) {
+        this.logger.warn(`Follow-up generation skipped: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
 
     return {
