@@ -212,6 +212,7 @@ Project management is tracked in Linear. Agents and skills have access to Linear
 | Phase 2: Expand Ingestion & Polish | Section 7, Phase 2 | All file formats, source browser, conversation history, settings |
 | Phase 3: Intelligence & Refinement | Section 7, Phase 3 | Hybrid search, re-ranking, follow-ups, export, provider adapters |
 | Phase 4: Scale & Ecosystem | Section 7, Phase 4 | Watched folders, webhooks, multi-collection, auth, plugins |
+| Phase 5: Obsidian Integration | Section 7, Phase 5 | Vault watcher, wiki-link graph, frontmatter extraction, Obsidian plugin, bidirectional sync |
 
 ### Linear Sync Workflow
 

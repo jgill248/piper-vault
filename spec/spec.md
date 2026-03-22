@@ -355,6 +355,20 @@ The backend exposes a RESTful API consumed by the React frontend. All endpoints 
 - Deployment guide for self-hosted server
 - Plugin architecture for custom extractors
 
+### Phase 5: Obsidian Integration
+
+**Goal:** Deep integration with Obsidian.md for bidirectional knowledge flow.
+
+- Obsidian vault watcher — auto-ingest on file add/change/delete (Obsidian-aware: ignores `.obsidian/`, `.trash/`)
+- Wiki-link parsing (`[[Page]]`, `[[Page|Alias]]`, `[[Page#Section]]`, `![[Embed]]`) with graph relationship storage (`source_links` table)
+- YAML frontmatter extraction — map tags, aliases, dates, and custom properties to Delve source metadata
+- Graph-aware retrieval — boost linked notes in search results using source_links topology
+- Obsidian community plugin (`packages/obsidian-plugin/`) — sidebar chat panel and command palette for querying Delve from within Obsidian
+- Export conversations as Obsidian-flavored markdown with frontmatter and `[[wiki-link]]` citations
+- Deep-link citations via `obsidian://open` URI scheme to jump from Delve chat to source notes in Obsidian
+- Vault configuration UI in settings panel (vault paths, watch toggles, exclusion patterns, sync status)
+- Bidirectional tag sync between Obsidian frontmatter and Delve source tags
+
 ---
 
 ## 8. Embedding Strategy
