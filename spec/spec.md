@@ -415,6 +415,49 @@ The backend exposes a RESTful API consumed by the React frontend. All endpoints 
 - Collection sharing — per-collection read/write permissions for small teams
 - Mobile companion PWA — read-only querying on the go via local network
 
+### Phase 10: Personal Memory & Proactive Intelligence
+
+**Goal:** Transform Delve from a tool you use into a thinking partner that works for you.
+
+- Persistent memory layer — three-tier AI memory across sessions (core/recall/archival, Mem0-inspired)
+- Proactive daily/weekly knowledge briefs — automated synthesis of changes, themes, connections
+- Autonomous knowledge maintenance agents — stale content detection, duplicate detection, consolidation suggestions
+- User preference learning — implicit signals from interaction patterns to personalize retrieval
+- Pattern detection — surface emerging themes and knowledge gaps across ingestion
+
+### Phase 11: Reasoning & Voice
+
+**Goal:** Think deeper on hard questions and let users talk to their knowledge.
+
+- Budget-aware reasoning — route by query complexity to thinking models (R1/o3/QwQ via Ollama)
+- Semantic versioning of knowledge — temporal queries, knowledge diffs, VersionRAG-style routing
+- Voice-first interface — local Whisper STT + Piper TTS for hands-free querying (<2s latency)
+
+### Phase 12: Dev Tools & Cross-Modal Synthesis
+
+**Goal:** Understand codebases as knowledge and reason across all modalities.
+
+- Dev tools integration — index git repos, commit messages, PRs, issue trackers (Linear/GitHub/Jira)
+- Cross-modal reasoning — synthesize across audio transcripts, image descriptions, and text
+- MCP server mode — expose Delve as tools for any MCP-compatible AI (Claude, Cursor, etc.)
+
+### Phase 13: Federated Knowledge & Personal Fine-Tuning
+
+**Goal:** Connect knowledge across devices and people. Make the LLM yours.
+
+- Peer-to-peer knowledge sync via CRDTs (Automerge) with E2EE
+- LoRA personal fine-tuning via Ollama — train on user writing style and domain jargon
+- Privacy-preserving selective sharing — "share a summary, not the source" workflows
+
+### Phase 14: Exploratory Horizons
+
+**Goal:** Forward-looking experimental capabilities.
+
+- 3D spatial knowledge graph visualization (React Three Fiber, WebXR)
+- Embodied knowledge — screen capture (Screenpipe), health data, calendar, browsing history
+- AI-native file format (`.delve`) with embedded semantic annotations and pre-computed embeddings
+- Digital twin of knowledge — living queryable model with self-assessment, gap analysis, curriculum generation
+
 ---
 
 ## 8. Embedding Strategy
