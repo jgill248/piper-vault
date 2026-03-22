@@ -212,6 +212,16 @@ Project management is tracked in Linear. Agents and skills have access to Linear
 | Phase 2: Expand Ingestion & Polish | Section 7, Phase 2 | All file formats, source browser, conversation history, settings |
 | Phase 3: Intelligence & Refinement | Section 7, Phase 3 | Hybrid search, re-ranking, follow-ups, export, provider adapters |
 | Phase 4: Scale & Ecosystem | Section 7, Phase 4 | Watched folders, webhooks, multi-collection, auth, plugins |
+| Phase 5: Obsidian Integration | Section 7, Phase 5 | Vault watcher, wiki-link graph, frontmatter extraction, Obsidian plugin, bidirectional sync |
+| Phase 6: Agentic RAG | Section 7, Phase 6 | Streaming, query routing, corrective RAG, decomposition, research mode, orchestrator |
+| Phase 7: Multi-Modal Knowledge | Section 7, Phase 7 | Audio transcription (Whisper), image understanding (Ollama vision), ColPali, video indexing |
+| Phase 8: Knowledge Graph Intelligence | Section 7, Phase 8 | Entity extraction, relationship mapping, concept clustering, graph UI, temporal reasoning |
+| Phase 9: Desktop App & Plugin SDK | Section 7, Phase 9 | Tauri desktop app, plugin SDK, import ecosystem, webhooks, sharing, mobile PWA |
+| Phase 10: Personal Memory & Proactive Intelligence | Section 7, Phase 10 | Persistent memory, knowledge briefs, maintenance agents, preference learning, pattern detection |
+| Phase 11: Reasoning & Voice | Section 7, Phase 11 | Budget-aware reasoning (R1/o3), semantic versioning, voice-first interface (Whisper + Piper) |
+| Phase 12: Dev Tools & Cross-Modal Synthesis | Section 7, Phase 12 | Git/issue tracker indexing, cross-modal reasoning, MCP server mode |
+| Phase 13: Federated Knowledge & Personal Fine-Tuning | Section 7, Phase 13 | P2P CRDT sync, LoRA fine-tuning, privacy-preserving sharing |
+| Phase 14: Exploratory Horizons | Section 7, Phase 14 | 3D graph, embodied knowledge, .delve format, digital twin of knowledge |
 
 ### Linear Sync Workflow
 
