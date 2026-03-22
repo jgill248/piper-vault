@@ -25,6 +25,7 @@ export class SearchChunksHandler implements IQueryHandler<SearchChunksQuery> {
         tags: query.tags,
         dateFrom: query.dateFrom,
         dateTo: query.dateTo,
+        collectionId: query.collectionId,
       });
     } catch (err) {
       this.logger.error(`Search failed: ${err}`);

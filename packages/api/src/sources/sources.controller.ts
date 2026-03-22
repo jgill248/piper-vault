@@ -34,6 +34,7 @@ const UpdateTagsSchema = z.object({
 const BulkImportSchema = z.object({
   directoryPath: z.string().min(1),
   tags: z.array(z.string().min(1).max(50)).optional(),
+  collectionId: z.string().uuid().optional(),
 });
 
 @Controller('sources')
@@ -75,7 +76,7 @@ export class SourcesController {
     }
 
     const result = await this.commandBus.execute<IngestSourceCommand, { ok: boolean; value?: IngestSourceResult; error?: string }>(
-      new IngestSourceCommand(buffer, dto.filename, dto.mimeType, buffer.byteLength),
+      new IngestSourceCommand(buffer, dto.filename, dto.mimeType, buffer.byteLength, dto.collectionId),
     );
 
     if (!result.ok) {
@@ -107,6 +108,7 @@ export class SourcesController {
   async list(
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('collectionId') collectionId?: string,
   ): Promise<PaginatedResponse<Source>> {
     const parsedPage = page !== undefined ? parseInt(page, 10) : 1;
     const parsedPageSize = pageSize !== undefined ? parseInt(pageSize, 10) : 20;
@@ -115,6 +117,7 @@ export class SourcesController {
       new ListSourcesQuery(
         isNaN(parsedPage) ? 1 : parsedPage,
         isNaN(parsedPageSize) ? 20 : Math.min(parsedPageSize, 100),
+        collectionId,
       ),
     );
   }
@@ -133,7 +136,7 @@ export class SourcesController {
       });
     }
     return this.commandBus.execute(
-      new BulkImportCommand(parsed.data.directoryPath, parsed.data.tags),
+      new BulkImportCommand(parsed.data.directoryPath, parsed.data.tags, parsed.data.collectionId),
     );
   }
 

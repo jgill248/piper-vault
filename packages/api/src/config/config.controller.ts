@@ -22,11 +22,15 @@ export class ConfigAppController {
 
   /**
    * GET /api/v1/config
-   * Returns the active application configuration.
+   * Returns the active application configuration, including runtime flags
+   * such as authEnabled that are derived from environment variables.
    */
   @Get()
   getConfig(): AppConfig {
-    return this.configStore.get();
+    const config = this.configStore.get();
+    const raw = process.env['AUTH_ENABLED'];
+    const authEnabled = raw === 'true' || raw === '1' || raw === 'yes';
+    return { ...config, authEnabled };
   }
 
   /**

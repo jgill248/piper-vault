@@ -4,6 +4,7 @@ import type { Result, AppConfig } from '@delve/shared';
 import { chunkText } from './chunker.js';
 import type { TextChunk } from './chunker.js';
 import { getParser } from './parsers/index.js';
+import type { PluginRegistry } from '../plugins/plugin-registry.js';
 
 export interface IngestionResult {
   readonly chunks: readonly TextChunk[];
@@ -21,14 +22,21 @@ export interface IngestionPipeline {
 }
 
 export class DefaultIngestionPipeline implements IngestionPipeline {
+  /**
+   * Optional plugin registry. When provided, plugin-contributed parsers are
+   * checked before falling back to the built-in parser set.
+   */
+  constructor(private readonly pluginRegistry?: PluginRegistry) {}
+
   async ingest(
     buffer: Buffer,
     filename: string,
     mimeType: string,
     config: Pick<AppConfig, 'chunkSize' | 'chunkOverlap'>,
   ): Promise<Result<IngestionResult, string>> {
-    // Resolve a parser for the given MIME type
-    const parser = getParser(mimeType);
+    // Resolve a parser: plugin registry is checked first, then built-ins.
+    const parser =
+      (this.pluginRegistry?.getParser(mimeType) ?? undefined) ?? getParser(mimeType);
     if (parser === undefined) {
       return err(
         `No parser available for MIME type "${mimeType}". Supported types: ${

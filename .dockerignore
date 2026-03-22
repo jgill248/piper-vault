@@ -1,0 +1,19 @@
+node_modules
+dist
+.git
+.env
+*.log
+.claude
+spec
+examples
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea
+.vscode
+
+# Test output
+coverage

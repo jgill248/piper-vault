@@ -1,11 +1,12 @@
-import { Module, Global, Injectable } from '@nestjs/common';
+import { Module, Global, Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Provider } from '@nestjs/common';
 import { MockEmbedder, DefaultIngestionPipeline, createLlmProvider, LlmReranker } from '@delve/core';
-import type { LlmProvider, LlmQuery, LlmResponse } from '@delve/core';
+import type { LlmProvider, LlmQuery, LlmResponse, PluginRegistry } from '@delve/core';
 import type { Result } from '@delve/shared';
 import { ConfigStore } from '../config/config.store.js';
 import { RetrievalService } from '../search/services/retrieval.service';
+import { PLUGIN_REGISTRY } from '../plugins/plugins.providers.js';
 
 /**
  * LlmProviderProxy delegates every LlmProvider call to whichever concrete
@@ -75,7 +76,9 @@ const embedderProvider: Provider = {
 
 const ingestionPipelineProvider: Provider = {
   provide: 'INGESTION_PIPELINE',
-  useFactory: (): DefaultIngestionPipeline => new DefaultIngestionPipeline(),
+  inject: [PLUGIN_REGISTRY],
+  useFactory: (pluginRegistry: PluginRegistry): DefaultIngestionPipeline =>
+    new DefaultIngestionPipeline(pluginRegistry),
 };
 
 /**

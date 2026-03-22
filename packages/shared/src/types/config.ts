@@ -20,6 +20,10 @@ export interface AppConfig {
   readonly rerankStrategy: RerankStrategy;
   readonly rerankTopN: number;
   readonly followUpQuestionsEnabled: boolean;
+  /** Absolute path to the plugins directory. Empty string means disabled. */
+  readonly pluginsDir: string;
+  /** Whether JWT-based user authentication is enabled. Read from AUTH_ENABLED env var. */
+  readonly authEnabled: boolean;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -38,4 +42,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   rerankStrategy: 'none',
   rerankTopN: 5,
   followUpQuestionsEnabled: true,
+  pluginsDir: '',
+  authEnabled: false,
 };

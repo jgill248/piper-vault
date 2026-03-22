@@ -1,4 +1,5 @@
 export * from './ingestion/directory-walker.js';
+export * from './ingestion/file-watcher.js';
 export * from './ingestion/parser.js';
 export * from './ingestion/chunker.js';
 export * from './ingestion/pipeline.js';
@@ -18,3 +19,4 @@ export * from './llm/provider-factory.js';
 export * from './llm/prompt-builder.js';
 export * from './llm/follow-up-generator.js';
 export * from './export/markdown-exporter.js';
+export * from './plugins/index.js';

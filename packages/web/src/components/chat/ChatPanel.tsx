@@ -8,6 +8,7 @@ import { ConversationHistory } from './ConversationHistory';
 import { SearchFilters, EMPTY_FILTERS } from './SearchFilters';
 import type { SearchFilterState } from './SearchFilters';
 import { useConversations, useSendMessage, useConversation, useExportConversation } from '../../hooks/use-chat';
+import { useActiveCollection } from '../../context/CollectionContext';
 
 function EmptyState() {
   return (
@@ -37,10 +38,11 @@ export function ChatPanel() {
   const [followUps, setFollowUps] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { activeCollectionId } = useActiveCollection();
   const sendMessage = useSendMessage();
   const exportConversation = useExportConversation();
   const { data: conversation } = useConversation(activeConversationId);
-  const { data: conversations } = useConversations();
+  const { data: conversations } = useConversations(activeCollectionId);
 
   // Merge server messages with local optimistic messages
   const serverMessages: readonly Message[] = conversation?.messages ?? [];
@@ -112,7 +114,7 @@ export function ChatPanel() {
     if (searchFilters.dateTo) filters.dateTo = new Date(searchFilters.dateTo).toISOString();
 
     sendMessage.mutate(
-      { message: trimmed, conversationId: activeConversationId, ...filters },
+      { message: trimmed, conversationId: activeConversationId, collectionId: activeCollectionId, ...filters },
       {
         onSuccess: (data) => {
           setActiveConversationId(data.conversationId);

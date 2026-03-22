@@ -19,6 +19,7 @@ export interface Message {
 export interface Conversation {
   readonly id: string;
   readonly title: string;
+  readonly collectionId?: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

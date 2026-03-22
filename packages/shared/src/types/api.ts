@@ -1,5 +1,22 @@
 import type { Message } from './conversation.js';
 
+/**
+ * Read-only summary of a loaded Delve plugin, returned by GET /api/v1/plugins.
+ */
+export interface PluginInfo {
+  readonly name: string;
+  readonly version: string;
+  readonly description?: string;
+  readonly supportedTypes: readonly string[];
+}
+
+/**
+ * Response from POST /api/v1/plugins/reload.
+ */
+export interface ReloadPluginsResponse {
+  readonly loaded: number;
+}
+
 export interface ApiError {
   readonly error: {
     readonly code: string;
@@ -23,6 +40,7 @@ export interface SearchRequest {
   readonly sourceIds?: readonly string[];
   readonly fileTypes?: readonly string[];
   readonly tags?: readonly string[];
+  readonly collectionId?: string;
 }
 
 export interface ChatRequest {
@@ -34,6 +52,7 @@ export interface ChatRequest {
   readonly dateFrom?: string;
   readonly dateTo?: string;
   readonly tags?: readonly string[];
+  readonly collectionId?: string;
 }
 
 export interface ChatResponse {

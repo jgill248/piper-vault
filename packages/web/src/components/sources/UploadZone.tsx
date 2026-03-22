@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, Loader2 } from 'lucide-react';
 import { useUploadSource } from '../../hooks/use-sources';
+import { useActiveCollection } from '../../context/CollectionContext';
 
 const ACCEPTED_EXTENSIONS = ['.md', '.txt', '.pdf', '.docx', '.csv', '.tsv', '.json', '.html'];
 const ACCEPTED_MIME = [
@@ -55,6 +56,7 @@ export function UploadZone() {
   const [uploads, setUploads] = useState<UploadStatus[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadSource = useUploadSource();
+  const { activeCollectionId } = useActiveCollection();
 
   async function processFiles(files: File[]) {
     const accepted = files.filter(isAcceptedFile);
@@ -70,7 +72,7 @@ export function UploadZone() {
         const content = await readFileAsBase64(file);
         const mimeType = file.type || 'text/plain';
 
-        await uploadSource.mutateAsync({ filename: file.name, content, mimeType });
+        await uploadSource.mutateAsync({ filename: file.name, content, mimeType, collectionId: activeCollectionId });
 
         setUploads((prev) =>
           prev.map((u) => (u.filename === file.name ? { ...u, state: 'done' } : u)),

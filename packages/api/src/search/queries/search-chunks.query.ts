@@ -8,5 +8,6 @@ export class SearchChunksQuery {
     public readonly tags?: string[],
     public readonly dateFrom?: string,
     public readonly dateTo?: string,
+    public readonly collectionId?: string,
   ) {}
 }

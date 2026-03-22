@@ -1,5 +1,6 @@
 import { MessageSquare, Database, Settings, Activity } from 'lucide-react';
 import { useHealth } from '../hooks/use-health';
+import { CollectionSelector } from './collections/CollectionSelector';
 
 type View = 'chat' | 'sources' | 'settings';
 
@@ -57,6 +58,16 @@ export function Sidebar({ activeView, onNavigate }: SidebarProps) {
         <p className="font-mono text-[10px] text-ui-dim tracking-wider mt-0.5 uppercase">
           Knowledge Engine
         </p>
+      </div>
+
+      {/* Collection selector */}
+      <div className="border-b border-obsidian-border/20">
+        <div className="px-3 pt-2 pb-1">
+          <span className="font-mono text-[8px] text-ui-dim uppercase tracking-widest">
+            COLLECTION
+          </span>
+        </div>
+        <CollectionSelector />
       </div>
 
       {/* Navigation */}

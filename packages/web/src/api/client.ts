@@ -7,20 +7,64 @@ import type {
   Conversation,
   ConversationWithMessages,
   AppConfig,
+  Collection,
+  CreateCollectionInput,
+  UpdateCollectionInput,
+  PluginInfo,
+  ReloadPluginsResponse,
+  ApiKey,
+  ApiKeyCreatedResponse,
+  CreateApiKeyInput,
+  WatchedFolder,
+  CreateWatchedFolderInput,
+  LoginInput,
+  RegisterInput,
+  AuthResponse,
+  User,
 } from '@delve/shared';
 
 export type { AppConfig };
 
 const BASE_URL = API_PREFIX;
 
+/** Module-level token store — set by AuthContext after login/register. */
+let _authToken: string | null = null;
+
+/** Called by AuthContext to inject the current JWT into outgoing requests. */
+export function setAuthToken(token: string | null): void {
+  _authToken = token;
+}
+
+/** Called by AuthContext when a 401 is received so it can clear the session. */
+let _onUnauthorized: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  _onUnauthorized = handler;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const authHeaders: Record<string, string> =
+    _authToken ? { Authorization: `Bearer ${_authToken}` } : {};
+
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options?.headers,
     },
     ...options,
   });
+
+  if (response.status === 401) {
+    _onUnauthorized?.();
+    const error = await response
+      .json()
+      .catch(() => ({ error: { message: response.statusText } }));
+    throw new Error(
+      (error as { error?: { message?: string } }).error?.message ??
+        'Unauthorized',
+    );
+  }
 
   if (!response.ok) {
     const error = await response
@@ -34,16 +78,35 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export type {
+  Collection,
+  CreateCollectionInput,
+  UpdateCollectionInput,
+  ApiKey,
+  ApiKeyCreatedResponse,
+  CreateApiKeyInput,
+  WatchedFolder,
+  CreateWatchedFolderInput,
+  LoginInput,
+  RegisterInput,
+  AuthResponse,
+  User,
+};
+
+export type DeleteCollectionMode = 'cascade' | 'reassign';
+
 export interface UploadSourceBody {
   filename: string;
   content: string;
   mimeType: string;
+  collectionId?: string;
 }
 
 export interface SearchBody {
   query: string;
   topK?: number;
   threshold?: number;
+  collectionId?: string;
 }
 
 export interface HealthResponse {
@@ -62,17 +125,37 @@ export const api = {
     request<ChatResponse>('/chat', { method: 'POST', body: JSON.stringify(body) }),
 
   // Conversations
-  listConversations: async (): Promise<readonly Conversation[]> => {
-    const res = await request<PaginatedResponse<Conversation>>('/conversations');
+  listConversations: async (collectionId?: string): Promise<readonly Conversation[]> => {
+    const params = collectionId ? `?collectionId=${collectionId}` : '';
+    const res = await request<PaginatedResponse<Conversation>>(`/conversations${params}`);
     return res.data;
   },
 
   getConversation: (id: string): Promise<ConversationWithMessages> =>
     request<ConversationWithMessages>(`/conversations/${id}`),
 
+  // Collections
+  listCollections: (): Promise<PaginatedResponse<Collection>> =>
+    request<PaginatedResponse<Collection>>('/collections'),
+
+  getCollection: (id: string): Promise<Collection> =>
+    request<Collection>(`/collections/${id}`),
+
+  createCollection: (body: CreateCollectionInput): Promise<Collection> =>
+    request<Collection>('/collections', { method: 'POST', body: JSON.stringify(body) }),
+
+  updateCollection: (id: string, body: UpdateCollectionInput): Promise<Collection> =>
+    request<Collection>(`/collections/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  deleteCollection: (id: string, mode: DeleteCollectionMode): Promise<void> =>
+    request<void>(`/collections/${id}?mode=${mode}`, { method: 'DELETE' }),
+
   // Sources
-  listSources: (page = 1, pageSize = 20): Promise<PaginatedResponse<Source>> =>
-    request<PaginatedResponse<Source>>(`/sources?page=${page}&pageSize=${pageSize}`),
+  listSources: (page = 1, pageSize = 20, collectionId?: string): Promise<PaginatedResponse<Source>> => {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    if (collectionId) params.set('collectionId', collectionId);
+    return request<PaginatedResponse<Source>>(`/sources?${params.toString()}`);
+  },
 
   getSource: (id: string): Promise<Source> => request<Source>(`/sources/${id}`),
 
@@ -110,7 +193,7 @@ export const api = {
     }),
 
   // Bulk import
-  bulkImport: (directoryPath: string, tags?: string[]): Promise<{
+  bulkImport: (directoryPath: string, tags?: string[], collectionId?: string): Promise<{
     directoryPath: string;
     filesFound: number;
     filesIngested: number;
@@ -119,7 +202,7 @@ export const api = {
   }> =>
     request(`/sources/bulk-import`, {
       method: 'POST',
-      body: JSON.stringify({ directoryPath, tags }),
+      body: JSON.stringify({ directoryPath, tags, collectionId }),
     }),
 
   // Export conversation
@@ -133,4 +216,73 @@ export const api = {
 
   // Health
   health: (): Promise<HealthResponse> => request<HealthResponse>('/health'),
+
+  // Auth
+  login: (input: LoginInput): Promise<AuthResponse> =>
+    request<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  register: (input: RegisterInput): Promise<AuthResponse> =>
+    request<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
+  getMe: async (token?: string): Promise<User | null> => {
+    const headers: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
+    try {
+      const response = await fetch(`${BASE_URL}/auth/me`, {
+        headers: { 'Content-Type': 'application/json', ...headers },
+      });
+      if (!response.ok) return null;
+      return response.json() as Promise<User | null>;
+    } catch {
+      return null;
+    }
+  },
+
+  // Plugins
+  listPlugins: (): Promise<readonly PluginInfo[]> =>
+    request<readonly PluginInfo[]>('/plugins'),
+
+  reloadPlugins: (): Promise<ReloadPluginsResponse> =>
+    request<ReloadPluginsResponse>('/plugins/reload', { method: 'POST' }),
+
+  // API Keys
+  listApiKeys: (collectionId?: string): Promise<ApiKey[]> => {
+    const params = collectionId ? `?collectionId=${collectionId}` : '';
+    return request<ApiKey[]>(`/api-keys${params}`);
+  },
+
+  createApiKey: (input: CreateApiKeyInput): Promise<ApiKeyCreatedResponse> =>
+    request<ApiKeyCreatedResponse>('/api-keys', { method: 'POST', body: JSON.stringify(input) }),
+
+  revokeApiKey: (id: string): Promise<void> =>
+    request<void>(`/api-keys/${id}`, { method: 'DELETE' }),
+
+  // Watched Folders
+  listWatchedFolders: (collectionId?: string): Promise<WatchedFolder[]> => {
+    const params = collectionId ? `?collectionId=${collectionId}` : '';
+    return request<WatchedFolder[]>(`/watched-folders${params}`);
+  },
+
+  addWatchedFolder: (input: CreateWatchedFolderInput): Promise<WatchedFolder> =>
+    request<WatchedFolder>('/watched-folders', { method: 'POST', body: JSON.stringify(input) }),
+
+  removeWatchedFolder: (id: string): Promise<void> =>
+    request<void>(`/watched-folders/${id}`, { method: 'DELETE' }),
+
+  scanWatchedFolder: (id: string): Promise<{
+    watchedFolderId: string;
+    folderPath: string;
+    filesFound: number;
+    filesIngested: number;
+    filesSkipped: number;
+    errors: readonly string[];
+  }> =>
+    request(`/watched-folders/${id}/scan`, { method: 'POST' }),
 };

@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger, InternalServerErrorException } from '@nestjs/common';
 import { eq, asc } from 'drizzle-orm';
 import type { ChatResponse, Message } from '@delve/shared';
-import { DEFAULT_CONFIG } from '@delve/shared';
+import { DEFAULT_CONFIG, DEFAULT_COLLECTION_ID } from '@delve/shared';
 import type { LlmProvider } from '@delve/core';
 import { buildPrompt, generateFollowUpQuestions } from '@delve/core';
 import { SendMessageCommand } from './send-message.command';
@@ -37,10 +37,12 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
           ? `${trimmed.slice(0, 80)}...`
           : trimmed;
 
+    const collectionId = command.collectionId ?? DEFAULT_COLLECTION_ID;
+
     if (conversationId === undefined) {
       const [inserted] = await this.db
         .insert(conversations)
-        .values({ title: conversationTitle })
+        .values({ title: conversationTitle, collectionId })
         .returning();
 
       if (inserted === undefined) {
@@ -60,7 +62,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
         // auto-generated PKs; create fresh and ignore the supplied id.
         const [inserted] = await this.db
           .insert(conversations)
-          .values({ title: conversationTitle })
+          .values({ title: conversationTitle, collectionId })
           .returning();
 
         if (inserted === undefined) {
@@ -112,6 +114,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       tags: command.tags,
       dateFrom: command.dateFrom,
       dateTo: command.dateTo,
+      collectionId: command.collectionId,
     });
 
     // --- Step 6: Build the prompt ---

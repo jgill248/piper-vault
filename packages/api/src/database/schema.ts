@@ -6,9 +6,13 @@ import {
   text,
   timestamp,
   jsonb,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { customType } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+// DEFAULT_COLLECTION_ID is used in migration SQL; referenced here as a literal
+// so the Drizzle column default is a SQL expression, not a JS runtime value.
+const DEFAULT_COLLECTION_ID_SQL = sql`'00000000-0000-0000-0000-000000000000'::uuid`;
 
 /**
  * Custom Drizzle column type for PostgreSQL `text[]`.
@@ -47,12 +51,35 @@ const vector = customType<{ data: number[]; driverParam: string }>({
   },
 });
 
+export const users = pgTable('users', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  username: varchar('username', { length: 100 }).notNull().unique(),
+  email: varchar('email', { length: 255 }),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  role: varchar('role', { length: 20 }).notNull().default('user'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const collections = pgTable('collections', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  description: text('description').default(''),
+  metadata: jsonb('metadata').notNull().default({}),
+  userId: uuid('user_id').references(() => users.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const sources = pgTable('sources', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   filename: varchar('filename', { length: 500 }).notNull(),
   fileType: varchar('file_type', { length: 50 }).notNull(),
   fileSize: integer('file_size').notNull(),
-  contentHash: varchar('content_hash', { length: 64 }).notNull().unique(),
+  contentHash: varchar('content_hash', { length: 64 }).notNull(),
+  collectionId: uuid('collection_id')
+    .notNull()
+    .default(DEFAULT_COLLECTION_ID_SQL)
+    .references(() => collections.id),
   status: varchar('status', { length: 20 }).notNull().default('pending'),
   chunkCount: integer('chunk_count').notNull().default(0),
   tags: textArray('tags').notNull().default(sql`ARRAY[]::text[]`),
@@ -80,6 +107,10 @@ export const chunks = pgTable('chunks', {
 export const conversations = pgTable('conversations', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   title: varchar('title', { length: 200 }).notNull(),
+  collectionId: uuid('collection_id')
+    .notNull()
+    .default(DEFAULT_COLLECTION_ID_SQL)
+    .references(() => collections.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -96,6 +127,32 @@ export const messages = pgTable('messages', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+export const watchedFolders = pgTable('watched_folders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  collectionId: uuid('collection_id').notNull().references(() => collections.id),
+  folderPath: text('folder_path').notNull(),
+  recursive: boolean('recursive').notNull().default(true),
+  enabled: boolean('enabled').notNull().default(true),
+  lastScanAt: timestamp('last_scan_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const apiKeys = pgTable('api_keys', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  keyHash: varchar('key_hash', { length: 64 }).notNull().unique(),
+  prefix: varchar('prefix', { length: 8 }).notNull(),
+  collectionId: uuid('collection_id').notNull().references(() => collections.id),
+  permissions: jsonb('permissions').notNull().default({}),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  lastUsedAt: timestamp('last_used_at'),
+  expiresAt: timestamp('expires_at'),
+});
+
+export type UserRow = typeof users.$inferSelect;
+export type NewUserRow = typeof users.$inferInsert;
+export type CollectionRow = typeof collections.$inferSelect;
+export type NewCollectionRow = typeof collections.$inferInsert;
 export type SourceRow = typeof sources.$inferSelect;
 export type NewSourceRow = typeof sources.$inferInsert;
 export type ChunkRow = typeof chunks.$inferSelect;
@@ -104,3 +161,7 @@ export type ConversationRow = typeof conversations.$inferSelect;
 export type NewConversationRow = typeof conversations.$inferInsert;
 export type MessageRow = typeof messages.$inferSelect;
 export type NewMessageRow = typeof messages.$inferInsert;
+export type WatchedFolderRow = typeof watchedFolders.$inferSelect;
+export type NewWatchedFolderRow = typeof watchedFolders.$inferInsert;
+export type ApiKeyRow = typeof apiKeys.$inferSelect;
+export type NewApiKeyRow = typeof apiKeys.$inferInsert;

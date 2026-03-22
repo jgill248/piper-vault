@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import type { ReactNode } from 'react';
 
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
 
 import { ChatPanel } from './ChatPanel';
+import { CollectionProvider } from '../../context/CollectionContext';
 
 // ---------------------------------------------------------------------------
 // Mock hooks
@@ -41,24 +43,24 @@ describe('ChatPanel', () => {
   });
 
   it('renders empty state when no messages exist', () => {
-    render(<ChatPanel />);
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
     expect(screen.getByText('No active session')).toBeDefined();
   });
 
   it('renders history toggle button', () => {
-    render(<ChatPanel />);
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
     const btn = screen.getByLabelText('Toggle conversation history');
     expect(btn).toBeDefined();
     expect(btn.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('shows search filters section', () => {
-    render(<ChatPanel />);
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
     expect(screen.getByLabelText('Toggle search filters')).toBeDefined();
   });
 
   it('renders ChatInput for message entry', () => {
-    render(<ChatPanel />);
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
     expect(screen.getByPlaceholderText('Enter query...')).toBeDefined();
   });
 });
@@ -77,7 +79,7 @@ describe('ChatPanel follow-up suggestions', () => {
       onSuccessCallback = opts?.onSuccess;
     });
 
-    render(<ChatPanel />);
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
 
     // Type a message and submit
     const textarea = screen.getByPlaceholderText('Enter query...');
@@ -92,7 +94,7 @@ describe('ChatPanel export', () => {
   afterEach(cleanup);
 
   it('does not show export button when no conversation is active', () => {
-    render(<ChatPanel />);
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
     expect(screen.queryByLabelText('Export conversation as markdown')).toBeNull();
   });
 });

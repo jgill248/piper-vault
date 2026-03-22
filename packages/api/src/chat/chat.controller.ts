@@ -30,6 +30,7 @@ const ChatRequestSchema = z.object({
   tags: z.array(z.string().min(1)).optional(),
   dateFrom: z.string().datetime({ offset: true }).optional(),
   dateTo: z.string().datetime({ offset: true }).optional(),
+  collectionId: z.string().uuid().optional(),
 });
 
 @Controller()
@@ -58,9 +59,9 @@ export class ChatController {
       });
     }
 
-    const { message, conversationId, model, sourceIds, fileTypes, tags, dateFrom, dateTo } = parsed.data;
+    const { message, conversationId, model, sourceIds, fileTypes, tags, dateFrom, dateTo, collectionId } = parsed.data;
     return this.commandBus.execute(
-      new SendMessageCommand(message, conversationId, model, sourceIds, fileTypes, tags, dateFrom, dateTo),
+      new SendMessageCommand(message, conversationId, model, sourceIds, fileTypes, tags, dateFrom, dateTo, collectionId),
     );
   }
 
@@ -71,6 +72,7 @@ export class ChatController {
   async listConversations(
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('collectionId') collectionId?: string,
   ): Promise<PaginatedResponse<Conversation>> {
     const parsedPage = page !== undefined ? parseInt(page, 10) : 1;
     const parsedPageSize = pageSize !== undefined ? parseInt(pageSize, 10) : 20;
@@ -79,6 +81,7 @@ export class ChatController {
       new ListConversationsQuery(
         isNaN(parsedPage) ? 1 : parsedPage,
         isNaN(parsedPageSize) ? 20 : Math.min(parsedPageSize, 100),
+        collectionId,
       ),
     );
   }

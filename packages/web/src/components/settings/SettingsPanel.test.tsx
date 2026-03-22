@@ -26,6 +26,7 @@ vi.mock('../../hooks/use-config', () => {
     rerankStrategy: 'none',
     rerankTopN: 5,
     followUpQuestionsEnabled: true,
+    pluginsDir: '',
   });
   return {
     useConfig: () => ({
@@ -46,6 +47,37 @@ vi.mock('../../hooks/use-theme', () => ({
     toggle: vi.fn(),
     setTheme: vi.fn(),
   }),
+}));
+
+vi.mock('../../hooks/use-plugins', () => ({
+  usePlugins: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  }),
+  useReloadPlugins: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isSuccess: false,
+    isError: false,
+  }),
+}));
+
+vi.mock('../../hooks/use-api-keys', () => ({
+  useApiKeys: () => ({ data: [], isLoading: false }),
+  useCreateApiKey: () => ({ mutate: vi.fn(), isPending: false }),
+  useRevokeApiKey: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock('../../hooks/use-watched-folders', () => ({
+  useWatchedFolders: () => ({ data: [], isLoading: false }),
+  useAddWatchedFolder: () => ({ mutate: vi.fn(), isPending: false }),
+  useRemoveWatchedFolder: () => ({ mutate: vi.fn(), isPending: false }),
+  useScanWatchedFolder: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock('../../hooks/use-collections', () => ({
+  useCollections: () => ({ data: { data: [] }, isLoading: false }),
 }));
 
 import { SettingsPanel } from './SettingsPanel';

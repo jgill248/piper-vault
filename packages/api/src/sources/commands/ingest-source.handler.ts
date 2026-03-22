@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger, ConflictException, InternalServerErrorException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
 import type { IngestionPipeline } from '@delve/core';
@@ -26,7 +26,7 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
   ) {}
 
   async execute(command: IngestSourceCommand): Promise<Result<IngestSourceResult, string>> {
-    const { buffer, filename, mimeType, fileSize } = command;
+    const { buffer, filename, mimeType, fileSize, collectionId } = command;
 
     // --- Step 1: Run the ingestion pipeline (parse + chunk) ---
     const ingestionResult = await this.pipeline.ingest(buffer, filename, mimeType, {
@@ -41,11 +41,16 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
 
     const { chunks: textChunks, contentHash, metadata } = ingestionResult.value;
 
-    // --- Step 2: Check for duplicate content ---
+    // --- Step 2: Check for duplicate content within the same collection ---
     const existing = await this.db
       .select({ id: sources.id })
       .from(sources)
-      .where(eq(sources.contentHash, contentHash))
+      .where(
+        and(
+          eq(sources.contentHash, contentHash),
+          eq(sources.collectionId, collectionId),
+        ),
+      )
       .limit(1);
 
     if (existing.length > 0 && existing[0] !== undefined) {
@@ -64,6 +69,7 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
           fileType: mimeType,
           fileSize,
           contentHash,
+          collectionId,
           status: 'processing',
           chunkCount: 0,
           metadata: metadata as Record<string, unknown>,

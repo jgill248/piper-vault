@@ -2,10 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { UploadSourceBody } from '../api/client';
 
-export function useListSources(page = 1, pageSize = 20) {
+export function useListSources(page = 1, pageSize = 20, collectionId?: string) {
   return useQuery({
-    queryKey: ['sources', page, pageSize],
-    queryFn: () => api.listSources(page, pageSize),
+    queryKey: ['sources', page, pageSize, collectionId],
+    queryFn: () => api.listSources(page, pageSize, collectionId),
   });
 }
 
@@ -60,8 +60,15 @@ export function useUpdateSourceTags() {
 export function useBulkImport() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ directoryPath, tags }: { directoryPath: string; tags?: string[] }) =>
-      api.bulkImport(directoryPath, tags),
+    mutationFn: ({
+      directoryPath,
+      tags,
+      collectionId,
+    }: {
+      directoryPath: string;
+      tags?: string[];
+      collectionId?: string;
+    }) => api.bulkImport(directoryPath, tags, collectionId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['sources'] });
     },

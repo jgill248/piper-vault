@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { DefaultIngestionPipeline } from './pipeline.js';
+import { PluginRegistry } from '../plugins/plugin-registry.js';
+import type { DelvePlugin, FileParser } from '../index.js';
 
 const pipeline = new DefaultIngestionPipeline();
 const config = { chunkSize: 512, chunkOverlap: 50 };
@@ -74,6 +76,97 @@ describe('DefaultIngestionPipeline', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.chunks[0]!.content).toContain('Name: Alice');
+    }
+  });
+});
+
+describe('DefaultIngestionPipeline (with PluginRegistry)', () => {
+  it('uses a plugin parser when one matches the MIME type', async () => {
+    const registry = new PluginRegistry();
+
+    const customParser: FileParser = {
+      supportedTypes: ['text/custom-plugin'],
+      parse: async (_buf, filename) => ({
+        ok: true,
+        value: {
+          text: 'custom plugin content long enough to produce a chunk for the test case',
+          metadata: { filename, parser: 'custom' },
+        },
+      }),
+    };
+
+    const plugin: DelvePlugin = {
+      name: 'test-custom',
+      version: '1.0.0',
+      parsers: [{ mimeTypes: ['text/custom-plugin'], parser: customParser }],
+    };
+    registry.register(plugin);
+
+    const pipelineWithPlugin = new DefaultIngestionPipeline(registry);
+    const result = await pipelineWithPlugin.ingest(
+      Buffer.from('irrelevant'),
+      'file.custom',
+      'text/custom-plugin',
+      config,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.chunks[0]!.content).toContain('custom plugin content');
+      expect(result.value.metadata['parser']).toBe('custom');
+    }
+  });
+
+  it('falls back to built-in parsers when no plugin matches', async () => {
+    const registry = new PluginRegistry();
+    // Registry is empty — built-in text parser should handle text/plain
+    const pipelineWithPlugin = new DefaultIngestionPipeline(registry);
+
+    const result = await pipelineWithPlugin.ingest(
+      Buffer.from('Hello from built-in parser'),
+      'test.txt',
+      'text/plain',
+      config,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.chunks[0]!.content).toContain('Hello from built-in parser');
+    }
+  });
+
+  it('plugin parser takes precedence over built-in for the same MIME type', async () => {
+    const registry = new PluginRegistry();
+
+    // Override text/plain with a custom parser
+    const overrideParser: FileParser = {
+      supportedTypes: ['text/plain'],
+      parse: async (_buf, filename) => ({
+        ok: true,
+        value: {
+          text: 'OVERRIDDEN by plugin parser with enough words to form a chunk',
+          metadata: { filename, overridden: true },
+        },
+      }),
+    };
+    registry.register({
+      name: 'override-plain',
+      version: '1.0.0',
+      parsers: [{ mimeTypes: ['text/plain'], parser: overrideParser }],
+    });
+
+    const pipelineWithPlugin = new DefaultIngestionPipeline(registry);
+    const result = await pipelineWithPlugin.ingest(
+      Buffer.from('original content'),
+      'test.txt',
+      'text/plain',
+      config,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.metadata['overridden']).toBe(true);
+      expect(result.value.chunks[0]!.content).toContain('OVERRIDDEN by plugin');
     }
   });
 });

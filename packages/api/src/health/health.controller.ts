@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import type { Database } from '../database/connection';
+import { Public } from '../auth/decorators/public.decorator';
 
 interface HealthResponse {
   readonly status: 'ok' | 'degraded';
@@ -9,6 +10,7 @@ interface HealthResponse {
   readonly embedding: 'ok' | 'warn';
 }
 
+@Public()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useListSources, useListTags } from '../../hooks/use-sources';
+import { useActiveCollection } from '../../context/CollectionContext';
 
 export interface SearchFilterState {
   sourceIds: string[];
@@ -36,7 +37,8 @@ function activeFilterCount(filters: SearchFilterState): number {
 
 export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
   const [expanded, setExpanded] = useState(false);
-  const { data: sourcesData } = useListSources(1, 100);
+  const { activeCollectionId } = useActiveCollection();
+  const { data: sourcesData } = useListSources(1, 100, activeCollectionId);
   const { data: availableTags } = useListTags();
   const sources = sourcesData?.data ?? [];
 

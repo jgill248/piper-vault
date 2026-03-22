@@ -56,7 +56,7 @@ export class BulkImportHandler implements ICommandHandler<BulkImportCommand> {
         const result = await this.commandBus.execute<
           IngestSourceCommand,
           Result<IngestSourceResult, string>
-        >(new IngestSourceCommand(buffer, file.filename, file.mimeType, file.fileSize));
+        >(new IngestSourceCommand(buffer, file.filename, file.mimeType, file.fileSize, command.collectionId));
 
         if (result.ok) {
           filesIngested++;

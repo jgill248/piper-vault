@@ -17,6 +17,7 @@ export function toConversationResponse(row: ConversationRow): Conversation {
   return {
     id: row.id,
     title: row.title,
+    collectionId: row.collectionId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

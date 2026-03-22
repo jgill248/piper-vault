@@ -17,6 +17,7 @@ export interface Source {
   readonly chunkCount: number;
   readonly tags: readonly string[];
   readonly metadata: Record<string, unknown>;
+  readonly collectionId?: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

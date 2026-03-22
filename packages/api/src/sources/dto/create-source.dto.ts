@@ -18,6 +18,7 @@ export const CreateSourceSchema = z.object({
       message: `mimeType must be one of: ${SUPPORTED_FILE_TYPES.join(', ')}`,
     },
   ),
+  collectionId: z.string().uuid().optional(),
 });
 
 export type CreateSourceDto = z.infer<typeof CreateSourceSchema>;

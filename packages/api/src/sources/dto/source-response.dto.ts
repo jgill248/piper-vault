@@ -16,6 +16,7 @@ export function toSourceResponse(row: SourceRow): Source {
     chunkCount: row.chunkCount,
     tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
     metadata: (row.metadata ?? {}) as Record<string, unknown>,
+    collectionId: row.collectionId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

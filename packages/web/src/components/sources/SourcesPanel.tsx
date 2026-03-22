@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useListSources, useBulkImport } from '../../hooks/use-sources';
+import { useActiveCollection } from '../../context/CollectionContext';
 import { UploadZone } from './UploadZone';
 import { SourceLedger } from './SourceLedger';
 import type { SourceFilters } from './SourceLedger';
@@ -30,6 +31,7 @@ export function SourcesPanel() {
   const PAGE_SIZE = 20;
   const [bulkImportPath, setBulkImportPath] = useState('');
   const bulkImport = useBulkImport();
+  const { activeCollectionId } = useActiveCollection();
 
   const [filters, setFilters] = useState<SourceFilters>({
     search: '',
@@ -37,7 +39,7 @@ export function SourcesPanel() {
     status: 'all',
   });
 
-  const { data, isLoading, isError, error, refetch, isFetching } = useListSources(page, PAGE_SIZE);
+  const { data, isLoading, isError, error, refetch, isFetching } = useListSources(page, PAGE_SIZE, activeCollectionId);
 
   const sources = data?.data ?? [];
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
@@ -120,7 +122,7 @@ export function SourcesPanel() {
             <button
               onClick={() => {
                 if (bulkImportPath.trim()) {
-                  bulkImport.mutate({ directoryPath: bulkImportPath.trim() });
+                  bulkImport.mutate({ directoryPath: bulkImportPath.trim(), collectionId: activeCollectionId });
                 }
               }}
               disabled={!bulkImportPath.trim() || bulkImport.isPending}

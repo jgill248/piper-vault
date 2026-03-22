@@ -12,10 +12,10 @@ export function useSendMessage() {
   });
 }
 
-export function useConversations() {
+export function useConversations(collectionId?: string) {
   return useQuery({
-    queryKey: ['conversations'],
-    queryFn: () => api.listConversations(),
+    queryKey: ['conversations', collectionId],
+    queryFn: () => api.listConversations(collectionId),
   });
 }
 

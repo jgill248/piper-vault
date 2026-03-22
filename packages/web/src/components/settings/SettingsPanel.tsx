@@ -3,6 +3,9 @@ import { DEFAULT_CONFIG, LLM_PROVIDERS } from '@delve/shared';
 import type { AppConfig } from '@delve/shared';
 import { useConfig, useUpdateConfig } from '../../hooks/use-config';
 import { useTheme } from '../../hooks/use-theme';
+import { PluginsPanel } from './PluginsPanel';
+import { ApiKeysSection } from './ApiKeysSection';
+import { WatchedFoldersSection } from './WatchedFoldersSection';
 
 interface SectionProps {
   index: string;
@@ -493,6 +496,15 @@ export function SettingsPanel() {
                 </button>
               </div>
             </Section>
+
+            {/* API Keys & Webhook docs */}
+            <ApiKeysSection sectionIndex="08" />
+
+            {/* Watched Folders */}
+            <WatchedFoldersSection />
+
+            {/* Plugin system */}
+            <PluginsPanel />
 
             {/* Action buttons */}
             <div className="flex items-center gap-3 pt-2 pb-4">

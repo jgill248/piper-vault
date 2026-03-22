@@ -17,6 +17,7 @@ export interface RetrievalOptions {
   readonly tags?: readonly string[];
   readonly dateFrom?: string;
   readonly dateTo?: string;
+  readonly collectionId?: string;
 }
 
 interface ChunkSearchRow {
@@ -125,6 +126,10 @@ export class RetrievalService {
       options.dateTo !== undefined
         ? sql`AND s.created_at <= ${options.dateTo}::timestamptz`
         : sql``;
+    const collectionFilter =
+      options.collectionId !== undefined
+        ? sql`AND s.collection_id = ${options.collectionId}::uuid`
+        : sql``;
 
     const rawRows = await this.db.execute(
       sql`
@@ -135,6 +140,7 @@ export class RetrievalService {
         JOIN sources s ON c.source_id = s.id
         WHERE s.status = 'ready' AND c.embedding IS NOT NULL
           ${sourceFilter} ${fileTypeFilter} ${tagFilter} ${dateFromFilter} ${dateToFilter}
+          ${collectionFilter}
         ORDER BY c.embedding <=> ${vectorLiteral}::vector
         LIMIT ${options.topK}
       `,
@@ -174,6 +180,10 @@ export class RetrievalService {
       options.dateTo !== undefined
         ? sql`AND s.created_at <= ${options.dateTo}::timestamptz`
         : sql``;
+    const collectionFilter =
+      options.collectionId !== undefined
+        ? sql`AND s.collection_id = ${options.collectionId}::uuid`
+        : sql``;
 
     const rawRows = await this.db.execute(
       sql`
@@ -185,6 +195,7 @@ export class RetrievalService {
         WHERE s.status = 'ready'
           AND c.search_vector @@ to_tsquery('english', ${tsQuery})
           ${sourceFilter} ${fileTypeFilter} ${tagFilter} ${dateFromFilter} ${dateToFilter}
+          ${collectionFilter}
         ORDER BY score DESC
         LIMIT ${options.topK}
       `,
