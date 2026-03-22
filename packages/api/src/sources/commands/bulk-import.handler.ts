@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler, CommandBus } from '@nestjs/cqrs';
-import { Logger, BadRequestException } from '@nestjs/common';
+import { Logger, BadRequestException, Inject } from '@nestjs/common';
 import { existsSync, statSync, readFileSync } from 'node:fs';
 import { walkDirectory } from '@delve/core';
 import { MAX_FILE_SIZE } from '@delve/shared';
@@ -21,7 +21,7 @@ export interface BulkImportResult {
 export class BulkImportHandler implements ICommandHandler<BulkImportCommand> {
   private readonly logger = new Logger(BulkImportHandler.name);
 
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(@Inject(CommandBus) private readonly commandBus: CommandBus) {}
 
   async execute(command: BulkImportCommand): Promise<BulkImportResult> {
     // Validate directory exists

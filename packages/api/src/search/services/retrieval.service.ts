@@ -42,7 +42,7 @@ export class RetrievalService {
     @Inject(DATABASE) private readonly db: Database,
     @Inject('EMBEDDER') private readonly embedder: Embedder,
     @Inject('RERANKER') private readonly reranker: Reranker,
-    private readonly configStore: ConfigStore,
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
   ) {}
 
   async search(options: RetrievalOptions): Promise<ChunkSearchResult[]> {

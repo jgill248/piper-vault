@@ -19,7 +19,7 @@ export class WebhookIngestHandler implements ICommandHandler<WebhookIngestComman
   private readonly logger = new Logger(WebhookIngestHandler.name);
 
   constructor(
-    private readonly commandBus: CommandBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
     @Inject(DATABASE) private readonly db: Database,
   ) {}
 

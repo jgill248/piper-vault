@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger, InternalServerErrorException } from '@nestjs/common';
 import { eq, asc } from 'drizzle-orm';
 import type { ChatResponse, Message } from '@delve/shared';
-import { DEFAULT_CONFIG, DEFAULT_COLLECTION_ID } from '@delve/shared';
+import { DEFAULT_COLLECTION_ID } from '@delve/shared';
 import type { LlmProvider } from '@delve/core';
 import { buildPrompt, generateFollowUpQuestions } from '@delve/core';
 import { SendMessageCommand } from './send-message.command';
@@ -20,8 +20,8 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject('LLM_PROVIDER') private readonly llm: LlmProvider,
-    private readonly retrievalService: RetrievalService,
-    private readonly configStore: ConfigStore,
+    @Inject(RetrievalService) private readonly retrievalService: RetrievalService,
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
   ) {}
 
   async execute(command: SendMessageCommand): Promise<ChatResponse> {
@@ -105,10 +105,11 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       .map(toMessageResponse);
 
     // --- Steps 4-5: Retrieve relevant chunks via hybrid search + re-ranking ---
+    const cfg = this.configStore.get();
     const contextResults = await this.retrievalService.search({
       query: userMessage,
-      topK: DEFAULT_CONFIG.topKResults,
-      threshold: DEFAULT_CONFIG.similarityThreshold,
+      topK: cfg.topKResults,
+      threshold: cfg.similarityThreshold,
       sourceIds: command.sourceIds,
       fileTypes: command.fileTypes,
       tags: command.tags,
@@ -118,18 +119,19 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
     });
 
     // --- Step 6: Build the prompt ---
+    const appConfig = this.configStore.get();
     const { prompt, systemPrompt } = buildPrompt(
       userMessage,
       contextResults,
       history,
-      DEFAULT_CONFIG.maxConversationTurns,
+      appConfig.maxConversationTurns,
     );
 
     // --- Step 7: Call the LLM ---
     const llmResult = await this.llm.query({
       prompt,
       systemPrompt,
-      model: model ?? DEFAULT_CONFIG.llmModel,
+      model: model ?? appConfig.llmModel,
     });
 
     if (!llmResult.ok) {

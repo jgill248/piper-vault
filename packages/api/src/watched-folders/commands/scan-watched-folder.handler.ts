@@ -27,7 +27,7 @@ export class ScanWatchedFolderHandler implements ICommandHandler<ScanWatchedFold
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
-    private readonly commandBus: CommandBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
   ) {}
 
   async execute(command: ScanWatchedFolderCommand): Promise<ScanWatchedFolderResult> {

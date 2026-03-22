@@ -7,6 +7,7 @@ import {
   BadRequestException,
   UseGuards,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { ApiKeyGuard } from '../auth/api-key.guard';
@@ -29,7 +30,7 @@ import {
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
 
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(@Inject(CommandBus) private readonly commandBus: CommandBus) {}
 
   /**
    * POST /api/v1/webhooks/ingest

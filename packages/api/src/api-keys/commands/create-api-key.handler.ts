@@ -13,7 +13,7 @@ export class CreateApiKeyHandler implements ICommandHandler<CreateApiKeyCommand>
   private readonly logger = new Logger(CreateApiKeyHandler.name);
 
   constructor(
-    private readonly apiKeyService: ApiKeyService,
+    @Inject(ApiKeyService) private readonly apiKeyService: ApiKeyService,
     @Inject(DATABASE) private readonly db: Database,
   ) {}
 

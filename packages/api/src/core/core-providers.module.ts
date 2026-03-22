@@ -7,6 +7,7 @@ import type { Result } from '@delve/shared';
 import { ConfigStore } from '../config/config.store.js';
 import { RetrievalService } from '../search/services/retrieval.service';
 import { PLUGIN_REGISTRY } from '../plugins/plugins.providers.js';
+import { PluginsModule } from '../plugins/plugins.module.js';
 
 /**
  * LlmProviderProxy delegates every LlmProvider call to whichever concrete
@@ -22,8 +23,8 @@ export class LlmProviderProxy implements LlmProvider {
   private lastProvider: string = '';
 
   constructor(
-    private readonly configStore: ConfigStore,
-    private readonly configService: ConfigService,
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
+    @Inject(ConfigService) private readonly configService: ConfigService,
   ) {
     this.provider = this.buildProvider();
   }
@@ -112,6 +113,7 @@ const rerankerProvider: Provider = {
  */
 @Global()
 @Module({
+  imports: [PluginsModule],
   providers: [
     LlmProviderProxy,
     embedderProvider,

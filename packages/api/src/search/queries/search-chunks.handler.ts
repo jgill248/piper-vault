@@ -1,5 +1,5 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
-import { Logger, BadRequestException } from '@nestjs/common';
+import { Logger, BadRequestException, Inject } from '@nestjs/common';
 import type { ChunkSearchResult } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
 import { SearchChunksQuery } from './search-chunks.query';
@@ -9,7 +9,7 @@ import { RetrievalService } from '../services/retrieval.service';
 export class SearchChunksHandler implements IQueryHandler<SearchChunksQuery> {
   private readonly logger = new Logger(SearchChunksHandler.name);
 
-  constructor(private readonly retrievalService: RetrievalService) {}
+  constructor(@Inject(RetrievalService) private readonly retrievalService: RetrievalService) {}
 
   async execute(query: SearchChunksQuery): Promise<ChunkSearchResult[]> {
     const topK = query.topK ?? DEFAULT_CONFIG.topKResults;

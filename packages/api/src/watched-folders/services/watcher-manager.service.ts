@@ -22,7 +22,7 @@ export class WatcherManagerService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
-    private readonly commandBus: CommandBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
   ) {}
 
   async onModuleInit(): Promise<void> {

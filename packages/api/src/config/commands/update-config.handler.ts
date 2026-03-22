@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Injectable, Logger, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, Logger, UnprocessableEntityException, Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { AppConfig } from '@delve/shared';
 import { UpdateConfigCommand } from './update-config.command';
@@ -8,6 +8,7 @@ import { ConfigStore } from '../config.store';
 const ConfigUpdatesSchema = z
   .object({
     llmModel: z.string().min(1).optional(),
+    llmProvider: z.enum(['ask-sage', 'anthropic', 'openai', 'ollama']).optional(),
     embeddingModel: z.string().min(1).optional(),
     chunkSize: z.number().int().min(128).max(2048).optional(),
     chunkOverlap: z.number().int().min(0).optional(),
@@ -35,7 +36,7 @@ const ConfigUpdatesSchema = z
 export class UpdateConfigHandler implements ICommandHandler<UpdateConfigCommand> {
   private readonly logger = new Logger(UpdateConfigHandler.name);
 
-  constructor(private readonly configStore: ConfigStore) {}
+  constructor(@Inject(ConfigStore) private readonly configStore: ConfigStore) {}
 
   async execute(command: UpdateConfigCommand): Promise<AppConfig> {
     const parsed = ConfigUpdatesSchema.safeParse(command.updates);

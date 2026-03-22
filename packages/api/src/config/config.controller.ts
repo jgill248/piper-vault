@@ -16,8 +16,8 @@ export class ConfigAppController {
 
   constructor(
     @Inject('LLM_PROVIDER') private readonly llm: LlmProvider,
-    private readonly configStore: ConfigStore,
-    private readonly commandBus: CommandBus,
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
   ) {}
 
   /**

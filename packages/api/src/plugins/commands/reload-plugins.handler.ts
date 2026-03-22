@@ -15,8 +15,8 @@ export class ReloadPluginsHandler
 
   constructor(
     @Inject(PLUGIN_REGISTRY) private readonly registry: PluginRegistry,
-    private readonly configStore: ConfigStore,
-    private readonly configService: ConfigService,
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
+    @Inject(ConfigService) private readonly configService: ConfigService,
   ) {}
 
   async execute(_command: ReloadPluginsCommand): Promise<ReloadPluginsResponse> {

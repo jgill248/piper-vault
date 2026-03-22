@@ -30,7 +30,7 @@ export class ApiKeyGuard implements CanActivate {
   private readonly logger = new Logger(ApiKeyGuard.name);
 
   constructor(
-    private readonly apiKeyService: ApiKeyService,
+    @Inject(ApiKeyService) private readonly apiKeyService: ApiKeyService,
     @Inject(DATABASE) private readonly db: Database,
   ) {}
 

@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
@@ -27,8 +28,8 @@ export class JwtAuthGuard implements CanActivate {
   private readonly authEnabled: boolean;
 
   constructor(
-    private readonly reflector: Reflector,
-    private readonly authService: AuthService,
+    @Inject(Reflector) private readonly reflector: Reflector,
+    @Inject(AuthService) private readonly authService: AuthService,
   ) {
     const raw = process.env['AUTH_ENABLED'];
     this.authEnabled =

@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   ConflictException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
@@ -38,7 +39,7 @@ function toUserResponse(user: UserRow): AuthUserResponse {
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   /**
    * POST /api/v1/auth/register

@@ -10,6 +10,7 @@ import {
   HttpStatus,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import type { ApiKey, ApiKeyCreatedResponse } from '@delve/shared';
@@ -23,8 +24,8 @@ export class ApiKeysController {
   private readonly logger = new Logger(ApiKeysController.name);
 
   constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
+    @Inject(QueryBus) private readonly queryBus: QueryBus,
   ) {}
 
   /**

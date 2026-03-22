@@ -11,6 +11,7 @@ import {
   HttpStatus,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import type { Collection, PaginatedResponse } from '@delve/shared';
@@ -32,8 +33,8 @@ export class CollectionsController {
   private readonly logger = new Logger(CollectionsController.name);
 
   constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
+    @Inject(QueryBus) private readonly queryBus: QueryBus,
   ) {}
 
   /**

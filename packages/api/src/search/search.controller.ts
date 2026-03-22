@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { z } from 'zod';
@@ -25,7 +26,7 @@ const SearchRequestSchema = z.object({
 
 @Controller('search')
 export class SearchController {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(@Inject(QueryBus) private readonly queryBus: QueryBus) {}
 
   /**
    * POST /api/v1/search

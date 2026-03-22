@@ -2,11 +2,10 @@
   "name": "@delve/api",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
-    "start": "node dist/main.js",
+    "start": "node dist/api/src/main.js",
     "test": "vitest run",
     "lint": "eslint src/",
     "clean": "rm -rf dist",

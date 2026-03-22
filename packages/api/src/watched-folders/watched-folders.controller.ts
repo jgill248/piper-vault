@@ -10,6 +10,7 @@ import {
   HttpStatus,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import type { WatchedFolder } from '@delve/shared';
@@ -28,9 +29,9 @@ export class WatchedFoldersController {
   private readonly logger = new Logger(WatchedFoldersController.name);
 
   constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-    private readonly watcherManager: WatcherManagerService,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
+    @Inject(QueryBus) private readonly queryBus: QueryBus,
+    @Inject(WatcherManagerService) private readonly watcherManager: WatcherManagerService,
   ) {}
 
   /**

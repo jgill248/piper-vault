@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import type { PluginInfo, ReloadPluginsResponse } from '@delve/shared';
@@ -16,8 +17,8 @@ export class PluginsController {
   private readonly logger = new Logger(PluginsController.name);
 
   constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
+    @Inject(QueryBus) private readonly queryBus: QueryBus,
   ) {}
 
   /**

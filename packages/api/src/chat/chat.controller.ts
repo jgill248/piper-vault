@@ -11,6 +11,7 @@ import {
   Header,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { z } from 'zod';
@@ -38,8 +39,8 @@ export class ChatController {
   private readonly logger = new Logger(ChatController.name);
 
   constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
+    @Inject(CommandBus) private readonly commandBus: CommandBus,
+    @Inject(QueryBus) private readonly queryBus: QueryBus,
   ) {}
 
   /**
