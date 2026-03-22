@@ -369,6 +369,52 @@ The backend exposes a RESTful API consumed by the React frontend. All endpoints 
 - Vault configuration UI in settings panel (vault paths, watch toggles, exclusion patterns, sync status)
 - Bidirectional tag sync between Obsidian frontmatter and Delve source tags
 
+### Phase 6: Agentic RAG
+
+**Goal:** Transform single-hop retrieve-then-answer into a multi-step reasoning system.
+
+- Streaming LLM responses — wire the existing `streamQuery()` stub end-to-end (SSE + incremental UI)
+- Query router — classify queries (factual/synthesis/comparison/general) and route to optimal retrieval strategy
+- Corrective RAG — self-evaluate retrieval quality, reformulate and re-retrieve if context is insufficient
+- Multi-step query decomposition — break complex questions into sub-queries, retrieve independently, synthesize
+- Research mode — autonomous multi-turn agent that iteratively explores the knowledge base and produces structured reports
+- Adaptive retrieval — skip vector DB for general knowledge questions, answer from LLM parametric knowledge
+- ColBERT re-ranking via RAGatouille — late-interaction re-ranking with token-level explainability
+- Agentic retrieval orchestrator — unified agent loop exposing retrieval tools (vector, keyword, graph) to the LLM
+
+### Phase 7: Multi-Modal Knowledge
+
+**Goal:** Expand Delve beyond text to capture audio, images, and video — all processed locally.
+
+- Chunk modality system — schema (`modality`, `media_ref`, `media_timestamp`) and mixed-media UI rendering
+- Audio transcription via local Whisper (meetings, voice memos, podcasts) with timestamped chunks
+- Image understanding via Ollama vision models (screenshots, diagrams, whiteboards) with OCR fallback
+- ColPali visual document retrieval — PDFs as images without OCR pipelines
+- Video keyframe indexing — extract audio (Whisper) + keyframes (vision model) with timestamp links
+
+### Phase 8: Knowledge Graph Intelligence
+
+**Goal:** Move from "search your files" to "understand your knowledge."
+
+- Automatic entity extraction during ingestion via local NER (2B-param model, 0.87 F1)
+- Entity relationship mapping — co-occurrence graph with LLM-generated relationship summaries
+- Concept clustering — auto-discover topic groups from chunk embeddings (k-means/HDBSCAN)
+- Interactive knowledge graph visualization — force-directed graph with Obsidian Protocol aesthetic
+- Temporal reasoning — track concept evolution over time, timeline visualization
+- Contradiction detection — flag conflicting information across sources
+- Auto-link suggestions — suggest Obsidian wiki-links based on entity overlap
+
+### Phase 9: Desktop App & Plugin SDK
+
+**Goal:** Make Delve accessible and extensible for non-developers and the community.
+
+- Tauri desktop app — single install (no Docker), bundled API server + embedded Postgres (PGlite)
+- Plugin SDK — formal API with lifecycle hooks, extension points (parsers, retrievers, exporters, LLM providers, UI panels)
+- Import ecosystem — one-click importers for Notion, Roam, Logseq, Apple Notes, Evernote, Google Docs
+- Webhook ingestion — accept content from Slack, RSS, email, browser extension
+- Collection sharing — per-collection read/write permissions for small teams
+- Mobile companion PWA — read-only querying on the go via local network
+
 ---
 
 ## 8. Embedding Strategy
