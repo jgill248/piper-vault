@@ -18,7 +18,10 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     // Load environment variables from .env; available throughout the app via
     // ConfigService. isGlobal means other modules need not import ConfigModule.
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '../../.env'],
+    }),
 
     // Infrastructure
     DatabaseModule,

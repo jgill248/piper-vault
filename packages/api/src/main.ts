@@ -29,3 +29,12 @@ bootstrap().catch((err: unknown) => {
   console.error('Fatal error during bootstrap:', err);
   process.exit(1);
 });
+
+// Webpack HMR support
+declare const module: { hot?: { accept: () => void; dispose: (cb: () => void) => void } };
+if (module.hot) {
+  module.hot.accept();
+  module.hot.dispose(() => {
+    // app cleanup handled by NestJS
+  });
+}

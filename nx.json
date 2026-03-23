@@ -16,5 +16,6 @@
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json"]
-  }
+  },
+  "analytics": true
 }
