@@ -70,59 +70,68 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
       // Delete old chunks
       await this.db.delete(chunks).where(eq(chunks.sourceId, noteId));
 
-      // Re-ingest body
       const buffer = Buffer.from(fm.body, 'utf-8');
-      const ingestionResult = await this.pipeline.ingest(
-        buffer,
-        (updates['filename'] as string) ?? note.filename,
-        'text/markdown',
-        {
-          chunkSize: DEFAULT_CONFIG.chunkSize,
-          chunkOverlap: DEFAULT_CONFIG.chunkOverlap,
-        },
-      );
+      const isEmpty = fm.body.trim().length === 0;
 
-      if (!ingestionResult.ok) {
-        await this.db
-          .update(sources)
-          .set({ status: 'error', updatedAt: new Date() })
-          .where(eq(sources.id, noteId));
-        return { ok: false, error: ingestionResult.error };
+      if (isEmpty) {
+        // Empty content — just clear chunks and mark ready with 0 chunks
+        updates['chunkCount'] = 0;
+        updates['fileSize'] = buffer.byteLength;
+        updates['status'] = 'ready';
+      } else {
+        // Re-ingest body
+        const ingestionResult = await this.pipeline.ingest(
+          buffer,
+          (updates['filename'] as string) ?? note.filename,
+          'text/markdown',
+          {
+            chunkSize: DEFAULT_CONFIG.chunkSize,
+            chunkOverlap: DEFAULT_CONFIG.chunkOverlap,
+          },
+        );
+
+        if (!ingestionResult.ok) {
+          await this.db
+            .update(sources)
+            .set({ status: 'error', updatedAt: new Date() })
+            .where(eq(sources.id, noteId));
+          return { ok: false, error: ingestionResult.error };
+        }
+
+        const { chunks: textChunks } = ingestionResult.value;
+
+        // Generate embeddings
+        const contents = textChunks.map((c) => c.content);
+        const embeddingResult = await this.embedder.embedBatch(contents);
+
+        if (!embeddingResult.ok) {
+          await this.db
+            .update(sources)
+            .set({ status: 'error', updatedAt: new Date() })
+            .where(eq(sources.id, noteId));
+          return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
+        }
+
+        const embeddings = embeddingResult.value;
+
+        // Insert new chunks
+        const chunkRows = textChunks.map((chunk, index) => ({
+          sourceId: noteId,
+          chunkIndex: chunk.index,
+          content: chunk.content,
+          embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
+          tokenCount: chunk.tokenCount,
+          metadata: chunk.metadata as Record<string, unknown>,
+        }));
+
+        if (chunkRows.length > 0) {
+          await this.db.insert(chunks).values(chunkRows);
+        }
+
+        updates['chunkCount'] = textChunks.length;
+        updates['fileSize'] = buffer.byteLength;
+        updates['status'] = 'ready';
       }
-
-      const { chunks: textChunks } = ingestionResult.value;
-
-      // Generate embeddings
-      const contents = textChunks.map((c) => c.content);
-      const embeddingResult = await this.embedder.embedBatch(contents);
-
-      if (!embeddingResult.ok) {
-        await this.db
-          .update(sources)
-          .set({ status: 'error', updatedAt: new Date() })
-          .where(eq(sources.id, noteId));
-        return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
-      }
-
-      const embeddings = embeddingResult.value;
-
-      // Insert new chunks
-      const chunkRows = textChunks.map((chunk, index) => ({
-        sourceId: noteId,
-        chunkIndex: chunk.index,
-        content: chunk.content,
-        embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
-        tokenCount: chunk.tokenCount,
-        metadata: chunk.metadata as Record<string, unknown>,
-      }));
-
-      if (chunkRows.length > 0) {
-        await this.db.insert(chunks).values(chunkRows);
-      }
-
-      updates['chunkCount'] = textChunks.length;
-      updates['fileSize'] = buffer.byteLength;
-      updates['status'] = 'ready';
 
       // Re-parse and store wiki-links
       await this.db.delete(sourceLinks).where(eq(sourceLinks.sourceId, noteId));

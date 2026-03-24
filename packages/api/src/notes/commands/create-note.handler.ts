@@ -36,25 +36,8 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
 
     // Compute content hash
     const contentHash = createHash('sha256').update(content).digest('hex');
-
-    // Run ingestion pipeline on the body (frontmatter stripped)
     const buffer = Buffer.from(fm.body, 'utf-8');
-    const ingestionResult = await this.pipeline.ingest(
-      buffer,
-      `${resolvedTitle}.md`,
-      'text/markdown',
-      {
-        chunkSize: DEFAULT_CONFIG.chunkSize,
-        chunkOverlap: DEFAULT_CONFIG.chunkOverlap,
-      },
-    );
-
-    if (!ingestionResult.ok) {
-      this.logger.warn(`Note ingestion failed for "${resolvedTitle}": ${ingestionResult.error}`);
-      return { ok: false, error: ingestionResult.error };
-    }
-
-    const { chunks: textChunks } = ingestionResult.value;
+    const isEmpty = fm.body.trim().length === 0;
 
     // Insert source record as a note
     let sourceId: string;
@@ -67,7 +50,7 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
           fileSize: buffer.byteLength,
           contentHash,
           collectionId,
-          status: 'processing',
+          status: isEmpty ? 'ready' : 'processing',
           chunkCount: 0,
           tags: allTags as string[],
           metadata: {},
@@ -89,42 +72,70 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
       throw new InternalServerErrorException('Failed to create note');
     }
 
-    // Generate embeddings
-    const contents = textChunks.map((c) => c.content);
-    const embeddingResult = await this.embedder.embedBatch(contents);
+    // Skip ingestion + embedding for empty notes (user will fill in content later)
+    let chunkCount = 0;
+    if (!isEmpty) {
+      // Run ingestion pipeline on the body (frontmatter stripped)
+      const ingestionResult = await this.pipeline.ingest(
+        buffer,
+        `${resolvedTitle}.md`,
+        'text/markdown',
+        {
+          chunkSize: DEFAULT_CONFIG.chunkSize,
+          chunkOverlap: DEFAULT_CONFIG.chunkOverlap,
+        },
+      );
 
-    if (!embeddingResult.ok) {
-      await this.db
-        .update(sources)
-        .set({ status: 'error', updatedAt: new Date() })
-        .where(eq(sources.id, sourceId));
-      return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
-    }
-
-    const embeddings = embeddingResult.value;
-
-    // Insert chunks with embeddings
-    try {
-      const chunkRows = textChunks.map((chunk, index) => ({
-        sourceId,
-        chunkIndex: chunk.index,
-        content: chunk.content,
-        embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
-        tokenCount: chunk.tokenCount,
-        metadata: chunk.metadata as Record<string, unknown>,
-      }));
-
-      if (chunkRows.length > 0) {
-        await this.db.insert(chunks).values(chunkRows);
+      if (!ingestionResult.ok) {
+        this.logger.warn(`Note ingestion failed for "${resolvedTitle}": ${ingestionResult.error}`);
+        await this.db
+          .update(sources)
+          .set({ status: 'error', updatedAt: new Date() })
+          .where(eq(sources.id, sourceId));
+        return { ok: false, error: ingestionResult.error };
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.error(`Failed to insert chunks for note ${sourceId}: ${message}`);
-      await this.db
-        .update(sources)
-        .set({ status: 'error', updatedAt: new Date() })
-        .where(eq(sources.id, sourceId));
-      return { ok: false, error: `Failed to store chunks: ${message}` };
+
+      const { chunks: textChunks } = ingestionResult.value;
+
+      // Generate embeddings
+      const contents = textChunks.map((c) => c.content);
+      const embeddingResult = await this.embedder.embedBatch(contents);
+
+      if (!embeddingResult.ok) {
+        await this.db
+          .update(sources)
+          .set({ status: 'error', updatedAt: new Date() })
+          .where(eq(sources.id, sourceId));
+        return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
+      }
+
+      const embeddings = embeddingResult.value;
+
+      // Insert chunks with embeddings
+      try {
+        const chunkRows = textChunks.map((chunk, index) => ({
+          sourceId,
+          chunkIndex: chunk.index,
+          content: chunk.content,
+          embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
+          tokenCount: chunk.tokenCount,
+          metadata: chunk.metadata as Record<string, unknown>,
+        }));
+
+        if (chunkRows.length > 0) {
+          await this.db.insert(chunks).values(chunkRows);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Failed to insert chunks for note ${sourceId}: ${message}`);
+        await this.db
+          .update(sources)
+          .set({ status: 'error', updatedAt: new Date() })
+          .where(eq(sources.id, sourceId));
+        return { ok: false, error: `Failed to store chunks: ${message}` };
+      }
+
+      chunkCount = textChunks.length;
     }
 
     // Parse and store wiki-links
@@ -173,13 +184,15 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
       }
     }
 
-    // Mark as ready
-    await this.db
-      .update(sources)
-      .set({ status: 'ready', chunkCount: textChunks.length, updatedAt: new Date() })
-      .where(eq(sources.id, sourceId));
+    // Mark as ready (if not already set for empty notes)
+    if (!isEmpty) {
+      await this.db
+        .update(sources)
+        .set({ status: 'ready', chunkCount, updatedAt: new Date() })
+        .where(eq(sources.id, sourceId));
+    }
 
-    this.logger.log(`Created note "${resolvedTitle}" → ${sourceId} (${textChunks.length} chunks)`);
-    return { ok: true, value: { sourceId, chunkCount: textChunks.length } };
+    this.logger.log(`Created note "${resolvedTitle}" → ${sourceId} (${chunkCount} chunks)`);
+    return { ok: true, value: { sourceId, chunkCount } };
   }
 }

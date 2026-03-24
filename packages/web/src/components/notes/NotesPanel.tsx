@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
 import { useFolders, useCreateFolder } from '../../hooks/use-folders';
 import { useActiveCollection } from '../../context/CollectionContext';
@@ -12,6 +12,7 @@ export function NotesPanel() {
   const { activeCollectionId } = useActiveCollection();
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
   const [selectedNoteId, setSelectedNoteId] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: notesData, isLoading: notesLoading } = useNotes({
     collectionId: activeCollectionId,
@@ -33,6 +34,7 @@ export function NotesPanel() {
     .map((n) => (n.title || n.filename).replace(/\.md$/, ''));
 
   const handleCreateNote = useCallback(() => {
+    setError(null);
     createNote.mutate(
       {
         title: 'Untitled Note',
@@ -44,6 +46,9 @@ export function NotesPanel() {
         onSuccess: (result) => {
           setSelectedNoteId(result.sourceId);
         },
+        onError: (err) => {
+          setError(`Failed to create note: ${err instanceof Error ? err.message : String(err)}`);
+        },
       },
     );
   }, [createNote, activeCollectionId, selectedPath]);
@@ -51,7 +56,15 @@ export function NotesPanel() {
   const handleSaveNote = useCallback(
     (content: string, title: string) => {
       if (!selectedNoteId) return;
-      updateNote.mutate({ id: selectedNoteId, content, title });
+      setError(null);
+      updateNote.mutate(
+        { id: selectedNoteId, content, title },
+        {
+          onError: (err) => {
+            setError(`Failed to save note: ${err instanceof Error ? err.message : String(err)}`);
+          },
+        },
+      );
     },
     [selectedNoteId, updateNote],
   );
@@ -74,7 +87,21 @@ export function NotesPanel() {
   );
 
   return (
-    <div className="flex h-full">
+    <div className="flex flex-col h-full">
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-red-900/30 border-b border-red-400/30">
+          <AlertTriangle size={12} strokeWidth={1.5} className="text-red-400 shrink-0" />
+          <span className="text-xs font-mono text-red-300 flex-1">{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="text-xs font-mono text-red-400 hover:text-red-300"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      <div className="flex flex-1 min-h-0">
       {/* Left panel: Folders + Note list */}
       <div className="w-64 flex flex-col border-r border-obsidian-border/20 bg-obsidian-surface">
         {/* Folder tree */}
@@ -144,6 +171,7 @@ export function NotesPanel() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
