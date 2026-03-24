@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 
-type View = 'chat' | 'sources' | 'settings';
+type View = 'chat' | 'sources' | 'settings' | 'notes';
 
 interface LayoutProps {
   activeView: View;

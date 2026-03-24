@@ -4,6 +4,8 @@ export * from './ingestion/parser.js';
 export * from './ingestion/chunker.js';
 export * from './ingestion/pipeline.js';
 export * from './ingestion/parsers/index.js';
+export * from './ingestion/frontmatter.js';
+export * from './ingestion/wiki-link-parser.js';
 export * from './embedding/embedder.js';
 export * from './embedding/mock-embedder.js';
 export * from './retrieval/retriever.js';

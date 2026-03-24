@@ -18,6 +18,11 @@ export interface Source {
   readonly tags: readonly string[];
   readonly metadata: Record<string, unknown>;
   readonly collectionId?: string;
+  readonly isNote: boolean;
+  readonly content?: string | null;
+  readonly parentPath?: string | null;
+  readonly title?: string | null;
+  readonly frontmatter: Record<string, unknown>;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

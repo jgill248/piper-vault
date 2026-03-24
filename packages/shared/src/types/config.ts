@@ -24,6 +24,8 @@ export interface AppConfig {
   readonly pluginsDir: string;
   /** Whether JWT-based user authentication is enabled. Read from AUTH_ENABLED env var. */
   readonly authEnabled: boolean;
+  readonly graphBoostEnabled: boolean;
+  readonly graphBoostFactor: number;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -44,4 +46,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   followUpQuestionsEnabled: true,
   pluginsDir: '',
   authEnabled: false,
+  graphBoostEnabled: false,
+  graphBoostFactor: 0.15,
 };

@@ -21,6 +21,8 @@ import type {
   RegisterInput,
   AuthResponse,
   User,
+  NoteFolder,
+  SourceLink,
 } from '@delve/shared';
 
 export type { AppConfig };
@@ -285,4 +287,71 @@ export const api = {
     errors: readonly string[];
   }> =>
     request(`/watched-folders/${id}/scan`, { method: 'POST' }),
+
+  // --- Notes ---
+
+  createNote: (body: {
+    title: string;
+    content: string;
+    collectionId?: string;
+    parentPath?: string | null;
+    tags?: string[];
+  }): Promise<{ sourceId: string; chunkCount: number }> =>
+    request('/notes', { method: 'POST', body: JSON.stringify(body) }),
+
+  listNotes: async (params?: {
+    page?: number;
+    pageSize?: number;
+    collectionId?: string;
+    parentPath?: string;
+    search?: string;
+    tag?: string;
+  }): Promise<PaginatedResponse<Source>> => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.pageSize) sp.set('pageSize', String(params.pageSize));
+    if (params?.collectionId) sp.set('collectionId', params.collectionId);
+    if (params?.parentPath !== undefined) sp.set('parentPath', params.parentPath);
+    if (params?.search) sp.set('search', params.search);
+    if (params?.tag) sp.set('tag', params.tag);
+    const qs = sp.toString();
+    return request<PaginatedResponse<Source>>(`/notes${qs ? `?${qs}` : ''}`);
+  },
+
+  getNote: (id: string): Promise<Source & { linkCount: number; backlinkCount: number }> =>
+    request(`/notes/${id}`),
+
+  updateNote: (id: string, body: {
+    content?: string;
+    title?: string;
+    parentPath?: string | null;
+    tags?: string[];
+  }): Promise<{ ok: boolean }> =>
+    request(`/notes/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  deleteNote: (id: string): Promise<void> =>
+    request<void>(`/notes/${id}`, { method: 'DELETE' }),
+
+  getBacklinks: (id: string): Promise<readonly {
+    link: SourceLink;
+    sourceFilename: string;
+    sourceTitle: string | null;
+  }[]> =>
+    request(`/notes/${id}/backlinks`),
+
+  // --- Note Folders ---
+
+  createFolder: (body: { path: string; collectionId?: string }): Promise<NoteFolder> =>
+    request('/notes/folders', { method: 'POST', body: JSON.stringify(body) }),
+
+  listFolders: async (collectionId?: string): Promise<readonly NoteFolder[]> => {
+    const qs = collectionId ? `?collectionId=${collectionId}` : '';
+    return request<readonly NoteFolder[]>(`/notes/folders${qs}`);
+  },
+
+  renameFolder: (id: string, newPath: string): Promise<{ ok: boolean }> =>
+    request(`/notes/folders/${id}`, { method: 'PATCH', body: JSON.stringify({ newPath }) }),
+
+  deleteFolder: (id: string, deleteContents?: boolean): Promise<void> =>
+    request<void>(`/notes/folders/${id}?deleteContents=${deleteContents ?? false}`, { method: 'DELETE' }),
 };

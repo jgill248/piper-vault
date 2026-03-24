@@ -17,6 +17,11 @@ export function toSourceResponse(row: SourceRow): Source {
     tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
     metadata: (row.metadata ?? {}) as Record<string, unknown>,
     collectionId: row.collectionId,
+    isNote: row.isNote,
+    content: row.content,
+    parentPath: row.parentPath,
+    title: row.title,
+    frontmatter: (row.frontmatter ?? {}) as Record<string, unknown>,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

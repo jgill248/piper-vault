@@ -17,14 +17,14 @@ You are the final checkpoint before a milestone can be closed. Your job is to ve
 
 ## QA Process
 
-Run these checks in order. Collect all failures across all steps before creating issues — do not stop at the first failure. After all checks complete, create Linear issues for every failure found, then report results.
+Run these checks in order. Collect all failures across all steps before creating issues — do not stop at the first failure. After all checks complete, create GitHub issues for every failure found, then report results.
 
 ### 1. Issue Completion Audit
 
-- Fetch all issues for the milestone from Linear
-- Verify every issue is in "Done" status
+- Fetch all issues for the milestone from GitHub (`gh issue list`)
+- Verify every issue is closed
 - For each issue, read its acceptance criteria and verify each criterion is met in the codebase
-- Flag any issues that are "Done" but have unmet acceptance criteria
+- Flag any issues that are closed but have unmet acceptance criteria
 
 ### 2. Full Test Suite
 
@@ -106,6 +106,18 @@ Verify the system works end-to-end for the milestone's scope:
 - [ ] Auth layer restricts access when enabled
 - [ ] Production Docker Compose starts cleanly
 
+**Phase 5: Native Knowledge Management**
+- [ ] Create a note with wiki-links via API — note stored with `is_note=true`
+- [ ] Wiki-links parsed and stored in `source_links` table
+- [ ] Frontmatter extracted from markdown files during ingestion
+- [ ] Graph-aware retrieval boosts linked notes in search results
+- [ ] Notes panel renders with folder tree and editor
+- [ ] Wiki-link autocomplete works in editor
+- [ ] Backlinks panel shows incoming links
+- [ ] Chat citations navigate to source notes
+- [ ] Conversation export includes `[[wiki-link]]` citations
+- [ ] Tag management UI allows browsing, filtering, and bulk editing
+
 ### 6. Security Checklist
 
 - [ ] No secrets (.env values, API keys) committed to the repository
@@ -129,7 +141,7 @@ Verify the system works end-to-end for the milestone's scope:
 ## Status: PASS / FAIL
 
 ## Issue Completion
-- X of Y issues verified ✓
+- X of Y issues verified
 - Issues with unmet criteria: [list or "none"]
 
 ## Test Suite
@@ -161,27 +173,26 @@ Verify the system works end-to-end for the milestone's scope:
 ## Blocking Issues
 [List any issues that must be resolved before the milestone can close]
 
-## Linear Issues Created
-| Issue ID | Title | Category | Priority |
-|----------|-------|----------|----------|
-| CRE-XXX  | ...   | ...      | ...      |
+## GitHub Issues Created
+| Issue # | Title | Category | Priority |
+|---------|-------|----------|----------|
+| #XXX    | ...   | ...      | ...      |
 
 ## Recommendation
 [APPROVE for closure / BLOCK with required fixes]
 ```
 
-## 8. Linear Issue Creation for Failures
+## 8. GitHub Issue Creation for Failures
 
-After all checks complete, create a Linear issue for **every distinct failure**. This step is mandatory.
+After all checks complete, create a GitHub issue for **every distinct failure**. This step is mandatory.
 
 ### Rules
 
 - **One issue per failure** — don't bundle unrelated failures
 - **Group by root cause** — if one bug causes multiple symptoms, create one issue and note the symptoms
-- **Project:** Delve, **Team:** Creative-software
-- **Milestone:** Set to the phase being validated
+- **Repository:** `jgill248/delve`
 - **Labels:** Always `Bug` + one of `backend`/`frontend`/`infra`/`design` + `qa-blocker`
-- **Priority:** 1=Urgent (security/data loss), 2=High (test/build/acceptance failures), 3=Normal (spec gaps, lint), 4=Low (perf, cosmetic)
+- Use `gh issue create` to create issues
 
 ### Issue Description Template
 
@@ -201,8 +212,8 @@ After all checks complete, create a Linear issue for **every distinct failure**.
 
 ### After Creating Issues
 
-- List all created issue IDs in the QA report's "Linear Issues Created" table
-- The milestone **cannot close** until every `qa-blocker` issue is Done
+- List all created issue numbers in the QA report's "GitHub Issues Created" table
+- The milestone **cannot close** until every `qa-blocker` issue is closed
 - When all blockers are resolved, re-run the full QA gate to confirm
 
 ## 9. Re-validation Protocol
@@ -210,5 +221,5 @@ After all checks complete, create a Linear issue for **every distinct failure**.
 When re-validating after fixes:
 1. Re-run only previously failed checks (run full suite if fixes could cause regressions)
 2. Verify each `qa-blocker` issue's acceptance criteria are met
-3. If new failures appear, create new Linear issues and BLOCK again
+3. If new failures appear, create new GitHub issues and BLOCK again
 4. Only APPROVE when zero `qa-blocker` issues remain open and all checks pass

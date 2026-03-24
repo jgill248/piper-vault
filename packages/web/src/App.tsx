@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { SourcesPanel } from './components/sources/SourcesPanel';
 import { SettingsPanel } from './components/settings/SettingsPanel';
+import { NotesPanel } from './components/notes/NotesPanel';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { useTheme } from './hooks/use-theme';
@@ -21,7 +22,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type View = 'chat' | 'sources' | 'settings';
+type View = 'chat' | 'sources' | 'settings' | 'notes';
 type AuthView = 'login' | 'register';
 
 /**
@@ -86,6 +87,7 @@ function AppShell() {
     <Layout activeView={view} onNavigate={setView}>
       {view === 'chat' && <ChatPanel />}
       {view === 'sources' && <SourcesPanel />}
+      {view === 'notes' && <NotesPanel />}
       {view === 'settings' && <SettingsPanel />}
     </Layout>
   );

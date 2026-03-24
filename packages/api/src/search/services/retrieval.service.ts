@@ -96,6 +96,15 @@ export class RetrievalService {
       }
     }
 
+    // Step 5: Graph-aware boost (if enabled)
+    if (config.graphBoostEnabled && finalResults.length > 0) {
+      finalResults = await this.applyGraphBoost(
+        finalResults,
+        config.graphBoostFactor,
+        options,
+      );
+    }
+
     return finalResults;
   }
 
@@ -202,6 +211,81 @@ export class RetrievalService {
     );
 
     return this.mapRows(rawRows as unknown as ChunkSearchRow[], 0);
+  }
+
+  /**
+   * Applies one-hop graph boost: chunks from sources linked to already-matched
+   * sources get an additive score bump. This surfaces topologically related
+   * content that may not match lexically or semantically.
+   */
+  private async applyGraphBoost(
+    results: ChunkSearchResult[],
+    boostFactor: number,
+    options: RetrievalOptions,
+  ): Promise<ChunkSearchResult[]> {
+    // Collect unique source IDs from current results
+    const matchedSourceIds = [...new Set(results.map((r) => r.source.id))];
+    if (matchedSourceIds.length === 0) return results;
+
+    // Find source IDs linked to matched sources (one hop, both directions)
+    const linkedRows = await this.db.execute(
+      sql`
+        SELECT DISTINCT COALESCE(sl.target_source_id, NULL) AS linked_id
+        FROM source_links sl
+        WHERE sl.source_id = ANY(${matchedSourceIds}::uuid[])
+          AND sl.target_source_id IS NOT NULL
+        UNION
+        SELECT DISTINCT sl.source_id AS linked_id
+        FROM source_links sl
+        WHERE sl.target_source_id = ANY(${matchedSourceIds}::uuid[])
+      `,
+    );
+
+    const linkedSourceIds = (linkedRows as unknown as { linked_id: string }[])
+      .map((r) => r.linked_id)
+      .filter((id) => !matchedSourceIds.includes(id));
+
+    if (linkedSourceIds.length === 0) return results;
+
+    // Boost existing results from linked sources
+    const boostedResults = results.map((r) => {
+      if (linkedSourceIds.includes(r.source.id)) {
+        return { ...r, score: r.score + boostFactor };
+      }
+      return r;
+    });
+
+    // Fetch additional chunks from linked sources not yet in results
+    const existingChunkIds = new Set(results.map((r) => r.chunk.id));
+    const collectionFilter =
+      options.collectionId !== undefined
+        ? sql`AND s.collection_id = ${options.collectionId}::uuid`
+        : sql``;
+
+    const additionalRows = await this.db.execute(
+      sql`
+        SELECT c.id, c.source_id, c.chunk_index, c.content, c.token_count,
+               c.page_number, c.metadata, c.created_at, s.filename, s.file_type,
+               ${boostFactor}::float AS score
+        FROM chunks c
+        JOIN sources s ON c.source_id = s.id
+        WHERE s.status = 'ready'
+          AND c.source_id = ANY(${linkedSourceIds}::uuid[])
+          ${collectionFilter}
+        ORDER BY c.chunk_index
+        LIMIT 10
+      `,
+    );
+
+    const additionalResults = this.mapRows(
+      additionalRows as unknown as ChunkSearchRow[],
+      0,
+    ).filter((r) => !existingChunkIds.has(r.chunk.id));
+
+    // Combine, sort by score descending, trim to topK
+    const combined = [...boostedResults, ...additionalResults];
+    combined.sort((a, b) => b.score - a.score);
+    return combined.slice(0, options.topK);
   }
 
   private mapRows(

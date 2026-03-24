@@ -355,19 +355,19 @@ The backend exposes a RESTful API consumed by the React frontend. All endpoints 
 - Deployment guide for self-hosted server
 - Plugin architecture for custom extractors
 
-### Phase 5: Obsidian Integration
+### Phase 5: Native Knowledge Management
 
-**Goal:** Deep integration with Obsidian.md for bidirectional knowledge flow.
+**Goal:** Build Obsidian-equivalent knowledge management features natively into Delve — wiki-links, frontmatter, graph relationships, note-taking, and tag management — without requiring any external application.
 
-- Obsidian vault watcher — auto-ingest on file add/change/delete (Obsidian-aware: ignores `.obsidian/`, `.trash/`)
+- Native markdown editor (CodeMirror 6) — create, edit, and organize notes directly in Delve's web UI with wiki-link syntax highlighting and `[[` autocomplete
 - Wiki-link parsing (`[[Page]]`, `[[Page|Alias]]`, `[[Page#Section]]`, `![[Embed]]`) with graph relationship storage (`source_links` table)
-- YAML frontmatter extraction — map tags, aliases, dates, and custom properties to Delve source metadata
-- Graph-aware retrieval — boost linked notes in search results using source_links topology
-- Obsidian community plugin (`packages/obsidian-plugin/`) — sidebar chat panel and command palette for querying Delve from within Obsidian
-- Export conversations as Obsidian-flavored markdown with frontmatter and `[[wiki-link]]` citations
-- Deep-link citations via `obsidian://open` URI scheme to jump from Delve chat to source notes in Obsidian
-- Vault configuration UI in settings panel (vault paths, watch toggles, exclusion patterns, sync status)
-- Bidirectional tag sync between Obsidian frontmatter and Delve source tags
+- YAML frontmatter extraction — parse frontmatter from all ingested markdown, map tags/aliases/dates/custom properties to source metadata
+- Graph-aware retrieval — boost linked notes in search results using source_links topology (one-hop, additive, configurable)
+- Note folder organization — hierarchical folder system for organizing notes within Delve (path-based, not tree table)
+- Internal wiki-link navigation — clickable citations in chat that navigate to source notes, backlinks panel showing incoming links
+- Enhanced conversation export — markdown with `[[wiki-link]]` citations and YAML frontmatter
+- Tag management UI — browse, filter, inline edit, and bulk-manage tags across notes and sources
+- Notes are sources — notes stored in the existing `sources` table with `is_note = true`, automatically participating in search, collections, and all existing infrastructure
 
 ### Phase 6: Agentic RAG
 

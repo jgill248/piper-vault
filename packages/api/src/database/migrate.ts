@@ -227,7 +227,7 @@ async function migrate(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS watched_folders_collection_id_idx ON watched_folders(collection_id)`;
   console.log('  table: watched_folders');
 
-  // Phase 4 (CRE-67): API keys table for programmatic ingestion
+  // Phase 4: API keys table for programmatic ingestion
   await sql`
     CREATE TABLE IF NOT EXISTS api_keys (
       id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -244,7 +244,7 @@ async function migrate(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS api_keys_collection_id_idx ON api_keys(collection_id)`;
   console.log('  table: api_keys');
 
-  // Phase 4 (CRE-69): Users table for JWT-based authentication
+  // Phase 4: Users table for JWT-based authentication
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -258,13 +258,54 @@ async function migrate(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS users_username_idx ON users(username)`;
   console.log('  table: users');
 
-  // Phase 4 (CRE-69): Add nullable user_id FK to collections
+  // Phase 4: Add nullable user_id FK to collections
   await sql`
     ALTER TABLE collections
     ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id)
   `;
   await sql`CREATE INDEX IF NOT EXISTS collections_user_id_idx ON collections(user_id)`;
   console.log('  migration: collections.user_id column');
+
+  // Phase 5: Native Knowledge Management — new columns on sources for note support
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS is_note BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS content TEXT`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS parent_path TEXT`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS title VARCHAR(500)`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS frontmatter JSONB NOT NULL DEFAULT '{}'`;
+  await sql`CREATE INDEX IF NOT EXISTS sources_is_note_idx ON sources(is_note)`;
+  await sql`CREATE INDEX IF NOT EXISTS sources_parent_path_idx ON sources(parent_path)`;
+  console.log('  migration: sources note columns (is_note, content, parent_path, title, frontmatter)');
+
+  // Phase 5: source_links table for wiki-link graph relationships
+  await sql`
+    CREATE TABLE IF NOT EXISTS source_links (
+      id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      source_id        UUID NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+      target_source_id UUID REFERENCES sources(id) ON DELETE SET NULL,
+      target_filename  TEXT NOT NULL,
+      link_type        TEXT NOT NULL DEFAULT 'wiki-link',
+      display_text     TEXT,
+      section          TEXT,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_source_links_source ON source_links(source_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_source_links_target ON source_links(target_source_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_source_links_target_filename ON source_links(target_filename)`;
+  console.log('  table: source_links');
+
+  // Phase 5: note_folders table for note organization
+  await sql`
+    CREATE TABLE IF NOT EXISTS note_folders (
+      id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      path          TEXT NOT NULL UNIQUE,
+      collection_id UUID NOT NULL REFERENCES collections(id),
+      sort_order    INTEGER NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_note_folders_collection ON note_folders(collection_id)`;
+  console.log('  table: note_folders');
 
   console.log('Migrations complete.');
   await sql.end();

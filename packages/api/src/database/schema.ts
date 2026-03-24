@@ -84,8 +84,38 @@ export const sources = pgTable('sources', {
   chunkCount: integer('chunk_count').notNull().default(0),
   tags: textArray('tags').notNull().default(sql`ARRAY[]::text[]`),
   metadata: jsonb('metadata').notNull().default({}),
+  isNote: boolean('is_note').notNull().default(false),
+  content: text('content'),
+  parentPath: text('parent_path'),
+  title: varchar('title', { length: 500 }),
+  frontmatter: jsonb('frontmatter').notNull().default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const sourceLinks = pgTable('source_links', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  sourceId: uuid('source_id')
+    .notNull()
+    .references(() => sources.id, { onDelete: 'cascade' }),
+  targetSourceId: uuid('target_source_id').references(() => sources.id, {
+    onDelete: 'set null',
+  }),
+  targetFilename: text('target_filename').notNull(),
+  linkType: text('link_type').notNull().default('wiki-link'),
+  displayText: text('display_text'),
+  section: text('section'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const noteFolders = pgTable('note_folders', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  path: text('path').notNull().unique(),
+  collectionId: uuid('collection_id')
+    .notNull()
+    .references(() => collections.id),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 export const chunks = pgTable('chunks', {
@@ -165,3 +195,7 @@ export type WatchedFolderRow = typeof watchedFolders.$inferSelect;
 export type NewWatchedFolderRow = typeof watchedFolders.$inferInsert;
 export type ApiKeyRow = typeof apiKeys.$inferSelect;
 export type NewApiKeyRow = typeof apiKeys.$inferInsert;
+export type SourceLinkRow = typeof sourceLinks.$inferSelect;
+export type NewSourceLinkRow = typeof sourceLinks.$inferInsert;
+export type NoteFolderRow = typeof noteFolders.$inferSelect;
+export type NewNoteFolderRow = typeof noteFolders.$inferInsert;

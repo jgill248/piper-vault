@@ -4,7 +4,7 @@
 
 Delve is a local-first, RAG-powered knowledge base with a conversational chat interface. Users ingest notes, transcripts, documents, and unstructured data, then query it through natural language powered by an LLM API (Ask Sage). The system indexes content locally, performs semantic similarity search, and feeds context to a language model for grounded, citation-backed answers.
 
-**Status:** Phase 1 complete, Phase 2 complete — entering Phase 3
+**Status:** Phases 1–4 complete — entering Phase 5: Native Knowledge Management
 
 ## Resolved Decisions
 
@@ -193,26 +193,25 @@ packages/api/src/
 - Test the public interface, not internal details
 - Factory functions for test data — avoid fixtures that rot
 
-## Linear Project Management
+## GitHub Project Management
 
-Project management is tracked in Linear. Agents and skills have access to Linear MCP tools.
+Project management is tracked on GitHub Projects and Issues. Use the `gh` CLI for all project management operations.
 
-### Workspace
+### Repository
 
-- **Team:** Creative-software (key: `CRE`)
-- **Project:** Delve
-- **Issue labels:** `design`, `frontend`, `backend`, `infra`, `Feature`, `Bug`, `Improvement`
-- **Statuses:** Backlog → Todo → In Progress → Done (also: Canceled, Duplicate)
+- **Repo:** `jgill248/delve`
+- **GitHub Project:** Delve (#5)
+- **Issue labels:** `design`, `frontend`, `backend`, `infra`, `Feature`, `Bug`, `Improvement`, `qa-blocker`
 
-### Milestone ↔ Spec Phase Mapping
+### Phase ↔ Spec Mapping
 
-| Linear Milestone | Spec Section | Focus |
-|-----------------|--------------|-------|
+| Phase | Spec Section | Focus |
+|-------|--------------|-------|
 | Phase 1: Foundation | Section 7, Phase 1 | Scaffolding, .md/.txt ingestion, vector storage, basic chat UI |
 | Phase 2: Expand Ingestion & Polish | Section 7, Phase 2 | All file formats, source browser, conversation history, settings |
 | Phase 3: Intelligence & Refinement | Section 7, Phase 3 | Hybrid search, re-ranking, follow-ups, export, provider adapters |
 | Phase 4: Scale & Ecosystem | Section 7, Phase 4 | Watched folders, webhooks, multi-collection, auth, plugins |
-| Phase 5: Obsidian Integration | Section 7, Phase 5 | Vault watcher, wiki-link graph, frontmatter extraction, Obsidian plugin, bidirectional sync |
+| Phase 5: Native Knowledge Management | Section 7, Phase 5 | Wiki-link graph, frontmatter extraction, native markdown editor, note folders, tag management, graph-aware retrieval |
 | Phase 6: Agentic RAG | Section 7, Phase 6 | Streaming, query routing, corrective RAG, decomposition, research mode, orchestrator |
 | Phase 7: Multi-Modal Knowledge | Section 7, Phase 7 | Audio transcription (Whisper), image understanding (Ollama vision), ColPali, video indexing |
 | Phase 8: Knowledge Graph Intelligence | Section 7, Phase 8 | Entity extraction, relationship mapping, concept clustering, graph UI, temporal reasoning |
@@ -223,25 +222,23 @@ Project management is tracked in Linear. Agents and skills have access to Linear
 | Phase 13: Federated Knowledge & Personal Fine-Tuning | Section 7, Phase 13 | P2P CRDT sync, LoRA fine-tuning, privacy-preserving sharing |
 | Phase 14: Exploratory Horizons | Section 7, Phase 14 | 3D graph, embodied knowledge, .delve format, digital twin of knowledge |
 
-### Linear Sync Workflow
+### GitHub Sync Workflow
 
-When working on Delve, keep Linear in sync with the codebase:
+When working on Delve, keep GitHub issues in sync with the codebase:
 
-1. **Starting work:** Move the relevant Linear issue to `In Progress` before beginning implementation.
-2. **Completing work:** Move the issue to `Done` after the implementation is committed and tests pass.
-3. **Discovering bugs:** Create a new `Bug` issue in Linear with the appropriate labels and milestone.
-4. **New work not in Linear:** If you implement something that doesn't have a Linear issue, create one and immediately mark it `Done` so the record exists.
-5. **Blocked work:** Add `blockedBy` relations to the blocking issue and leave a comment explaining the blocker.
+1. **Starting work:** Assign yourself to the relevant GitHub issue before beginning implementation.
+2. **Completing work:** Close the issue after the implementation is committed and tests pass.
+3. **Discovering bugs:** Create a new issue with the `Bug` label and appropriate phase labels.
+4. **New work not in GitHub:** If you implement something that doesn't have a GitHub issue, create one and immediately close it so the record exists.
+5. **Blocked work:** Reference the blocking issue in a comment explaining the blocker.
 
-Use the Linear MCP tools (`save_issue`, `list_issues`, `get_issue`, etc.) to read and update issues directly. Never let Linear drift out of sync with the repo.
+Use the `gh` CLI (`gh issue create`, `gh issue list`, `gh issue close`, etc.) to read and update issues directly. Never let GitHub drift out of sync with the repo.
 
 ### Issue Conventions
 
 - One deliverable per issue — single, testable unit of work
 - Include acceptance criteria in every issue description
 - Apply labels (`backend`, `frontend`, `design`, `infra`) on every issue
-- Use parent issues as epics to group related work
-- Mark `blocks`/`blockedBy` dependencies between issues
 - Reference the spec section in issue descriptions
 - Backend issues should note whether the work is a CQRS command or query
 - Frontend issues should reference relevant Obsidian Protocol design rules
@@ -251,10 +248,10 @@ Use the Linear MCP tools (`save_issue`, `list_issues`, `get_issue`, etc.) to rea
 A milestone **cannot be marked complete** until the following process is satisfied:
 
 1. **Run the `qa-gate` agent** against the milestone. This runs the full QA checklist (tests, build, spec compliance, smoke tests, security, performance).
-2. **Linear issues are created for every failure.** The qa-gate agent creates a `Bug` issue with the `qa-blocker` label for each distinct failure found. Issues are filed in the Delve project under the milestone being validated.
-3. **All `qa-blocker` issues must reach Done status.** No milestone can close while any `qa-blocker` issue remains open. Fix the issues, then proceed to step 4.
+2. **GitHub issues are created for every failure.** The qa-gate agent creates a `Bug` issue with the `qa-blocker` label for each distinct failure found.
+3. **All `qa-blocker` issues must be closed.** No milestone can close while any `qa-blocker` issue remains open. Fix the issues, then proceed to step 4.
 4. **Re-run the `qa-gate` agent** to confirm all fixes pass. If new failures are found, repeat from step 2.
-5. **Only after the qa-gate issues APPROVE** can the milestone be moved to Done in Linear.
+5. **Only after the qa-gate agent APPROVES** can the milestone be considered complete.
 
 This is a hard gate — no exceptions. Skipping the QA gate or closing a milestone with open `qa-blocker` issues is not allowed.
 

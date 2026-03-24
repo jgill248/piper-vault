@@ -13,6 +13,7 @@ import { WatchedFoldersModule } from './watched-folders/watched-folders.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { AuthModule } from './auth/auth.module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { AuthModule } from './auth/auth.module';
     WatchedFoldersModule,
     ApiKeysModule,
     WebhooksModule,
+    NotesModule,
   ],
 })
 export class AppModule {}

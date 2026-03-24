@@ -7,3 +7,5 @@ export * from './api.js';
 export * from './watched-folder.js';
 export * from './api-key.js';
 export * from './user.js';
+export * from './source-link.js';
+export * from './note-folder.js';
