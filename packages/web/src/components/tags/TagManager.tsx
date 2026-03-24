@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Tag, Plus, Minus, X } from 'lucide-react';
 import { useNotes, useUpdateNote } from '../../hooks/use-notes';
 import { useActiveCollection } from '../../context/CollectionContext';
@@ -37,7 +37,7 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
   // Sort by count descending
   const sortedTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
 
-  const toggleTagSelection = useCallback((tag: string) => {
+  const toggleTagSelection = (tag: string) => {
     setSelectedTags((prev) => {
       const next = new Set(prev);
       if (next.has(tag)) {
@@ -47,9 +47,9 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
       }
       return next;
     });
-  }, []);
+  };
 
-  const handleBulkRemove = useCallback(async () => {
+  const handleBulkRemove = async () => {
     for (const tag of selectedTags) {
       const noteIds = tagNoteIds.get(tag) ?? [];
       for (const noteId of noteIds) {
@@ -62,9 +62,9 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
     }
     setSelectedTags(new Set());
     setBulkMode(false);
-  }, [selectedTags, tagNoteIds, notes, updateNote]);
+  };
 
-  const handleBulkAdd = useCallback(async () => {
+  const handleBulkAdd = async () => {
     const tagToAdd = newTag.trim().replace(/^#/, '');
     if (!tagToAdd) return;
     for (const note of notes) {
@@ -77,7 +77,7 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
       }
     }
     setNewTag('');
-  }, [newTag, notes, updateNote]);
+  };
 
   if (sortedTags.length === 0 && !bulkMode) {
     return (
