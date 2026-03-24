@@ -43,7 +43,10 @@
       "Bash(for i:*)",
       "Bash(do gh:*)",
       "Bash(done)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(do echo:*)",
+      "Bash(netstat -ano)",
+      "Bash(DATABASE_URL='postgresql://delve:delve@localhost:5432/delve' pnpm db:migrate)"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"

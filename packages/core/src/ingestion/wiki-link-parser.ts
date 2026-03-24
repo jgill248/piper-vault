@@ -29,7 +29,7 @@ export function parseWikiLinks(text: string): readonly ParsedWikiLink[] {
 
   // Match both embeds ![[...]] and regular links [[...]]
   // The inner content must not contain [ or ] to avoid matching nested brackets
-  const pattern = /(!)?\[\[([^\[\]]+?)\]\]/g;
+  const pattern = /(!)?\[\[([^[\]]+?)\]\]/g;
   let match: RegExpExecArray | null;
 
   while ((match = pattern.exec(text)) !== null) {

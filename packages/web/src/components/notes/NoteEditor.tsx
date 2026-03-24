@@ -17,21 +17,25 @@ export function NoteEditor({
   onSave,
   noteNames = [],
 }: NoteEditorProps) {
+  // Reset state when note identity changes using React's recommended
+  // "adjusting state during rendering" pattern (no useEffect needed).
+  const [prevNoteId, setPrevNoteId] = useState(noteId);
   const [content, setContent] = useState(initialContent);
   const [title, setTitle] = useState(initialTitle);
-  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const [autocompleteFilter, setAutocompleteFilter] = useState('');
   const [isDirty, setIsDirty] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset when note changes
-  useEffect(() => {
+  if (noteId !== prevNoteId) {
+    setPrevNoteId(noteId);
     setContent(initialContent);
     setTitle(initialTitle);
     setIsDirty(false);
-  }, [noteId, initialContent, initialTitle]);
+  }
+
+  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [autocompleteFilter, setAutocompleteFilter] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-save with debounce
   useEffect(() => {

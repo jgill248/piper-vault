@@ -1,11 +1,11 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject, NotFoundException } from '@nestjs/common';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, inArray } from 'drizzle-orm';
 import { exportConversationAsMarkdown } from '@delve/core';
 import { ExportConversationQuery } from './export-conversation.query';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { conversations, messages } from '../../database/schema';
+import { conversations, messages, sources } from '../../database/schema';
 import { toConversationWithMessages } from '../dto/conversation-response.dto';
 
 @QueryHandler(ExportConversationQuery)
@@ -31,6 +31,32 @@ export class ExportConversationHandler implements IQueryHandler<ExportConversati
       .orderBy(asc(messages.createdAt));
 
     const conversationWithMessages = toConversationWithMessages(conversation, messageRows);
+
+    if (query.format === 'wikilink') {
+      // Build sourceId → filename map for wiki-link citations
+      const allSourceIds = new Set<string>();
+      for (const msg of conversationWithMessages.messages) {
+        if (msg.sources) {
+          for (const sid of msg.sources) {
+            allSourceIds.add(sid);
+          }
+        }
+      }
+
+      const sourceIdToFilename = new Map<string, string>();
+      if (allSourceIds.size > 0) {
+        const sourceRows = await this.db
+          .select({ id: sources.id, filename: sources.filename })
+          .from(sources)
+          .where(inArray(sources.id, [...allSourceIds]));
+        for (const row of sourceRows) {
+          sourceIdToFilename.set(row.id, row.filename);
+        }
+      }
+
+      return exportConversationAsMarkdown(conversationWithMessages, { sourceIdToFilename });
+    }
+
     return exportConversationAsMarkdown(conversationWithMessages);
   }
 }

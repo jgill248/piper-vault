@@ -4,11 +4,11 @@ import { eq, and } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
 import type { IngestionPipeline, Embedder } from '@delve/core';
-import { extractFrontmatter } from '@delve/core';
+import { extractFrontmatter, parseWikiLinks } from '@delve/core';
 import { UpdateNoteCommand } from './update-note.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { sources, chunks } from '../../database/schema';
+import { sources, chunks, sourceLinks } from '../../database/schema';
 import { createHash } from 'crypto';
 
 @CommandHandler(UpdateNoteCommand)
@@ -123,6 +123,54 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
       updates['chunkCount'] = textChunks.length;
       updates['fileSize'] = buffer.byteLength;
       updates['status'] = 'ready';
+
+      // Re-parse and store wiki-links
+      await this.db.delete(sourceLinks).where(eq(sourceLinks.sourceId, noteId));
+      const wikiLinks = parseWikiLinks(content);
+      if (wikiLinks.length > 0) {
+        try {
+          const linkRows = wikiLinks.map((link) => ({
+            sourceId: noteId,
+            targetFilename: link.targetFilename,
+            linkType: link.linkType,
+            displayText: link.displayText,
+            section: link.section,
+          }));
+          await this.db.insert(sourceLinks).values(linkRows);
+
+          // Resolve target_source_id where target exists
+          const collectionId = note.collectionId;
+          for (const link of wikiLinks) {
+            const targets = await this.db
+              .select({ id: sources.id })
+              .from(sources)
+              .where(
+                and(
+                  eq(sources.filename, `${link.targetFilename}.md`),
+                  eq(sources.collectionId, collectionId),
+                ),
+              )
+              .limit(1);
+
+            if (targets.length > 0 && targets[0] !== undefined) {
+              await this.db
+                .update(sourceLinks)
+                .set({ targetSourceId: targets[0].id })
+                .where(
+                  and(
+                    eq(sourceLinks.sourceId, noteId),
+                    eq(sourceLinks.targetFilename, link.targetFilename),
+                  ),
+                );
+            }
+          }
+
+          this.logger.log(`Updated ${wikiLinks.length} wiki-links for note ${noteId}`);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`Failed to store wiki-links for note ${noteId}: ${message}`);
+        }
+      }
     } else {
       // No content change — just update metadata fields
       if (title !== undefined) {

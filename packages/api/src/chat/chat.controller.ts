@@ -101,8 +101,12 @@ export class ChatController {
    */
   @Get('conversations/:id/export')
   @Header('Content-Type', 'text/markdown')
-  async exportConversation(@Param('id') id: string): Promise<string> {
-    return this.queryBus.execute(new ExportConversationQuery(id));
+  async exportConversation(
+    @Param('id') id: string,
+    @Query('format') format?: string,
+  ): Promise<string> {
+    const resolvedFormat = format === 'wikilink' ? 'wikilink' : 'markdown';
+    return this.queryBus.execute(new ExportConversationQuery(id, resolvedFormat));
   }
 
   /**
