@@ -15,8 +15,7 @@
       "Bash(git log*)",
       "Bash(git branch*)",
       "Bash(git fetch*)",
-      "Bash(ls*)",
-      "mcp__linear__*"
+      "Bash(ls*)"
     ]
   },
   "hooks": {

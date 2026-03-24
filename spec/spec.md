@@ -437,7 +437,7 @@ The backend exposes a RESTful API consumed by the React frontend. All endpoints 
 
 **Goal:** Understand codebases as knowledge and reason across all modalities.
 
-- Dev tools integration — index git repos, commit messages, PRs, issue trackers (Linear/GitHub/Jira)
+- Dev tools integration — index git repos, commit messages, PRs, issue trackers (GitHub/Jira)
 - Cross-modal reasoning — synthesize across audio transcripts, image descriptions, and text
 - MCP server mode — expose Delve as tools for any MCP-compatible AI (Claude, Cursor, etc.)
 
