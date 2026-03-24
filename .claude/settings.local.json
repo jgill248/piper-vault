@@ -46,7 +46,8 @@
       "Bash(gh api:*)",
       "Bash(do echo:*)",
       "Bash(netstat -ano)",
-      "Bash(DATABASE_URL='postgresql://delve:delve@localhost:5432/delve' pnpm db:migrate)"
+      "Bash(DATABASE_URL='postgresql://delve:delve@localhost:5432/delve' pnpm db:migrate)",
+      "mcp__Claude_Preview__preview_start"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
