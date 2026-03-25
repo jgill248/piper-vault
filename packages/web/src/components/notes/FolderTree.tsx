@@ -82,19 +82,19 @@ function TreeItem({
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
         {hasChildren ? (
-          <button
+          <span
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(!expanded);
             }}
-            className="p-0"
+            className="inline-flex items-center p-0 cursor-pointer"
           >
             {expanded ? (
               <ChevronDown size={12} strokeWidth={1.5} />
             ) : (
               <ChevronRight size={12} strokeWidth={1.5} />
             )}
-          </button>
+          </span>
         ) : (
           <span className="w-3" />
         )}

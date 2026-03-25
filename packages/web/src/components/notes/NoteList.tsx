@@ -53,16 +53,16 @@ export function NoteList({
               <span className="flex-1 text-xs font-mono truncate">
                 {note.title || note.filename}
               </span>
-              <button
+              <span
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteNote(note.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-ui-dim hover:text-red-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 p-0.5 text-ui-dim hover:text-red-400 transition-all cursor-pointer"
                 title="Delete note"
               >
                 <Trash2 size={10} strokeWidth={1.5} />
-              </button>
+              </span>
             </div>
             {note.tags && note.tags.length > 0 && (
               <div className="flex gap-1 mt-1 ml-5">

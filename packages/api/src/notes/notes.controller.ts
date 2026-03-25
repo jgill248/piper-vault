@@ -98,50 +98,7 @@ export class NotesController {
     );
   }
 
-  @Get(':id')
-  async get(@Param('id') id: string): Promise<Source & { linkCount: number; backlinkCount: number }> {
-    return this.queryBus.execute(new GetNoteQuery(id));
-  }
-
-  @Get(':id/backlinks')
-  async getBacklinks(@Param('id') id: string): Promise<readonly BacklinkEntry[]> {
-    return this.queryBus.execute(new GetBacklinksQuery(id));
-  }
-
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: unknown): Promise<{ ok: boolean }> {
-    const parsed = UpdateNoteSchema.safeParse(body);
-    if (!parsed.success) {
-      throw new BadRequestException({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: parsed.error.flatten(),
-        },
-      });
-    }
-
-    const dto = parsed.data;
-    const result = await this.commandBus.execute<UpdateNoteCommand, Result<void, string>>(
-      new UpdateNoteCommand(id, dto.content, dto.title, dto.parentPath, dto.tags),
-    );
-
-    if (!result.ok) {
-      throw new BadRequestException({
-        error: { code: 'NOTE_UPDATE_FAILED', message: result.error },
-      });
-    }
-
-    return { ok: true };
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id') id: string): Promise<void> {
-    await this.commandBus.execute(new DeleteNoteCommand(id));
-  }
-
-  // --- Folder endpoints ---
+  // --- Folder endpoints (static routes MUST come before :id param routes) ---
 
   @Post('folders')
   @HttpCode(HttpStatus.CREATED)
@@ -206,5 +163,50 @@ export class NotesController {
     await this.commandBus.execute(
       new DeleteFolderCommand(id, deleteContents === 'true'),
     );
+  }
+
+  // --- Note by ID endpoints (param routes AFTER static routes) ---
+
+  @Get(':id')
+  async get(@Param('id') id: string): Promise<Source & { linkCount: number; backlinkCount: number }> {
+    return this.queryBus.execute(new GetNoteQuery(id));
+  }
+
+  @Get(':id/backlinks')
+  async getBacklinks(@Param('id') id: string): Promise<readonly BacklinkEntry[]> {
+    return this.queryBus.execute(new GetBacklinksQuery(id));
+  }
+
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: unknown): Promise<{ ok: boolean }> {
+    const parsed = UpdateNoteSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request body',
+          details: parsed.error.flatten(),
+        },
+      });
+    }
+
+    const dto = parsed.data;
+    const result = await this.commandBus.execute<UpdateNoteCommand, Result<void, string>>(
+      new UpdateNoteCommand(id, dto.content, dto.title, dto.parentPath, dto.tags),
+    );
+
+    if (!result.ok) {
+      throw new BadRequestException({
+        error: { code: 'NOTE_UPDATE_FAILED', message: result.error },
+      });
+    }
+
+    return { ok: true };
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(@Param('id') id: string): Promise<void> {
+    await this.commandBus.execute(new DeleteNoteCommand(id));
   }
 }

@@ -48,9 +48,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const authHeaders: Record<string, string> =
     _authToken ? { Authorization: `Bearer ${_authToken}` } : {};
 
+  const hasBody = options?.body !== undefined;
+  const contentTypeHeaders: Record<string, string> = hasBody
+    ? { 'Content-Type': 'application/json' }
+    : {};
+
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
-      'Content-Type': 'application/json',
+      ...contentTypeHeaders,
       ...authHeaders,
       ...options?.headers,
     },
@@ -75,6 +80,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(
       (error as { error?: { message?: string } }).error?.message ?? 'Request failed',
     );
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;

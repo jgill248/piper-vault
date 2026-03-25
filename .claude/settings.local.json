@@ -48,7 +48,8 @@
       "Bash(netstat -ano)",
       "Bash(DATABASE_URL='postgresql://delve:delve@localhost:5432/delve' pnpm db:migrate)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\)[''''items'''']; print\\([i[''''id''''] for i in items if i.get\\(''''content'''',{}\\).get\\(''''number''''\\)==164][0]\\)\")"
+      "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\)[''''items'''']; print\\([i[''''id''''] for i in items if i.get\\(''''content'''',{}\\).get\\(''''number''''\\)==164][0]\\)\")",
+      "Bash(for ITEM_ID in PVTI_lAHOAIS_5M4BSjn9zgoTzcc PVTI_lAHOAIS_5M4BSjn9zgoTzdA PVTI_lAHOAIS_5M4BSjn9zgoTzdk)"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
