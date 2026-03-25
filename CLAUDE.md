@@ -222,17 +222,59 @@ Project management is tracked on GitHub Projects and Issues. Use the `gh` CLI fo
 | Phase 13: Federated Knowledge & Personal Fine-Tuning | Section 7, Phase 13 | P2P CRDT sync, LoRA fine-tuning, privacy-preserving sharing |
 | Phase 14: Exploratory Horizons | Section 7, Phase 14 | 3D graph, embodied knowledge, .delve format, digital twin of knowledge |
 
+### GitHub Project Board IDs
+
+These IDs are needed for `gh project item-edit` commands to move issues between columns:
+
+- **Project ID:** `PVT_kwHOAIS_5M4BSjn9`
+- **Status Field ID:** `PVTSSF_lAHOAIS_5M4BSjn9zhADjQE`
+- **Status Options:**
+  - Backlog: `a19e294b`
+  - Todo: `578c5091`
+  - In Progress: `8c42b8d4`
+  - Done: `4baabcce`
+  - Canceled: `2ece5864`
+
 ### GitHub Sync Workflow
 
-When working on Delve, keep GitHub issues in sync with the codebase:
+When working on Delve, keep GitHub issues and the project board in sync with the codebase. This is mandatory for every task.
 
-1. **Starting work:** Assign yourself to the relevant GitHub issue before beginning implementation.
-2. **Completing work:** Close the issue after the implementation is committed and tests pass.
-3. **Discovering bugs:** Create a new issue with the `Bug` label and appropriate phase labels.
-4. **New work not in GitHub:** If you implement something that doesn't have a GitHub issue, create one and immediately close it so the record exists.
-5. **Blocked work:** Reference the blocking issue in a comment explaining the blocker.
+**Before starting any work (bugs, features, improvements):**
 
-Use the `gh` CLI (`gh issue create`, `gh issue list`, `gh issue close`, etc.) to read and update issues directly. Never let GitHub drift out of sync with the repo.
+1. **Search for existing issue:** Use `gh issue list -S "search terms"` to check if an issue already exists.
+2. **Create if missing:** If no issue exists, create one with `gh issue create` including appropriate labels and acceptance criteria.
+3. **Move to In Progress:** Use `gh project item-edit` to set the issue's status to "In Progress" on the project board.
+
+**While working:**
+
+4. **Keep the issue assigned:** Ensure the issue is assigned (use `gh issue edit <num> --add-assignee @me`).
+5. **Reference the issue in commits** where appropriate.
+
+**After completing work:**
+
+6. **Close the issue:** Use `gh issue close <num>` after implementation is committed and tests pass.
+7. **Move to Done:** Use `gh project item-edit` to set the issue's status to "Done" on the project board.
+
+**Helper commands:**
+
+```bash
+# Search for existing issues
+gh issue list -S "keyword" --repo jgill248/delve
+
+# Create an issue
+gh issue create --title "..." --body "..." --label "Bug,backend" --repo jgill248/delve
+
+# Get project item ID for an issue (needed for item-edit)
+gh project item-list 5 --owner jgill248 --format json | jq '.items[] | select(.content.number == ISSUE_NUM)'
+
+# Move issue to In Progress
+gh project item-edit --project-id PVT_kwHOAIS_5M4BSjn9 --id ITEM_ID --field-id PVTSSF_lAHOAIS_5M4BSjn9zhADjQE --single-select-option-id 8c42b8d4
+
+# Move issue to Done
+gh project item-edit --project-id PVT_kwHOAIS_5M4BSjn9 --id ITEM_ID --field-id PVTSSF_lAHOAIS_5M4BSjn9zhADjQE --single-select-option-id 4baabcce
+```
+
+Use the `gh` CLI for all project management operations. Never let GitHub drift out of sync with the repo.
 
 ### Issue Conventions
 
