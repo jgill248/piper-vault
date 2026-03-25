@@ -9,7 +9,7 @@ import { CreateNoteCommand } from './create-note.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { sources, chunks, sourceLinks } from '../../database/schema';
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 
 export interface CreateNoteResult {
   readonly sourceId: string;
@@ -34,8 +34,10 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
     const allTags = [...new Set([...tags, ...fm.tags])];
     const resolvedTitle = title || fm.title || 'Untitled';
 
-    // Compute content hash
-    const contentHash = createHash('sha256').update(content).digest('hex');
+    // Compute content hash — append a UUID so notes always bypass the
+    // (collection_id, content_hash) unique constraint. Dedup is intentionally
+    // skipped for notes: users may create multiple notes with identical content.
+    const contentHash = createHash('sha256').update(`${content}\0${randomUUID()}`).digest('hex');
     const buffer = Buffer.from(fm.body, 'utf-8');
     const isEmpty = fm.body.trim().length === 0;
 
