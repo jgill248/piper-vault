@@ -1,7 +1,7 @@
 import { Module, Global, Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Provider } from '@nestjs/common';
-import { MockEmbedder, DefaultIngestionPipeline, createLlmProvider, LlmReranker } from '@delve/core';
+import { OnnxEmbedder, DefaultIngestionPipeline, createLlmProvider, LlmReranker } from '@delve/core';
 import type { LlmProvider, LlmQuery, LlmResponse, PluginRegistry } from '@delve/core';
 import type { Result } from '@delve/shared';
 import { ConfigStore } from '../config/config.store.js';
@@ -72,7 +72,13 @@ export class LlmProviderProxy implements LlmProvider {
 
 const embedderProvider: Provider = {
   provide: 'EMBEDDER',
-  useFactory: (): MockEmbedder => new MockEmbedder(),
+  useFactory: async (): Promise<OnnxEmbedder> => {
+    const embedder = new OnnxEmbedder();
+    console.log('[OnnxEmbedder] Loading all-MiniLM-L6-v2 model...');
+    await embedder.init();
+    console.log('[OnnxEmbedder] Model loaded and ready.');
+    return embedder;
+  },
 };
 
 const ingestionPipelineProvider: Provider = {

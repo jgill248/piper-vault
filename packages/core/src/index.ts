@@ -8,6 +8,7 @@ export * from './ingestion/frontmatter.js';
 export * from './ingestion/wiki-link-parser.js';
 export * from './embedding/embedder.js';
 export * from './embedding/mock-embedder.js';
+export * from './embedding/onnx-embedder.js';
 export * from './retrieval/retriever.js';
 export * from './retrieval/rrf.js';
 export * from './retrieval/reranker.js';

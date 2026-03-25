@@ -11,6 +11,13 @@ module.exports = function (options, webpack) {
         // Bundle workspace packages so we avoid pnpm symlink / ESM resolution issues.
         allowlist: ['webpack/hot/poll?100', /^@delve\//],
       }),
+      // Native Node addons and large ONNX/ML packages must stay external
+      // — webpack cannot bundle .node binaries or WASM files.
+      {
+        'onnxruntime-node': 'commonjs onnxruntime-node',
+        sharp: 'commonjs sharp',
+        '@huggingface/transformers': 'commonjs @huggingface/transformers',
+      },
     ],
     module: {
       rules: [

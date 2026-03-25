@@ -21,6 +21,7 @@
     "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.3.14",
     "vitest": "^1.0.0"

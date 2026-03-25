@@ -35,7 +35,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   chunkSize: 512,
   chunkOverlap: 64,
   topKResults: 8,
-  similarityThreshold: 0.72,
+  similarityThreshold: 0.3,
   maxContextTokens: 4000,
   maxConversationTurns: 10,
   hybridSearchEnabled: false,

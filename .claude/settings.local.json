@@ -65,7 +65,14 @@
       "Bash(powershell -Command \"Start-Sleep -Seconds 15; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
       "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }\")",
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\")",
-      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\); const j=JSON.parse\\(d\\); console.log\\(''''Response length:'''', j.message.content.length, ''''chars''''\\)\")"
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\); const j=JSON.parse\\(d\\); console.log\\(''''Response length:'''', j.message.content.length, ''''chars''''\\)\")",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }\")",
+      "Bash(dir \"%USERPROFILE%\\\\.cache\\\\huggingface\")",
+      "Bash(powershell -Command \"Get-ChildItem -Path $env:USERPROFILE -Filter ''.cache'' -Directory -Force -ErrorAction SilentlyContinue | Get-ChildItem -Directory\")",
+      "Bash(node dist/main.js)",
+      "Bash(for NUM in 175 176 177 178)",
+      "Bash(for ITEM in PVTI_lAHOAIS_5M4BSjn9zgoVM0Y PVTI_lAHOAIS_5M4BSjn9zgoVM08 PVTI_lAHOAIS_5M4BSjn9zgoVM1k PVTI_lAHOAIS_5M4BSjn9zgoVM2E PVTI_lAHOAIS_5M4BSjn9zgoVM2Q)"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"

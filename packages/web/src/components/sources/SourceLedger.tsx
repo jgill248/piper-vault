@@ -99,11 +99,11 @@ function SourceRow({ source }: SourceRowProps) {
   return (
     <tr className="border-b border-obsidian-border/10 hover:bg-obsidian-raised/30 transition-colors duration-75 group">
       {/* Filename */}
-      <td className="px-3 py-2">
-        <div className="flex items-center gap-2">
+      <td className="px-3 py-2 max-w-0 w-[40%]">
+        <div className="flex items-center gap-2 min-w-0">
           <FileText size={11} className="text-ui-dim shrink-0" strokeWidth={1.5} />
           <span
-            className="font-mono text-[11px] text-ui-text truncate max-w-[180px]"
+            className="font-mono text-[11px] text-ui-text truncate"
             title={source.filename}
           >
             {source.filename}

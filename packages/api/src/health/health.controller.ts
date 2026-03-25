@@ -1,5 +1,6 @@
 import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import type { Embedder } from '@delve/core';
 import type { Database } from '../database/connection';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -15,7 +16,10 @@ interface HealthResponse {
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);
 
-  constructor(@Inject('DATABASE') private readonly db: Database) {}
+  constructor(
+    @Inject('DATABASE') private readonly db: Database,
+    @Inject('EMBEDDER') private readonly embedder: Embedder,
+  ) {}
 
   @Get()
   async check(): Promise<HealthResponse> {
@@ -28,8 +32,11 @@ export class HealthController {
       dbStatus = 'error';
     }
 
-    // MockEmbedder is always available; real ONNX model check can be added later
-    const embeddingStatus: 'ok' | 'warn' = 'warn';
+    // Check if the embedder is a real model (has isReady) or a mock
+    const embeddingStatus: 'ok' | 'warn' =
+      'isReady' in this.embedder && (this.embedder as { isReady: boolean }).isReady
+        ? 'ok'
+        : 'warn';
 
     return {
       status: dbStatus === 'ok' ? 'ok' : 'degraded',
