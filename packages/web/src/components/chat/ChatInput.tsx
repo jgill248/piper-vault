@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, useEffect, type KeyboardEvent } from 'react';
 
 interface ChatInputProps {
   value: string;
@@ -9,6 +9,13 @@ interface ChatInputProps {
 
 export function ChatInput({ value, onChange, onSubmit, disabled = false }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Restore focus after mutation completes (disabled transitions false → true → false)
+  useEffect(() => {
+    if (!disabled) {
+      textareaRef.current?.focus();
+    }
+  }, [disabled]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
