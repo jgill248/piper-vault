@@ -63,7 +63,9 @@
       "Bash(powershell -Command \"Start-Sleep -Seconds 5; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
       "Bash(powershell -Command \"Start-Sleep -Seconds 10; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
       "Bash(powershell -Command \"Start-Sleep -Seconds 15; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
-      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }\")"
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }\")",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\")",
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\); const j=JSON.parse\\(d\\); console.log\\(''''Response length:'''', j.message.content.length, ''''chars''''\\)\")"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"

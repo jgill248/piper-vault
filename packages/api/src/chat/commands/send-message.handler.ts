@@ -6,7 +6,6 @@ import { DEFAULT_COLLECTION_ID } from '@delve/shared';
 import type { LlmProvider, NoteMetadata } from '@delve/core';
 import {
   buildPrompt,
-  generateFollowUpQuestions,
   detectQueryIntent,
   formatNoteContext,
 } from '@delve/core';
@@ -239,32 +238,15 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       throw new InternalServerErrorException('Failed to save assistant message');
     }
 
-    // Generate follow-up questions if enabled (capped at 3s to avoid blocking the response)
-    let suggestedFollowUps: string[] | undefined;
-    const config = this.configStore.get();
-    if (config.followUpQuestionsEnabled && contextResults.length > 0) {
-      const FOLLOW_UP_TIMEOUT_MS = 3000;
-      try {
-        suggestedFollowUps = await Promise.race([
-          generateFollowUpQuestions(
-            this.llm,
-            userMessage,
-            assistantContent,
-            contextResults,
-          ),
-          new Promise<string[]>((_, reject) =>
-            setTimeout(() => reject(new Error('Follow-up generation timed out')), FOLLOW_UP_TIMEOUT_MS),
-          ),
-        ]);
-      } catch (err) {
-        this.logger.warn(`Follow-up generation skipped: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    }
+    // Return immediately — skip follow-up generation to avoid adding latency.
+    // Follow-up generation requires an additional LLM round-trip (up to 3s)
+    // which can cause the Vite proxy to timeout on slower LLM providers.
+    // TODO: Re-enable follow-ups via a background job or WebSocket push when
+    // streaming support (Phase 6) is implemented.
 
     return {
       conversationId,
       message: toMessageResponse(savedAssistantMsg),
-      ...(suggestedFollowUps && suggestedFollowUps.length > 0 ? { suggestedFollowUps } : {}),
     };
   }
 }

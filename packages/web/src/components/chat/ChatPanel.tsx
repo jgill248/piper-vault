@@ -44,10 +44,17 @@ export function ChatPanel() {
   const { data: conversation } = useConversation(activeConversationId);
   const { data: conversations } = useConversations(activeCollectionId);
 
-  // Merge server messages with local optimistic messages
+  // Merge server messages with local optimistic messages.
+  // Server messages are the source of truth once fetched. Append any optimistic
+  // local messages (those not yet persisted) so they stay visible during the
+  // refetch window after a mutation.
   const serverMessages: readonly Message[] = conversation?.messages ?? [];
+  const serverIds = new Set(serverMessages.map((m) => m.id));
+  const pendingLocal = localMessages.filter((m) => !serverIds.has(m.id));
   const messages: readonly Message[] =
-    serverMessages.length > 0 ? serverMessages : localMessages;
+    serverMessages.length > 0
+      ? [...serverMessages, ...pendingLocal]
+      : localMessages;
 
   const activeConversationTitle = conversations?.find(
     (c) => c.id === activeConversationId,

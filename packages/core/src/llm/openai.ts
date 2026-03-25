@@ -3,6 +3,7 @@ import type { Result } from '@delve/shared';
 import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
 
 const OPENAI_BASE_URL = 'https://api.openai.com/v1';
+const LLM_FETCH_TIMEOUT_MS = 30_000;
 
 /**
  * A single message in the OpenAI Chat Completions format.
@@ -85,6 +86,7 @@ export class OpenAiProvider implements LlmProvider {
           Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);

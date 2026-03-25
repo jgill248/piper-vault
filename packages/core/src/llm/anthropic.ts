@@ -4,6 +4,7 @@ import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
 
 const ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1';
 const ANTHROPIC_VERSION = '2023-06-01';
+const LLM_FETCH_TIMEOUT_MS = 30_000;
 
 /**
  * Shape of the JSON body sent to the Anthropic Messages API.
@@ -69,6 +70,7 @@ export class AnthropicProvider implements LlmProvider {
           'anthropic-version': ANTHROPIC_VERSION,
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);

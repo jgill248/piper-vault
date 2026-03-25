@@ -8,7 +8,10 @@ import { GlobalExceptionFilter } from './filters/http-exception.filter';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false }),
+    new FastifyAdapter({
+      logger: false,
+      requestTimeout: 60_000, // 60s — allow time for LLM round-trips
+    }),
   );
 
   app.setGlobalPrefix(API_PREFIX);

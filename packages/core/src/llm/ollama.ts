@@ -44,6 +44,8 @@ interface OllamaTagsResponse {
   readonly error?: string;
 }
 
+const LLM_FETCH_TIMEOUT_MS = 30_000;
+
 /**
  * OllamaProvider implements LlmProvider by calling the Ollama local REST API
  * directly via fetch. No SDK dependency — raw HTTP only.
@@ -86,6 +88,7 @@ export class OllamaProvider implements LlmProvider {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);

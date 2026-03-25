@@ -6,8 +6,13 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: ChatRequest) => api.sendMessage(body),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate both the conversation list and the specific active conversation
+      // so React Query refetches the latest messages after the backend persists them.
       void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      void queryClient.invalidateQueries({
+        queryKey: ['conversation', data.conversationId],
+      });
     },
   });
 }

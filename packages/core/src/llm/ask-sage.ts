@@ -3,6 +3,7 @@ import type { Result } from '@delve/shared';
 import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
 
 const ASK_SAGE_BASE_URL = 'https://api.asksage.ai/server';
+const LLM_FETCH_TIMEOUT_MS = 30_000;
 
 /**
  * Shape of the JSON body sent to Ask Sage's /server/query endpoint.
@@ -67,6 +68,7 @@ export class AskSageProvider implements LlmProvider {
           'x-access-tokens': this.token,
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
