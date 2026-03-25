@@ -10,6 +10,9 @@ Guidelines:
 - Preserve the user's conversational tone — be direct and avoid unnecessary filler.
 - Never fabricate source labels or reference sources that are not listed in the context.`;
 
+const NOTE_CONTEXT_ADDENDUM = `
+When the user asks about their notes (listing, summarizing, or querying by date/metadata), use the Notes section provided in the context to answer. List notes clearly with their titles, creation dates, and tags. Provide brief content summaries when available. If no notes were found for the requested time period, say so clearly.`;
+
 /**
  * Formats a single ChunkSearchResult into a labelled context block.
  * The label is 1-based to match natural reading conventions.
@@ -50,6 +53,7 @@ export function buildPrompt(
   context: readonly ChunkSearchResult[],
   history: readonly Message[],
   maxHistoryTurns: number,
+  noteContext?: string,
 ): { prompt: string; systemPrompt: string } {
   // --- Context block ---
   const contextSection =
@@ -82,11 +86,18 @@ export function buildPrompt(
   // --- Assemble the full user-facing prompt ---
   const parts: string[] = [];
 
+  // Note metadata context (from temporal/metadata queries) comes first
+  if (noteContext) {
+    parts.push(noteContext);
+    parts.push('');
+  }
+
   if (context.length > 0) {
     parts.push('--- Knowledge Base Context ---');
     parts.push(contextSection);
     parts.push('--- End of Context ---');
-  } else {
+  } else if (!noteContext) {
+    // Only show the "no context" message if we also have no note context
     parts.push(contextSection);
   }
 
@@ -98,8 +109,12 @@ export function buildPrompt(
   parts.push('');
   parts.push(`Question: ${query.trim()}`);
 
+  const systemPrompt = noteContext
+    ? SYSTEM_PROMPT + NOTE_CONTEXT_ADDENDUM
+    : SYSTEM_PROMPT;
+
   return {
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt,
     prompt: parts.join('\n'),
   };
 }

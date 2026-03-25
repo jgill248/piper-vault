@@ -22,7 +22,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: delve-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@delve.local
+      PGADMIN_DEFAULT_EMAIL: admin@delve.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_LISTEN_PORT: 5050
     ports:

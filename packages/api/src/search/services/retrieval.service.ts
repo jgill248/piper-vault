@@ -8,6 +8,26 @@ import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { ConfigStore } from '../../config/config.store';
 
+export interface NoteMetadataOptions {
+  readonly dateFrom: string;
+  readonly dateTo: string;
+  readonly dateField?: 'created_at' | 'updated_at';
+  readonly collectionId?: string;
+  readonly tags?: readonly string[];
+  readonly limit?: number;
+}
+
+export interface NoteMetadataRow {
+  id: string;
+  title: string | null;
+  filename: string;
+  tags: string[];
+  content: string | null;
+  created_at: Date;
+  updated_at: Date;
+  parent_path: string | null;
+}
+
 export interface RetrievalOptions {
   readonly query: string;
   readonly topK: number;
@@ -106,6 +126,46 @@ export class RetrievalService {
     }
 
     return finalResults;
+  }
+
+  /**
+   * Search for notes by metadata (date range, tags, collection).
+   * Returns source-level data (not chunks) for temporal/listing queries.
+   */
+  async searchNotesByMetadata(
+    options: NoteMetadataOptions,
+  ): Promise<NoteMetadataRow[]> {
+    const limit = options.limit ?? 50;
+    const dateField = options.dateField ?? 'created_at';
+
+    const dateCol =
+      dateField === 'updated_at' ? sql`s.updated_at` : sql`s.created_at`;
+
+    const collectionFilter =
+      options.collectionId !== undefined
+        ? sql`AND s.collection_id = ${options.collectionId}::uuid`
+        : sql``;
+    const tagFilter =
+      options.tags !== undefined && options.tags.length > 0
+        ? sql`AND s.tags && ${options.tags as string[]}::text[]`
+        : sql``;
+
+    const rawRows = await this.db.execute(
+      sql`
+        SELECT s.id, s.title, s.filename, s.tags, s.content,
+               s.created_at, s.updated_at, s.parent_path
+        FROM sources s
+        WHERE s.is_note = true
+          AND s.status = 'ready'
+          AND ${dateCol} >= ${options.dateFrom}::timestamptz
+          AND ${dateCol} <= ${options.dateTo}::timestamptz
+          ${collectionFilter} ${tagFilter}
+        ORDER BY s.created_at DESC
+        LIMIT ${limit}
+      `,
+    );
+
+    return rawRows as unknown as NoteMetadataRow[];
   }
 
   private async vectorSearch(

@@ -3,8 +3,13 @@ import { Inject, Logger, InternalServerErrorException } from '@nestjs/common';
 import { eq, asc } from 'drizzle-orm';
 import type { ChatResponse, Message } from '@delve/shared';
 import { DEFAULT_COLLECTION_ID } from '@delve/shared';
-import type { LlmProvider } from '@delve/core';
-import { buildPrompt, generateFollowUpQuestions } from '@delve/core';
+import type { LlmProvider, NoteMetadata } from '@delve/core';
+import {
+  buildPrompt,
+  generateFollowUpQuestions,
+  detectQueryIntent,
+  formatNoteContext,
+} from '@delve/core';
 import { SendMessageCommand } from './send-message.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
@@ -104,19 +109,87 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       .filter((r) => r.id !== savedUserMsg.id)
       .map(toMessageResponse);
 
-    // --- Steps 4-5: Retrieve relevant chunks via hybrid search + re-ranking ---
+    // --- Step 3.5: Detect query intent (temporal, metadata, or semantic) ---
+    const intent = detectQueryIntent(userMessage);
+    this.logger.debug(`Query intent: ${intent.type}, temporal: ${intent.dateLabel ?? 'none'}`);
+
+    // --- Steps 4-5: Retrieve relevant context based on intent ---
     const cfg = this.configStore.get();
-    const contextResults = await this.retrievalService.search({
-      query: userMessage,
-      topK: cfg.topKResults,
-      threshold: cfg.similarityThreshold,
-      sourceIds: command.sourceIds,
-      fileTypes: command.fileTypes,
-      tags: command.tags,
-      dateFrom: command.dateFrom,
-      dateTo: command.dateTo,
-      collectionId: command.collectionId,
-    });
+    let contextResults: import('@delve/shared').ChunkSearchResult[] = [];
+    let noteContext: string | undefined;
+    let noteSourceIds: string[] = [];
+
+    if (intent.type === 'metadata' && intent.temporal) {
+      // Pure metadata query — skip semantic search, do note listing
+      const notes = await this.retrievalService.searchNotesByMetadata({
+        dateFrom: intent.temporal.dateFrom,
+        dateTo: intent.temporal.dateTo,
+        dateField: intent.dateField,
+        collectionId: command.collectionId ?? collectionId,
+        tags: command.tags,
+      });
+      const noteMeta: NoteMetadata[] = notes.map((n) => ({
+        id: n.id,
+        title: n.title,
+        filename: n.filename,
+        tags: n.tags,
+        content: n.content,
+        createdAt: n.created_at,
+        updatedAt: n.updated_at,
+        parentPath: n.parent_path,
+      }));
+      noteContext = formatNoteContext(noteMeta, intent.dateLabel ?? 'the requested period');
+      noteSourceIds = notes.map((n) => n.id);
+    } else if (intent.type === 'hybrid' && intent.temporal) {
+      // Hybrid — do semantic search WITH date filter, PLUS note metadata
+      const [chunks, notes] = await Promise.all([
+        this.retrievalService.search({
+          query: intent.contentQuery ?? userMessage,
+          topK: cfg.topKResults,
+          threshold: cfg.similarityThreshold,
+          sourceIds: command.sourceIds,
+          fileTypes: command.fileTypes,
+          tags: command.tags,
+          dateFrom: intent.temporal.dateFrom,
+          dateTo: intent.temporal.dateTo,
+          collectionId: command.collectionId ?? collectionId,
+        }),
+        this.retrievalService.searchNotesByMetadata({
+          dateFrom: intent.temporal.dateFrom,
+          dateTo: intent.temporal.dateTo,
+          dateField: intent.dateField,
+          collectionId: command.collectionId ?? collectionId,
+        }),
+      ]);
+      contextResults = chunks;
+      if (notes.length > 0) {
+        const noteMeta: NoteMetadata[] = notes.map((n) => ({
+          id: n.id,
+          title: n.title,
+          filename: n.filename,
+          tags: n.tags,
+          content: n.content,
+          createdAt: n.created_at,
+          updatedAt: n.updated_at,
+          parentPath: n.parent_path,
+        }));
+        noteContext = formatNoteContext(noteMeta, intent.dateLabel ?? 'the requested period');
+        noteSourceIds = notes.map((n) => n.id);
+      }
+    } else {
+      // Standard semantic search (existing behavior, unchanged)
+      contextResults = await this.retrievalService.search({
+        query: userMessage,
+        topK: cfg.topKResults,
+        threshold: cfg.similarityThreshold,
+        sourceIds: command.sourceIds,
+        fileTypes: command.fileTypes,
+        tags: command.tags,
+        dateFrom: command.dateFrom,
+        dateTo: command.dateTo,
+        collectionId: command.collectionId,
+      });
+    }
 
     // --- Step 6: Build the prompt ---
     const appConfig = this.configStore.get();
@@ -125,6 +198,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       contextResults,
       history,
       appConfig.maxConversationTurns,
+      noteContext,
     );
 
     // --- Step 7: Call the LLM ---
@@ -141,8 +215,13 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
 
     const { content: assistantContent, model: usedModel } = llmResult.value;
 
-    // Source IDs used in this response (unique source_ids from retrieved chunks)
-    const sourceIds = [...new Set(contextResults.map((r) => r.source.id))];
+    // Source IDs used in this response (unique source_ids from retrieved chunks + notes)
+    const sourceIds = [
+      ...new Set([
+        ...contextResults.map((r) => r.source.id),
+        ...noteSourceIds,
+      ]),
+    ];
 
     // --- Step 8: Persist the assistant message ---
     const [savedAssistantMsg] = await this.db

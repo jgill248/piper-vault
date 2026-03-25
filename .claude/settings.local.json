@@ -49,7 +49,21 @@
       "Bash(DATABASE_URL='postgresql://delve:delve@localhost:5432/delve' pnpm db:migrate)",
       "mcp__Claude_Preview__preview_start",
       "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\)[''''items'''']; print\\([i[''''id''''] for i in items if i.get\\(''''content'''',{}\\).get\\(''''number''''\\)==164][0]\\)\")",
-      "Bash(for ITEM_ID in PVTI_lAHOAIS_5M4BSjn9zgoTzcc PVTI_lAHOAIS_5M4BSjn9zgoTzdA PVTI_lAHOAIS_5M4BSjn9zgoTzdk)"
+      "Bash(for ITEM_ID in PVTI_lAHOAIS_5M4BSjn9zgoTzcc PVTI_lAHOAIS_5M4BSjn9zgoTzdA PVTI_lAHOAIS_5M4BSjn9zgoTzdk)",
+      "Bash(findstr ProcessId)",
+      "Bash(findstr :3001)",
+      "Bash(findstr LISTEN)",
+      "Bash(cmd /c \"taskkill /PID 43844 /F\")",
+      "Bash(timeout 15)",
+      "Bash(cmd /c \"timeout /t 15 /nobreak >nul && curl -s http://localhost:3001/api/v1/health\")",
+      "Bash(powershell -Command \"Stop-Process -Id 43844 -Force\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 20; Invoke-WebRequest -Uri http://localhost:3001/api/v1/health -UseBasicParsing | Select-Object -ExpandProperty Content\")",
+      "Bash(pnpm nest:*)",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 5; curl -s http://localhost:3001/api/v1/health\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 5; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 10; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 15; Invoke-WebRequest -Uri ''http://localhost:3001/api/v1/health'' -UseBasicParsing | Select-Object -ExpandProperty Content\")",
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }\")"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
