@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import { User, Cpu } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
 
@@ -32,12 +33,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === MESSAGE_ROLE.USER;
   const isAssistant = message.role === MESSAGE_ROLE.ASSISTANT;
 
+  // Try to get source filename from sourceNames if available, fall back to truncated ID
+  const sourceNames: string[] | undefined = (message as unknown as { sourceNames?: string[] }).sourceNames;
+
   return (
     <div className={`flex flex-col mb-4 ${isUser ? 'items-end' : 'items-start'}`}>
       {/* Role label + timestamp */}
       <div
         className={`flex items-center gap-2 mb-1 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
       >
+        {/* Role icon */}
+        <span className={`shrink-0 ${isUser ? 'text-ui-dim' : 'text-phosphor'}`}>
+          {isUser ? <User size={10} strokeWidth={1.5} /> : <Cpu size={10} strokeWidth={1.5} />}
+        </span>
         <span
           className={`font-mono text-[9px] uppercase tracking-widest ${
             isUser ? 'text-ui-muted' : 'text-phosphor'
@@ -55,8 +63,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         className={`max-w-[80%] px-4 py-3 text-sm ${
           isUser
             ? 'bg-obsidian-raised text-ui-text border-r-2 border-r-ui-dim/30'
-            : 'bg-obsidian-surface text-ui-text border-l-2 border-l-phosphor/40'
+            : 'bg-obsidian-surface text-ui-text border-l-3 border-l-phosphor/50'
         }`}
+        style={isAssistant ? { backgroundColor: 'rgba(171,214,0,0.02)' } : undefined}
       >
         {isUser ? (
           <p className="font-sans text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
@@ -168,14 +177,21 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest self-center">
             SOURCES:
           </span>
-          {message.sources.map((sourceId, i) => (
-            <span
-              key={sourceId}
-              className="font-mono text-[9px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-2 py-0.5 uppercase tracking-wider"
-            >
-              [{String(i + 1).padStart(2, '0')}] {sourceId.slice(0, 8)}
-            </span>
-          ))}
+          {message.sources.map((sourceId, i) => {
+            const displayName = sourceNames?.[i]
+              ? (sourceNames[i].length > 20 ? sourceNames[i].slice(0, 20) + '...' : sourceNames[i])
+              : sourceId.slice(0, 8);
+            const fullName = sourceNames?.[i] ?? sourceId;
+            return (
+              <span
+                key={sourceId}
+                className="font-mono text-[9px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-2 py-0.5 uppercase tracking-wider cursor-default"
+                title={fullName}
+              >
+                [{String(i + 1).padStart(2, '0')}] {displayName}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>

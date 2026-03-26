@@ -8,18 +8,16 @@ import { ApiKeysSection } from './ApiKeysSection';
 import { WatchedFoldersSection } from './WatchedFoldersSection';
 
 interface SectionProps {
-  index: string;
   title: string;
   children: React.ReactNode;
+  index?: string; // kept for backwards compat but not rendered
 }
 
-function Section({ index, title, children }: SectionProps) {
+function Section({ title, children }: SectionProps) {
+  const sectionId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return (
-    <div className="mb-6">
+    <div className="mb-6" id={`section-${sectionId}`}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">
-          {index}
-        </span>
         <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
           {title}
         </span>
@@ -432,6 +430,35 @@ export function SettingsPanel() {
           )}
         </div>
       </div>
+
+      {/* Section jump nav */}
+      {!isLoading && (
+        <div className="flex items-center gap-1 px-4 py-2 border-b border-obsidian-border/20 bg-obsidian-surface shrink-0 overflow-x-auto">
+          {['LLM', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
+            <button
+              key={label}
+              onClick={() => {
+                const el = document.getElementById(`section-${label.toLowerCase().replace(/_/g, '-')}`);
+                if (!el) {
+                  // try partial match
+                  const sections = document.querySelectorAll('[id^="section-"]');
+                  for (const s of sections) {
+                    if (s.id.includes(label.toLowerCase().replace(/_/g, '-'))) {
+                      s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      return;
+                    }
+                  }
+                } else {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="font-mono text-[8px] text-ui-dim hover:text-phosphor uppercase tracking-wider px-2 py-1 border border-obsidian-border/20 hover:border-phosphor/30 transition-all duration-100 whitespace-nowrap shrink-0"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading ? (

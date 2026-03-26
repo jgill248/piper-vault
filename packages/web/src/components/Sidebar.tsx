@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MessageSquare, Database, Settings, Activity, FileText } from 'lucide-react';
 import { useHealth } from '../hooks/use-health';
 import { CollectionSelector } from './collections/CollectionSelector';
@@ -40,12 +41,15 @@ const NAV_ITEMS: NavItem[] = [
 
 export function Sidebar({ activeView, onNavigate }: SidebarProps) {
   const { data: health, isError, isLoading } = useHealth();
+  const [statusExpanded, setStatusExpanded] = useState(false);
 
   const systemStatus = isLoading
-    ? { label: 'CONNECTING', color: 'text-ui-dim' }
+    ? { label: 'CONNECTING', color: 'text-ui-dim', healthy: false }
     : isError || health?.status !== 'ok'
-      ? { label: 'OFFLINE', color: 'text-red-400' }
-      : { label: 'ONLINE', color: 'text-phosphor' };
+      ? { label: 'OFFLINE', color: 'text-red-400', healthy: false }
+      : { label: 'ONLINE', color: 'text-phosphor', healthy: true };
+
+  const hasIssue = !systemStatus.healthy || (health && (health.db !== 'ok' || health.embedding !== 'ok'));
 
   return (
     <aside className="flex flex-col w-52 bg-obsidian-surface border-r border-obsidian-border/20 shrink-0 h-full">
@@ -90,15 +94,23 @@ export function Sidebar({ activeView, onNavigate }: SidebarProps) {
         ))}
       </nav>
 
-      {/* System Status */}
-      <div className="px-4 py-4 border-t border-obsidian-border/20">
+      {/* System Status — collapsed by default, expands on click or when unhealthy */}
+      <div
+        className="px-4 py-3 border-t border-obsidian-border/20 cursor-pointer select-none"
+        onClick={() => setStatusExpanded((v) => !v)}
+        title="Click to expand system status"
+      >
         <div className="flex items-center gap-2">
-          <Activity size={10} className={systemStatus.color} />
+          <div
+            className={`w-2 h-2 shrink-0 ${
+              hasIssue ? 'bg-red-400 animate-pulse' : 'bg-phosphor'
+            }`}
+          />
           <span className={`font-mono text-[10px] tracking-widest uppercase ${systemStatus.color}`}>
             SYS:{systemStatus.label}
           </span>
         </div>
-        {health && (
+        {(statusExpanded || hasIssue) && health && (
           <div className="mt-1.5 space-y-0.5">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[9px] text-ui-dim uppercase">DB</span>

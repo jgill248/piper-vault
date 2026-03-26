@@ -105,6 +105,7 @@ export function CollectionSelector() {
           <button
             onClick={handleOpenCreate}
             aria-label="Create new collection"
+            title="Create new collection"
             className="p-2 text-ui-dim hover:text-phosphor transition-colors duration-100"
           >
             <Plus size={10} strokeWidth={2} />
@@ -112,6 +113,7 @@ export function CollectionSelector() {
           <button
             onClick={handleOpenManage}
             aria-label="Manage collections"
+            title="Manage collections"
             className="p-2 text-ui-dim hover:text-ui-muted transition-colors duration-100"
           >
             <Settings2 size={10} strokeWidth={1.5} />

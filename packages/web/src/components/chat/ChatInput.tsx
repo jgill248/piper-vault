@@ -1,4 +1,5 @@
 import { useRef, useEffect, type KeyboardEvent } from 'react';
+import { Send } from 'lucide-react';
 
 interface ChatInputProps {
   value: string;
@@ -71,9 +72,11 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false }: ChatI
           onClick={onSubmit}
           disabled={disabled || !value.trim()}
           aria-label="Send message"
-          className="btn-primary shrink-0 h-10 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          title="Send message (Enter)"
+          className="btn-primary shrink-0 h-10 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2"
         >
-          EXECUTE_
+          <Send size={12} strokeWidth={2} />
+          SEND
         </button>
       </div>
     </div>

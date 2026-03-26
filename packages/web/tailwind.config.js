@@ -31,6 +31,9 @@ export default {
       borderRadius: {
         none: '0px',
       },
+      borderWidth: {
+        3: '3px',
+      },
     },
   },
   plugins: [],

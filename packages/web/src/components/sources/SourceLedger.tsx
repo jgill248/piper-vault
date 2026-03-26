@@ -99,7 +99,7 @@ function SourceRow({ source }: SourceRowProps) {
   return (
     <tr className="border-b border-obsidian-border/10 hover:bg-obsidian-raised/30 transition-colors duration-75 group">
       {/* Filename */}
-      <td className="px-3 py-2 max-w-0 w-[40%]">
+      <td className="px-3 py-2" style={{ minWidth: '200px' }}>
         <div className="flex items-center gap-2 min-w-0">
           <FileText size={11} className="text-ui-dim shrink-0" strokeWidth={1.5} />
           <span
