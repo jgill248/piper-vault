@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, MessageSquare, History } from 'lucide-react';
+import { Loader2, MessageSquare, History, Trash2 } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
 import { ChatInput } from './ChatInput';
@@ -7,8 +7,9 @@ import { MessageBubble } from './MessageBubble';
 import { ConversationHistory } from './ConversationHistory';
 import { SearchFilters, EMPTY_FILTERS } from './SearchFilters';
 import type { SearchFilterState } from './SearchFilters';
-import { useConversations, useSendMessage, useConversation, useExportConversation } from '../../hooks/use-chat';
+import { useConversations, useSendMessage, useConversation, useExportConversation, useDeleteConversation } from '../../hooks/use-chat';
 import { useActiveCollection } from '../../context/CollectionContext';
+import { usePersistedConversationId } from '../../hooks/use-persisted-conversation';
 
 function EmptyState() {
   return (
@@ -31,17 +32,20 @@ function EmptyState() {
 
 export function ChatPanel() {
   const [inputValue, setInputValue] = useState('');
-  const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
+  const [activeConversationId, setActiveConversationId] = usePersistedConversationId();
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(EMPTY_FILTERS);
   const [followUps, setFollowUps] = useState<string[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevCollectionRef = useRef(undefined as string | undefined);
 
   const { activeCollectionId } = useActiveCollection();
   const sendMessage = useSendMessage();
   const exportConversation = useExportConversation();
-  const { data: conversation } = useConversation(activeConversationId);
+  const deleteConversation = useDeleteConversation();
+  const { data: conversation, isError: conversationError } = useConversation(activeConversationId);
   const { data: conversations } = useConversations(activeCollectionId);
 
   // Merge server messages with local optimistic messages.
@@ -64,6 +68,35 @@ export function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length, sendMessage.isPending]);
 
+  // Auto-load most recent conversation when mounting with no stored ID
+  useEffect(() => {
+    if (!activeConversationId && conversations && conversations.length > 0) {
+      const sorted = [...conversations].sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      );
+      if (sorted[0]) {
+        setActiveConversationId(sorted[0].id);
+      }
+    }
+  }, [activeConversationId, conversations, setActiveConversationId]);
+
+  // Clear stale conversation ID if it no longer exists
+  useEffect(() => {
+    if (activeConversationId && conversationError) {
+      setActiveConversationId(undefined);
+    }
+  }, [activeConversationId, conversationError, setActiveConversationId]);
+
+  // Clear stored conversation when collection changes
+  useEffect(() => {
+    if (prevCollectionRef.current !== undefined && prevCollectionRef.current !== activeCollectionId) {
+      setActiveConversationId(undefined);
+      setLocalMessages([]);
+      setFollowUps([]);
+    }
+    prevCollectionRef.current = activeCollectionId;
+  }, [activeCollectionId, setActiveConversationId]);
+
   function handleNewSession() {
     setActiveConversationId(undefined);
     setLocalMessages([]);
@@ -79,6 +112,35 @@ export function ChatPanel() {
   function handleFollowUpClick(question: string) {
     setInputValue(question);
     setFollowUps([]);
+  }
+
+  function handleDeleteConversation() {
+    if (!activeConversationId) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    deleteConversation.mutate(activeConversationId, {
+      onSuccess: () => {
+        setActiveConversationId(undefined);
+        setLocalMessages([]);
+        setFollowUps([]);
+        setConfirmDelete(false);
+      },
+      onSettled: () => setConfirmDelete(false),
+    });
+  }
+
+  function handleCancelDelete() {
+    setConfirmDelete(false);
+  }
+
+  function handleSidebarDelete(id: string) {
+    if (id === activeConversationId) {
+      setActiveConversationId(undefined);
+      setLocalMessages([]);
+      setFollowUps([]);
+    }
   }
 
   function handleExport() {
@@ -143,9 +205,11 @@ export function ChatPanel() {
       {showHistory && (
         <ConversationHistory
           activeConversationId={activeConversationId}
+          collectionId={activeCollectionId}
           onSelect={handleSelectConversation}
           onNewSession={handleNewSession}
           onClose={() => setShowHistory(false)}
+          onDelete={handleSidebarDelete}
         />
       )}
 
@@ -180,6 +244,37 @@ export function ChatPanel() {
 
           {activeConversationId && (
             <div className="flex items-center gap-2 shrink-0">
+              {confirmDelete ? (
+                <div className="flex items-center gap-1 border border-red-500/30 bg-red-950/20 px-2 py-1.5">
+                  <span className="font-mono text-[9px] text-red-400 uppercase tracking-wider mr-1">
+                    DELETE?
+                  </span>
+                  <button
+                    onClick={handleDeleteConversation}
+                    disabled={deleteConversation.isPending}
+                    aria-label="Confirm delete conversation"
+                    className="font-mono text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors duration-100 disabled:cursor-not-allowed"
+                  >
+                    Y
+                  </button>
+                  <span className="font-mono text-[9px] text-ui-dim">/</span>
+                  <button
+                    onClick={handleCancelDelete}
+                    aria-label="Cancel delete"
+                    className="font-mono text-[10px] text-ui-muted hover:text-ui-text uppercase tracking-wider transition-colors duration-100"
+                  >
+                    N
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleDeleteConversation}
+                  className="btn-secondary text-[10px] px-2 py-1.5 hover:text-red-400 hover:border-red-500/30 transition-colors duration-100"
+                  aria-label="Delete conversation"
+                >
+                  <Trash2 size={12} strokeWidth={1.5} />
+                </button>
+              )}
               <button
                 onClick={handleExport}
                 disabled={exportConversation.isPending}
