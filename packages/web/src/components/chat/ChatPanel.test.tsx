@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import type { ReactNode } from 'react';
 
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
@@ -14,6 +13,16 @@ import { CollectionProvider } from '../../context/CollectionContext';
 
 const mockMutate = vi.fn();
 const mockExportMutate = vi.fn();
+const mockDeleteMutate = vi.fn();
+
+let mockPersistedId: string | undefined = undefined;
+const mockSetPersistedId = vi.fn((val: string | undefined) => {
+  mockPersistedId = val;
+});
+
+vi.mock('../../hooks/use-persisted-conversation', () => ({
+  usePersistedConversationId: () => [mockPersistedId, mockSetPersistedId] as const,
+}));
 
 vi.mock('../../hooks/use-chat', () => ({
   useSendMessage: () => ({
@@ -23,9 +32,13 @@ vi.mock('../../hooks/use-chat', () => ({
     error: null,
   }),
   useConversations: () => ({ data: [] }),
-  useConversation: () => ({ data: undefined }),
+  useConversation: () => ({ data: undefined, isError: false }),
   useExportConversation: () => ({
     mutate: mockExportMutate,
+    isPending: false,
+  }),
+  useDeleteConversation: () => ({
+    mutate: mockDeleteMutate,
     isPending: false,
   }),
 }));
@@ -36,10 +49,14 @@ vi.mock('../../hooks/use-sources', () => ({
 }));
 
 describe('ChatPanel', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    mockPersistedId = undefined;
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPersistedId = undefined;
   });
 
   it('renders empty state when no messages exist', () => {
@@ -63,38 +80,102 @@ describe('ChatPanel', () => {
     render(<CollectionProvider><ChatPanel /></CollectionProvider>);
     expect(screen.getByPlaceholderText('Enter query...')).toBeDefined();
   });
+
+  it('does not show delete button when no conversation is active', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    expect(screen.queryByLabelText('Delete conversation')).toBeNull();
+  });
+
+  it('does not show export button when no conversation is active', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    expect(screen.queryByLabelText('Export conversation as markdown')).toBeNull();
+  });
+});
+
+describe('ChatPanel with active conversation', () => {
+  afterEach(() => {
+    cleanup();
+    mockPersistedId = undefined;
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPersistedId = 'abc12345-0000-0000-0000-000000000000';
+  });
+
+  it('shows delete button when conversation is active', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    expect(screen.getByLabelText('Delete conversation')).toBeDefined();
+  });
+
+  it('shows export button when conversation is active', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    expect(screen.getByLabelText('Export conversation as markdown')).toBeDefined();
+  });
+
+  it('shows Y/N confirmation on delete click', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    const deleteBtn = screen.getByLabelText('Delete conversation');
+    fireEvent.click(deleteBtn);
+
+    expect(screen.getByText('DELETE?')).toBeDefined();
+    expect(screen.getByLabelText('Confirm delete conversation')).toBeDefined();
+    expect(screen.getByLabelText('Cancel delete')).toBeDefined();
+  });
+
+  it('cancels delete confirmation on N click', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    fireEvent.click(screen.getByLabelText('Delete conversation'));
+
+    // Confirmation is shown
+    expect(screen.getByText('DELETE?')).toBeDefined();
+
+    // Click cancel
+    fireEvent.click(screen.getByLabelText('Cancel delete'));
+
+    // Confirmation is gone, delete button is back
+    expect(screen.queryByText('DELETE?')).toBeNull();
+    expect(screen.getByLabelText('Delete conversation')).toBeDefined();
+  });
+
+  it('calls deleteConversation.mutate on Y confirm', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+
+    // First click shows confirmation
+    fireEvent.click(screen.getByLabelText('Delete conversation'));
+    // Second click (Y) triggers mutation
+    fireEvent.click(screen.getByLabelText('Confirm delete conversation'));
+
+    expect(mockDeleteMutate).toHaveBeenCalledWith(
+      'abc12345-0000-0000-0000-000000000000',
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+  });
+
+  it('shows session ID in header', () => {
+    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    expect(screen.getByText('SESSION: abc12345')).toBeDefined();
+  });
 });
 
 describe('ChatPanel follow-up suggestions', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    mockPersistedId = undefined;
+  });
 
-  it('renders follow-up suggestions and handles click', async () => {
-    // Re-mock to simulate a conversation with follow-ups already present
-    // We test the UI rendering by injecting state through interaction
-    const { useSendMessage } = await import('../../hooks/use-chat');
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPersistedId = undefined;
+  });
 
-    // Simulate: user sends a message, onSuccess sets follow-ups
-    let onSuccessCallback: ((data: any) => void) | undefined;
-    mockMutate.mockImplementation((_body: any, opts: any) => {
-      onSuccessCallback = opts?.onSuccess;
-    });
-
+  it('calls sendMessage.mutate on submit', () => {
     render(<CollectionProvider><ChatPanel /></CollectionProvider>);
 
-    // Type a message and submit
     const textarea = screen.getByPlaceholderText('Enter query...');
     fireEvent.change(textarea, { target: { value: 'test query' } });
     fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
 
     expect(mockMutate).toHaveBeenCalled();
-  });
-});
-
-describe('ChatPanel export', () => {
-  afterEach(cleanup);
-
-  it('does not show export button when no conversation is active', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
-    expect(screen.queryByLabelText('Export conversation as markdown')).toBeNull();
   });
 });

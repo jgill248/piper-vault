@@ -24,9 +24,10 @@ interface ConversationItemProps {
   conversation: Conversation;
   isActive: boolean;
   onSelect: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-function ConversationItem({ conversation, isActive, onSelect }: ConversationItemProps) {
+function ConversationItem({ conversation, isActive, onSelect, onDelete }: ConversationItemProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteConversation = useDeleteConversation();
 
@@ -37,6 +38,7 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
       return;
     }
     deleteConversation.mutate(conversation.id, {
+      onSuccess: () => onDelete?.(conversation.id),
       onSettled: () => setConfirmDelete(false),
     });
   }
@@ -131,18 +133,22 @@ function ConversationItem({ conversation, isActive, onSelect }: ConversationItem
 
 interface ConversationHistoryProps {
   activeConversationId: string | undefined;
+  collectionId?: string;
   onSelect: (id: string) => void;
   onNewSession: () => void;
   onClose: () => void;
+  onDelete?: (id: string) => void;
 }
 
 export function ConversationHistory({
   activeConversationId,
+  collectionId,
   onSelect,
   onNewSession,
   onClose,
+  onDelete,
 }: ConversationHistoryProps) {
-  const { data: conversations, isLoading } = useConversations();
+  const { data: conversations, isLoading } = useConversations(collectionId);
 
   return (
     <div className="flex flex-col w-56 shrink-0 bg-obsidian-surface border-r border-obsidian-border/20 h-full">
@@ -203,6 +209,7 @@ export function ConversationHistory({
                   conversation={conv}
                   isActive={conv.id === activeConversationId}
                   onSelect={onSelect}
+                  onDelete={onDelete}
                 />
               ))}
           </div>
