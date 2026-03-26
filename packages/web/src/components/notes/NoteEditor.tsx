@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Save, Eye, Edit3, Link } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { remarkWikiLinks } from './remark-wiki-links';
+import { WikiLink } from './WikiLink';
 
 interface NoteEditorProps {
   readonly noteId?: string;
@@ -8,6 +10,8 @@ interface NoteEditorProps {
   readonly initialTitle: string;
   readonly onSave: (content: string, title: string) => void;
   readonly noteNames?: readonly string[];
+  readonly noteMap?: ReadonlyMap<string, string>;
+  readonly onNavigateToNote?: (noteId: string) => void;
 }
 
 export function NoteEditor({
@@ -16,6 +20,8 @@ export function NoteEditor({
   initialTitle,
   onSave,
   noteNames = [],
+  noteMap,
+  onNavigateToNote,
 }: NoteEditorProps) {
   // Reset state when note identity changes using React's recommended
   // "adjusting state during rendering" pattern (no useEffect needed).
@@ -106,6 +112,30 @@ export function NoteEditor({
     setIsDirty(false);
   }, [content, title, onSave]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const WikiLinkRenderer = useCallback((props: any) => {
+    const {
+      targetFilename: tf,
+      displayText: dt,
+      section: sec,
+    } = props.node?.properties ?? props;
+    const id = noteMap?.get((tf ?? '').toLowerCase());
+    const resolved = id !== undefined;
+    return (
+      <WikiLink
+        targetFilename={tf ?? ''}
+        displayText={dt ?? null}
+        section={sec ?? null}
+        resolved={resolved}
+        onClick={
+          resolved && onNavigateToNote
+            ? () => onNavigateToNote(id)
+            : undefined
+        }
+      />
+    );
+  }, [noteMap, onNavigateToNote]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Title bar */}
@@ -175,7 +205,13 @@ export function NoteEditor({
           </div>
         ) : (
           <div className="p-4 prose prose-invert prose-sm max-w-none">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkWikiLinks]}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              components={{ 'wiki-link': WikiLinkRenderer } as any}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         )}
       </div>
