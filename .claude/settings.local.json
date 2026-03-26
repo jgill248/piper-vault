@@ -75,7 +75,19 @@
       "Bash(for ITEM in PVTI_lAHOAIS_5M4BSjn9zgoVM0Y PVTI_lAHOAIS_5M4BSjn9zgoVM08 PVTI_lAHOAIS_5M4BSjn9zgoVM1k PVTI_lAHOAIS_5M4BSjn9zgoVM2E PVTI_lAHOAIS_5M4BSjn9zgoVM2Q)",
       "Bash(python3 -c \":*)",
       "Bash(for item_id in PVTI_lAHOAIS_5M4BSjn9zgoZ_mE PVTI_lAHOAIS_5M4BSjn9zgoZ_p0 PVTI_lAHOAIS_5M4BSjn9zgoZ_sE PVTI_lAHOAIS_5M4BSjn9zgoZ_vQ PVTI_lAHOAIS_5M4BSjn9zgoZ_zA PVTI_lAHOAIS_5M4BSjn9zgoZ_5w PVTI_lAHOAIS_5M4BSjn9zgoaAB0 PVTI_lAHOAIS_5M4BSjn9zgoaAF0 PVTI_lAHOAIS_5M4BSjn9zgoaAIE PVTI_lAHOAIS_5M4BSjn9zgoaAK4 PVTI_lAHOAIS_5M4BSjn9zgoaAM8 PVTI_lAHOAIS_5M4BSjn9zgoaA8E PVTI_lAHOAIS_5M4BSjn9zgoaBD8 PVTI_lAHOAIS_5M4BSjn9zgoaBJQ PVTI_lAHOAIS_5M4BSjn9zgoaBMQ PVTI_lAHOAIS_5M4BSjn9zgoaBPE PVTI_lAHOAIS_5M4BSjn9zgoaBRA PVTI_lAHOAIS_5M4BSjn9zgoaBTc PVTI_lAHOAIS_5M4BSjn9zgoaBXQ)",
-      "Bash(do)"
+      "Bash(do)",
+      "Skill(commit-commands:commit-push-pr)",
+      "Skill(commit-commands:commit-push-pr:*)",
+      "Bash(docker build:*)",
+      "Bash(grep -A3 '\"\"onlyBuiltDependencies\"\"\\\\|\"\"shamefully-hoist\"\"\\\\|\"\"nodeLinker\"\"\\\\|\"\"hoist\"\"' D:/_source/delve/package.json)",
+      "Bash(docker run:*)",
+      "Bash(docker exec:*)",
+      "mcp__plugin_playwright_playwright__browser_type",
+      "mcp__plugin_playwright_playwright__browser_press_key",
+      "mcp__plugin_playwright_playwright__browser_select_option",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(m[''''name'''']\\) for m in data.get\\(''''models'''',[]\\)]\")",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_wait_for"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
