@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Plus, AlertTriangle, FileText } from 'lucide-react';
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
 import { useFolders, useCreateFolder } from '../../hooks/use-folders';
@@ -32,6 +32,15 @@ export function NotesPanel() {
   const allNotesQuery = useNotes({ collectionId: activeCollectionId, pageSize: 100 });
   const allNoteNames = (allNotesQuery.data?.data ?? [])
     .map((n) => (n.title || n.filename).replace(/\.md$/, ''));
+
+  const noteMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const note of allNotesQuery.data?.data ?? []) {
+      const name = (note.title || note.filename).replace(/\.md$/, '');
+      map.set(name.toLowerCase(), note.id);
+    }
+    return map;
+  }, [allNotesQuery.data]);
 
   const handleCreateNote = useCallback(() => {
     setError(null);
@@ -152,6 +161,8 @@ export function NotesPanel() {
                 initialTitle={selectedNote.title ?? selectedNote.filename}
                 onSave={handleSaveNote}
                 noteNames={allNoteNames}
+                noteMap={noteMap}
+                onNavigateToNote={setSelectedNoteId}
               />
             </div>
             <BacklinksPanel
