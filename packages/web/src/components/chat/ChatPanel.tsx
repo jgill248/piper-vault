@@ -91,8 +91,6 @@ export function ChatPanel() {
   useEffect(() => {
     if (prevCollectionRef.current !== undefined && prevCollectionRef.current !== activeCollectionId) {
       setActiveConversationId(undefined);
-      setLocalMessages([]);
-      setFollowUps([]);
     }
     prevCollectionRef.current = activeCollectionId;
   }, [activeCollectionId, setActiveConversationId]);
@@ -101,12 +99,14 @@ export function ChatPanel() {
     setActiveConversationId(undefined);
     setLocalMessages([]);
     setFollowUps([]);
+    setConfirmDelete(false);
   }
 
   function handleSelectConversation(id: string) {
     setActiveConversationId(id);
     setLocalMessages([]);
     setFollowUps([]);
+    setConfirmDelete(false);
   }
 
   function handleFollowUpClick(question: string) {
@@ -140,6 +140,7 @@ export function ChatPanel() {
       setActiveConversationId(undefined);
       setLocalMessages([]);
       setFollowUps([]);
+      setConfirmDelete(false);
     }
   }
 
