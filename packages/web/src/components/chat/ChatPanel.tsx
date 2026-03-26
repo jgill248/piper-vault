@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, MessageSquare, History, Trash2, Search, BookOpen, Lightbulb, ArrowRight } from 'lucide-react';
+import { Loader2, MessageSquare, History, Trash2 } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
 import { ChatInput } from './ChatInput';
@@ -11,19 +11,9 @@ import { useConversations, useSendMessage, useConversation, useExportConversatio
 import { useActiveCollection } from '../../context/CollectionContext';
 import { usePersistedConversationId } from '../../hooks/use-persisted-conversation';
 
-const STARTER_QUERIES = [
-  { icon: <Search size={12} strokeWidth={1.5} />, text: 'What topics are covered in my knowledge base?' },
-  { icon: <BookOpen size={12} strokeWidth={1.5} />, text: 'Summarize my most recent documents' },
-  { icon: <Lightbulb size={12} strokeWidth={1.5} />, text: 'What are the key takeaways from my sources?' },
-];
-
-interface EmptyStateProps {
-  onQuerySelect: (query: string) => void;
-}
-
-function EmptyState({ onQuerySelect }: EmptyStateProps) {
+function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-6 select-none px-4">
+    <div className="flex flex-col items-center justify-center h-full gap-4 select-none">
       <div
         className="border border-phosphor/20 p-6 bg-obsidian-surface/50"
         style={{ boxShadow: 'inset 0 0 40px rgba(171,214,0,0.03)' }}
@@ -33,27 +23,8 @@ function EmptyState({ onQuerySelect }: EmptyStateProps) {
       <div className="text-center space-y-1">
         <p className="font-display font-semibold text-ui-text text-sm">No active session</p>
         <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
-          Submit a query or try a suggestion below
+          Submit a query to initialize
         </p>
-      </div>
-
-      {/* Starter queries */}
-      <div className="flex flex-col gap-2 w-full max-w-md">
-        {STARTER_QUERIES.map((q, i) => (
-          <button
-            key={i}
-            onClick={() => onQuerySelect(q.text)}
-            className="flex items-center gap-3 text-left bg-obsidian-surface border border-obsidian-border/30 hover:border-phosphor/40 px-4 py-3 transition-all duration-100 cursor-pointer group"
-          >
-            <span className="text-ui-dim group-hover:text-phosphor transition-colors duration-100 shrink-0">
-              {q.icon}
-            </span>
-            <span className="font-sans text-[12px] text-ui-muted group-hover:text-ui-text transition-colors duration-100 flex-1">
-              {q.text}
-            </span>
-            <ArrowRight size={10} className="text-ui-dim group-hover:text-phosphor transition-colors duration-100 shrink-0 opacity-0 group-hover:opacity-100" />
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -136,16 +107,11 @@ export function ChatPanel() {
     setLocalMessages([]);
     setFollowUps([]);
     setConfirmDelete(false);
-    setShowHistory(false);
   }
 
   function handleFollowUpClick(question: string) {
     setInputValue(question);
     setFollowUps([]);
-  }
-
-  function handleStarterQuery(query: string) {
-    setInputValue(query);
   }
 
   function handleDeleteConversation() {
@@ -235,8 +201,8 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="flex h-full overflow-hidden relative">
-      {/* Conversation history overlay */}
+    <div className="flex h-full overflow-hidden">
+      {/* Conversation history sidebar */}
       {showHistory && (
         <ConversationHistory
           activeConversationId={activeConversationId}
@@ -257,7 +223,6 @@ export function ChatPanel() {
               onClick={() => setShowHistory((v) => !v)}
               aria-label="Toggle conversation history"
               aria-expanded={showHistory}
-              title="Show conversation history"
               className={`p-1.5 transition-colors duration-100 shrink-0 ${
                 showHistory
                   ? 'text-phosphor bg-phosphor/10'
@@ -267,10 +232,7 @@ export function ChatPanel() {
               <History size={14} strokeWidth={1.5} />
             </button>
             <div className="min-w-0">
-              <h1
-                className="font-display font-semibold text-ui-text text-sm truncate"
-                title={activeConversationTitle ?? 'Conversational Search'}
-              >
+              <h1 className="font-display font-semibold text-ui-text text-sm truncate">
                 {activeConversationTitle ?? 'Conversational Search'}
               </h1>
               <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mt-0.5">
@@ -310,7 +272,6 @@ export function ChatPanel() {
                   onClick={handleDeleteConversation}
                   className="btn-secondary text-[10px] px-2 py-1.5 hover:text-red-400 hover:border-red-500/30 transition-colors duration-100"
                   aria-label="Delete conversation"
-                  title="Delete conversation"
                 >
                   <Trash2 size={12} strokeWidth={1.5} />
                 </button>
@@ -320,16 +281,14 @@ export function ChatPanel() {
                 disabled={exportConversation.isPending}
                 className="btn-secondary text-[10px] px-3 py-1.5"
                 aria-label="Export conversation as markdown"
-                title="Export conversation as markdown"
               >
-                {exportConversation.isPending ? 'EXPORTING...' : 'EXPORT'}
+                {exportConversation.isPending ? 'EXPORTING...' : 'EXPORT_'}
               </button>
               <button
                 onClick={handleNewSession}
                 className="btn-secondary text-[10px] px-3 py-1.5"
-                title="Start a new chat session"
               >
-                NEW SESSION
+                NEW SESSION_
               </button>
             </div>
           )}
@@ -346,7 +305,7 @@ export function ChatPanel() {
           aria-label="Conversation messages"
         >
           {messages.length === 0 && !sendMessage.isPending ? (
-            <EmptyState onQuerySelect={handleStarterQuery} />
+            <EmptyState />
           ) : (
             <>
               {messages.map((message) => (
