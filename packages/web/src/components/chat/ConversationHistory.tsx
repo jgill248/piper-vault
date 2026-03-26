@@ -1,7 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Trash2, Plus } from 'lucide-react';
 import type { Conversation } from '@delve/shared';
 import { useConversations, useDeleteConversation } from '../../hooks/use-chat';
+
+function getDateGroup(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86400000);
+  const weekAgo = new Date(today.getTime() - 7 * 86400000);
+
+  if (d >= today) return 'Today';
+  if (d >= yesterday) return 'Yesterday';
+  if (d >= weekAgo) return 'This Week';
+  return 'Older';
+}
 
 function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -149,72 +162,118 @@ export function ConversationHistory({
   onDelete,
 }: ConversationHistoryProps) {
   const { data: conversations, isLoading } = useConversations(collectionId);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close on Escape
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Group conversations by date
+  const sorted = conversations
+    ? [...conversations].sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      )
+    : [];
+
+  const grouped = sorted.reduce<Record<string, Conversation[]>>((acc, conv) => {
+    const group = getDateGroup(conv.updatedAt);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(conv);
+    return acc;
+  }, {});
+
+  const groupOrder = ['Today', 'Yesterday', 'This Week', 'Older'];
 
   return (
-    <div className="flex flex-col w-56 shrink-0 bg-obsidian-surface border-r border-obsidian-border/20 h-full">
-      {/* Panel header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-obsidian-border/20 shrink-0">
-        <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
-          SESSIONS
-        </span>
-        <button
-          onClick={onClose}
-          aria-label="Close conversation history"
-          className="text-ui-dim hover:text-ui-text transition-colors duration-100 p-0.5"
-        >
-          <X size={12} strokeWidth={1.5} />
-        </button>
+    <>
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-obsidian-base/60 z-40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Slide-over panel */}
+      <div
+        ref={panelRef}
+        className="fixed left-52 top-0 bottom-0 w-64 z-50 flex flex-col bg-obsidian-surface border-r border-obsidian-border/20 shadow-2xl animate-slide-in-left"
+      >
+        {/* Panel header */}
+        <div className="flex items-center justify-between px-3 py-2.5 border-b border-obsidian-border/20 shrink-0">
+          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+            SESSIONS
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="Close conversation history"
+            title="Close conversation history"
+            className="text-ui-dim hover:text-ui-text transition-colors duration-100 p-0.5"
+          >
+            <X size={12} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* New session button */}
+        <div className="px-3 py-2 border-b border-obsidian-border/20 shrink-0">
+          <button
+            onClick={onNewSession}
+            className="flex items-center gap-2 w-full btn-primary text-[10px] px-3 py-1.5 justify-center"
+            aria-label="Start new session"
+          >
+            <Plus size={10} strokeWidth={2} />
+            NEW SESSION
+          </button>
+        </div>
+
+        {/* Conversation list */}
+        <div className="flex-1 overflow-y-auto">
+          {isLoading && (
+            <div className="flex items-center justify-center py-6">
+              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+                LOADING...
+              </span>
+            </div>
+          )}
+
+          {!isLoading && (!conversations || conversations.length === 0) && (
+            <div className="flex flex-col items-center justify-center py-8 gap-2 px-3">
+              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider text-center">
+                NO SESSIONS YET
+              </span>
+            </div>
+          )}
+
+          {!isLoading && conversations && conversations.length > 0 && (
+            <div>
+              {groupOrder
+                .filter((group) => (grouped[group]?.length ?? 0) > 0)
+                .map((group) => (
+                  <div key={group}>
+                    <div className="px-3 pt-3 pb-1">
+                      <span className="font-mono text-[8px] text-ui-dim uppercase tracking-widest">
+                        {group}
+                      </span>
+                    </div>
+                    {(grouped[group] ?? []).map((conv) => (
+                      <ConversationItem
+                        key={conv.id}
+                        conversation={conv}
+                        isActive={conv.id === activeConversationId}
+                        onSelect={onSelect}
+                        onDelete={onDelete}
+                      />
+                    ))}
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* New session button */}
-      <div className="px-3 py-2 border-b border-obsidian-border/20 shrink-0">
-        <button
-          onClick={onNewSession}
-          className="flex items-center gap-2 w-full btn-primary text-[10px] px-3 py-1.5 justify-center"
-          aria-label="Start new session"
-        >
-          <Plus size={10} strokeWidth={2} />
-          NEW SESSION_
-        </button>
-      </div>
-
-      {/* Conversation list */}
-      <div className="flex-1 overflow-y-auto">
-        {isLoading && (
-          <div className="flex items-center justify-center py-6">
-            <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
-              LOADING...
-            </span>
-          </div>
-        )}
-
-        {!isLoading && (!conversations || conversations.length === 0) && (
-          <div className="flex flex-col items-center justify-center py-8 gap-2 px-3">
-            <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider text-center">
-              NO SESSIONS YET
-            </span>
-          </div>
-        )}
-
-        {!isLoading && conversations && conversations.length > 0 && (
-          <div>
-            {[...conversations]
-              .sort(
-                (a, b) =>
-                  new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-              )
-              .map((conv) => (
-                <ConversationItem
-                  key={conv.id}
-                  conversation={conv}
-                  isActive={conv.id === activeConversationId}
-                  onSelect={onSelect}
-                  onDelete={onDelete}
-                />
-              ))}
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   );
 }
