@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1: Build — install all deps, compile all packages
 # ============================================================
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -28,10 +28,11 @@ RUN npx nx run-many --target=build --all
 # ============================================================
 # Stage 2: Production API server
 # ============================================================
-FROM node:20-alpine AS api
+FROM node:20-slim AS api
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN npm i -g pnpm@9
 
 # Copy workspace manifests for production install
@@ -51,10 +52,17 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 # Create directories for runtime volumes
 RUN mkdir -p /app/plugins /app/watched
 
+# Pre-download the ONNX embedding model so it's baked into the image.
+# HF_HOME must persist as an ENV so the runtime knows where the cache lives.
+# Run from packages/core so Node resolves @huggingface/transformers from node_modules.
+ENV HF_HOME=/app/.cache/huggingface
+COPY scripts/download-model.mjs ./packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:3001/api/v1/health || exit 1
+  CMD curl -sf http://localhost:3001/api/v1/health || exit 1
 
 CMD ["node", "packages/api/dist/main.js"]
 
@@ -72,4 +80,4 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:80/ || exit 1
+  CMD wget -qO- http://127.0.0.1:80/ || exit 1

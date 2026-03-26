@@ -1,12 +1,18 @@
 version: '3.8'
 
+# Docker Hub compose file — pull pre-built images, no local build required.
+# Usage:
+#   1. Copy .env.example to .env and fill in your values
+#   2. docker compose -f docker-compose.hub.yml up -d
+#   3. Open http://localhost:8080
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-delve}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your .env file}
       POSTGRES_DB: ${POSTGRES_DB:-delve}
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -21,10 +27,7 @@ services:
           memory: 1G
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: api
+    image: creative-software/delve-api:latest
     restart: unless-stopped
     depends_on:
       postgres:
@@ -36,14 +39,16 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:${WEB_PORT:-8080}}
       AUTH_ENABLED: ${AUTH_ENABLED:-false}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      PLUGINS_DIR: ${PLUGINS_DIR:-/app/plugins}
+      PLUGINS_DIR: /app/plugins
       WEBHOOK_RATE_LIMIT: ${WEBHOOK_RATE_LIMIT:-60}
-      # LLM providers
+      # LLM providers — set the token/key for your chosen provider in .env
       ASK_SAGE_TOKEN: ${ASK_SAGE_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
-      # SSL bypass for embedding model download
+      # Bypass SSL verification for embedding model download (corporate proxies).
+      # The model is pre-baked into the image, so this is only needed if the
+      # cache is missing or the HuggingFace library re-downloads.
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
     volumes:
       - plugins:/app/plugins
@@ -54,10 +59,7 @@ services:
           memory: 1G
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: web
+    image: creative-software/delve-web:latest
     restart: unless-stopped
     depends_on:
       - api

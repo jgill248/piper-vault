@@ -40,19 +40,48 @@ This guide covers deploying Delve in a self-hosted environment, from a quick Doc
 
 ## 2. Quick Start (Docker)
 
-The fastest path to a running Delve instance:
+### Option A — Docker Hub (no build required)
+
+The fastest path. Pre-built images are pulled from Docker Hub:
+
+```bash
+# 1. Download the compose file and env template
+curl -O https://raw.githubusercontent.com/jgill248/delve/main/docker-compose.hub.yml
+curl -O https://raw.githubusercontent.com/jgill248/delve/main/.env.example
+
+# 2. Create your environment file
+cp .env.example .env
+# Edit .env — at minimum set POSTGRES_PASSWORD and your LLM provider key
+
+# 3. Start all services
+docker compose -f docker-compose.hub.yml up -d
+
+# 4. Run database migrations
+docker compose -f docker-compose.hub.yml exec api node packages/api/dist/database/migrate.js
+
+# 5. Open Delve in your browser
+open http://localhost:8080
+```
+
+To stop: `docker compose -f docker-compose.hub.yml down`
+
+To upgrade: `docker compose -f docker-compose.hub.yml pull && docker compose -f docker-compose.hub.yml up -d`
+
+### Option B — Build from source
+
+For contributors or custom builds:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/delve.git
+git clone https://github.com/jgill248/delve.git
 cd delve
 
 # 2. Create your environment file
 cp .env.example .env
-# Edit .env — at minimum set POSTGRES_PASSWORD, ASK_SAGE_API_KEY, ASK_SAGE_EMAIL
+# Edit .env — at minimum set POSTGRES_PASSWORD and your LLM provider key
 
-# 3. Start all services
-docker compose -f docker-compose.prod.yml up -d
+# 3. Build and start all services
+docker compose -f docker-compose.prod.yml up -d --build
 
 # 4. Run database migrations
 docker compose -f docker-compose.prod.yml exec api node packages/api/dist/database/migrate.js
@@ -61,11 +90,7 @@ docker compose -f docker-compose.prod.yml exec api node packages/api/dist/databa
 open http://localhost:8080
 ```
 
-Delve is now running with PostgreSQL, the API server, and the web frontend. To stop:
-
-```bash
-docker compose -f docker-compose.prod.yml down
-```
+To stop: `docker compose -f docker-compose.prod.yml down`
 
 ---
 
@@ -80,16 +105,20 @@ All variables can be set in `.env` (for local/Docker use) or injected directly i
 | `POSTGRES_PASSWORD` | — | Yes | PostgreSQL password (Docker Compose only) |
 | `POSTGRES_DB` | `delve` | No | PostgreSQL database name (Docker Compose only) |
 | `PORT` | `3001` | No | Port the API server listens on |
+| `WEB_PORT` | `8080` | No | Port the web UI is exposed on (Docker Compose only) |
 | `NODE_ENV` | `development` | No | Set to `production` in deployed environments |
 | `CORS_ORIGIN` | `http://localhost:5173` | No | Browser origin allowed to call the API |
-| `ASK_SAGE_API_KEY` | — | Yes* | Ask Sage API key for LLM access |
-| `ASK_SAGE_EMAIL` | — | Yes* | Ask Sage account email |
+| `ASK_SAGE_TOKEN` | — | No* | Ask Sage token for LLM access (tokens do not expire) |
+| `ANTHROPIC_API_KEY` | — | No* | Anthropic API key for direct Claude access |
+| `OPENAI_API_KEY` | — | No* | OpenAI API key |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | No* | Ollama endpoint for local LLM inference |
 | `AUTH_ENABLED` | `false` | No | Enable username/password authentication |
 | `JWT_SECRET` | `change-me-in-production` | Yes (if auth on) | Secret for signing JWT tokens — must be changed |
 | `PLUGINS_DIR` | — | No | Filesystem path where plugin `.js` files are placed |
 | `WEBHOOK_RATE_LIMIT` | `60` | No | Max webhook ingest requests per minute per API key |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | `1` | No | Set to `0` to bypass SSL verification (corporate proxies) |
 
-\* Required for chat functionality. The app starts without these, but chat queries will fail.
+\* At least one LLM provider must be configured for chat functionality. The app starts without these, but chat queries will fail.
 
 **Security note:** `JWT_SECRET` must be a long, random string in any production deployment. Generate one with:
 
@@ -131,8 +160,8 @@ cp .env.example .env
 Edit `.env` and set at minimum:
 
 - `POSTGRES_PASSWORD` — a strong password (not the default `delve`)
-- `ASK_SAGE_API_KEY` and `ASK_SAGE_EMAIL` — your Ask Sage credentials
-- `JWT_SECRET` — a random 64-byte hex string
+- An LLM provider key (`ASK_SAGE_TOKEN`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `OLLAMA_BASE_URL`)
+- `JWT_SECRET` — a random 64-byte hex string (if auth is enabled)
 
 **Step 4 — Build and start**
 
@@ -167,10 +196,10 @@ docker compose -f docker-compose.prod.yml logs -f api
 
 ### Port mapping
 
-By default the web UI is exposed on port `8080`. Change this by setting `PORT` in `.env`:
+By default the web UI is exposed on port `8080`. Change this by setting `WEB_PORT` in `.env`:
 
 ```env
-PORT=3000
+WEB_PORT=3000
 ```
 
 ---
@@ -640,7 +669,21 @@ Expect HTTP 200 with `status: "ok"`.
 
 ## 13. Upgrading
 
-### Docker upgrade
+### Docker Hub upgrade
+
+```bash
+# Pull latest images
+docker compose -f docker-compose.hub.yml pull
+
+# Apply database migrations (always before restarting the API)
+docker compose -f docker-compose.hub.yml run --rm api \
+  node packages/api/dist/database/migrate.js
+
+# Restart services
+docker compose -f docker-compose.hub.yml up -d
+```
+
+### Docker upgrade (build from source)
 
 ```bash
 # Pull the latest code
