@@ -69,6 +69,7 @@ export function ChatPanel() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevCollectionRef = useRef(undefined as string | undefined);
+  const isNewSessionRef = useRef(false);
 
   const { activeCollectionId } = useActiveCollection();
   const sendMessage = useSendMessage();
@@ -96,6 +97,7 @@ export function ChatPanel() {
 
   // Auto-load most recent conversation when mounting with no stored ID
   useEffect(() => {
+    if (isNewSessionRef.current) return;
     if (!activeConversationId && conversations && conversations.length > 0) {
       const sorted = [...conversations].sort(
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
@@ -122,6 +124,7 @@ export function ChatPanel() {
   }, [activeCollectionId, setActiveConversationId]);
 
   function handleNewSession() {
+    isNewSessionRef.current = true;
     setActiveConversationId(undefined);
     setLocalMessages([]);
     setFollowUps([]);
@@ -129,6 +132,7 @@ export function ChatPanel() {
   }
 
   function handleSelectConversation(id: string) {
+    isNewSessionRef.current = false;
     setActiveConversationId(id);
     setLocalMessages([]);
     setFollowUps([]);
@@ -218,6 +222,7 @@ export function ChatPanel() {
       { message: trimmed, conversationId: activeConversationId, collectionId: activeCollectionId, ...filters },
       {
         onSuccess: (data) => {
+          isNewSessionRef.current = false;
           setActiveConversationId(data.conversationId);
           setLocalMessages([]);
           setFollowUps(data.suggestedFollowUps ? [...data.suggestedFollowUps] : []);
