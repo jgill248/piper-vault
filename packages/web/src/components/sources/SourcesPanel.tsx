@@ -88,9 +88,6 @@ export function SourcesPanel() {
         {/* Upload section */}
         <div className="px-4 py-4 border-b border-obsidian-border/20">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">
-              01
-            </span>
             <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
               INGEST_NEW_SOURCE
             </span>
@@ -102,9 +99,6 @@ export function SourcesPanel() {
         {/* Bulk import section */}
         <div className="px-4 py-4 border-b border-obsidian-border/20">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">
-              02
-            </span>
             <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
               BULK_IMPORT
             </span>
@@ -157,9 +151,6 @@ export function SourcesPanel() {
         {/* Ledger section */}
         <div className="px-4 py-4">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">
-              03
-            </span>
             <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
               SOURCE_LEDGER
             </span>

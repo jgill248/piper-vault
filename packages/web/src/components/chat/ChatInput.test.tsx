@@ -10,7 +10,7 @@ describe('ChatInput', () => {
       <ChatInput value="" onChange={vi.fn()} onSubmit={vi.fn()} />,
     );
     expect(screen.getByPlaceholderText('Enter query...')).toBeDefined();
-    expect(screen.getByText('EXECUTE_')).toBeDefined();
+    expect(screen.getByText('SEND')).toBeDefined();
   });
 
   it('calls onSubmit when Enter is pressed with non-empty value', () => {
@@ -38,7 +38,7 @@ describe('ChatInput', () => {
     render(
       <ChatInput value="" onChange={vi.fn()} onSubmit={vi.fn()} />,
     );
-    const button = screen.getByText('EXECUTE_');
+    const button = screen.getByText('SEND');
     expect((button as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -47,7 +47,7 @@ describe('ChatInput', () => {
       <ChatInput value="hello" onChange={vi.fn()} onSubmit={vi.fn()} disabled={true} />,
     );
     const textarea = screen.getByPlaceholderText('Enter query...');
-    const button = screen.getByText('EXECUTE_');
+    const button = screen.getByText('SEND');
     expect((textarea as HTMLTextAreaElement).disabled).toBe(true);
     expect((button as HTMLButtonElement).disabled).toBe(true);
   });

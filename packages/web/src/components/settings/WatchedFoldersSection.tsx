@@ -136,8 +136,7 @@ export function WatchedFoldersSection() {
 
   return (
     <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">08</span>
+      <div className="flex items-center gap-2 mb-3" id="section-folders">
         <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
           WATCHED_FOLDERS
         </span>

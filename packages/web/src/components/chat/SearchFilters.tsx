@@ -79,6 +79,7 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
           aria-expanded={expanded}
           aria-controls="search-filter-panel"
           aria-label="Toggle search filters"
+          title="Toggle search filters (sources, file types, tags, date range)"
         >
           <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
             FILTERS
@@ -106,6 +107,32 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
           </button>
         )}
       </div>
+
+      {/* Active filter chips shown when collapsed */}
+      {!expanded && activeCount > 0 && (
+        <div className="flex items-center gap-1.5 px-4 pb-1.5 flex-wrap">
+          {filters.fileTypes.map((ft) => (
+            <span key={ft} className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+              {ft}
+            </span>
+          ))}
+          {filters.tags.map((tag) => (
+            <span key={tag} className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+              #{tag}
+            </span>
+          ))}
+          {(filters.dateFrom || filters.dateTo) && (
+            <span className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+              {filters.dateFrom || '...'} — {filters.dateTo || '...'}
+            </span>
+          )}
+          {filters.sourceIds.length > 0 && (
+            <span className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+              {filters.sourceIds.length} SOURCE{filters.sourceIds.length > 1 ? 'S' : ''}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Expanded panel */}
       {expanded && (

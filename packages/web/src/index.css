@@ -18,7 +18,7 @@
     --color-text: #e1e2e7;
     --color-muted: #8b8d93;
     --color-dim: #5a5c62;
-    --scanline-color: rgba(255, 255, 255, 0.015);
+    --scanline-color: rgba(255, 255, 255, 0.008);
     --scrollbar-track: #0c0e12;
     --scrollbar-thumb: #45474a;
     --scrollbar-thumb-hover: #5a5c62;
@@ -142,5 +142,20 @@
   .nav-item.active {
     @apply text-phosphor border-l-phosphor;
     background-color: var(--color-surface);
+  }
+
+  /* Slide-in animation for overlay panels */
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .animate-slide-in-left {
+    animation: slide-in-left 0.15s ease-out;
   }
 }

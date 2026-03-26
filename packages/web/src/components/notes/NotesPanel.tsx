@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plus, AlertTriangle } from 'lucide-react';
+import { Plus, AlertTriangle, FileText } from 'lucide-react';
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
 import { useFolders, useCreateFolder } from '../../hooks/use-folders';
 import { useActiveCollection } from '../../context/CollectionContext';
@@ -161,12 +161,23 @@ export function NotesPanel() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-sm font-mono text-ui-dim mb-2">
-                Select a note or create a new one
-              </p>
+            <div className="text-center max-w-xs space-y-4">
+              <div
+                className="border border-phosphor/20 p-6 bg-obsidian-surface/50 mx-auto w-fit"
+                style={{ boxShadow: 'inset 0 0 40px rgba(171,214,0,0.03)' }}
+              >
+                <FileText size={28} className="text-phosphor/40" strokeWidth={1} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-display font-semibold text-ui-text">
+                  Select a note or create a new one
+                </p>
+                <p className="font-mono text-[9px] text-ui-dim uppercase tracking-wider">
+                  Ctrl+N to create quickly
+                </p>
+              </div>
               <button onClick={handleCreateNote} className="btn-primary text-xs">
-                New Note
+                NEW NOTE
               </button>
             </div>
           </div>
