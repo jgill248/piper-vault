@@ -51,6 +51,12 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 # Create directories for runtime volumes
 RUN mkdir -p /app/plugins /app/watched
 
+# Pre-download the ONNX embedding model so it's baked into the image.
+# HF_HOME must persist as an ENV so the runtime knows where the cache lives.
+ENV HF_HOME=/app/.cache/huggingface
+COPY scripts/download-model.mjs ./scripts/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/download-model.mjs
+
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
