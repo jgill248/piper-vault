@@ -7,6 +7,13 @@
       "runtimeArgs": ["vite", "--port", "5173"],
       "cwd": "packages/web",
       "port": 5173
+    },
+    {
+      "name": "delve-api",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nest", "start", "--watch"],
+      "cwd": "packages/api",
+      "port": 3000
     }
   ]
 }
