@@ -3,6 +3,7 @@ import { Trash2, FileText, RefreshCw } from 'lucide-react';
 import type { Source } from '@delve/shared';
 import { SOURCE_STATUS } from '@delve/shared';
 import { useDeleteSource, useReindexSource } from '../../hooks/use-sources';
+import { useToast } from '../../context/ToastContext';
 
 export interface SourceFilters {
   search: string;
@@ -81,6 +82,7 @@ function SourceRow({ source }: SourceRowProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteSource = useDeleteSource();
   const reindexSource = useReindexSource();
+  const { addToast } = useToast();
 
   function handleDeleteClick() {
     if (!confirmDelete) {
@@ -93,7 +95,14 @@ function SourceRow({ source }: SourceRowProps) {
   }
 
   function handleReindex() {
-    reindexSource.mutate(source.id);
+    reindexSource.mutate(source.id, {
+      onSuccess: () => addToast(`Reindex complete: ${source.filename}`, 'success'),
+      onError: (err) =>
+        addToast(
+          `Reindex failed: ${err instanceof Error ? err.message : String(err)}`,
+          'error',
+        ),
+    });
   }
 
   return (

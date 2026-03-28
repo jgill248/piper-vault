@@ -95,6 +95,19 @@ export class AskSageProvider implements LlmProvider {
       return err('AskSageProvider: response contained no message content');
     }
 
+    // Ask Sage returns HTTP 200 for auth/rate-limit errors, embedding the error
+    // string in the `message` field. Detect these and return an error result.
+    const lowerContent = content.toLowerCase();
+    if (
+      lowerContent.includes('token is invalid') ||
+      lowerContent.includes('invalid token') ||
+      lowerContent.includes('unauthorized') ||
+      lowerContent.includes('access denied') ||
+      lowerContent.includes('rate limit')
+    ) {
+      return err(`AskSageProvider: ${content}`);
+    }
+
     return ok({
       content,
       model: json.model ?? input.model ?? this.defaultModel,

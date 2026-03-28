@@ -11,6 +11,7 @@ import { useTheme } from './hooks/use-theme';
 import { useAuthConfig } from './hooks/use-auth-config';
 import { CollectionProvider } from './context/CollectionContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { setAuthToken, setUnauthorizedHandler } from './api/client';
 
 const queryClient = new QueryClient({
@@ -98,7 +99,9 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CollectionProvider>
-          <AppShell />
+          <ToastProvider>
+            <AppShell />
+          </ToastProvider>
         </CollectionProvider>
       </AuthProvider>
     </QueryClientProvider>

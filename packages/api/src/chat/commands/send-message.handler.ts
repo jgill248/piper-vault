@@ -207,12 +207,39 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       model: model ?? appConfig.llmModel,
     });
 
+    let assistantContent: string;
+    let usedModel: string | undefined;
+
     if (!llmResult.ok) {
       this.logger.error(`LLM query failed: ${llmResult.error}`);
-      throw new InternalServerErrorException('LLM query failed');
+      // Map known auth/config errors to actionable user messages.
+      // Save as the assistant reply so the chat stays usable rather than
+      // returning a 500 that clears the conversation state in the UI.
+      const lowerError = llmResult.error.toLowerCase();
+      if (
+        lowerError.includes('token is invalid') ||
+        lowerError.includes('invalid token') ||
+        lowerError.includes('unauthorized') ||
+        lowerError.includes('access denied')
+      ) {
+        assistantContent =
+          'No LLM provider is configured or your API key is invalid. ' +
+          'Go to Settings → LLM Provider to add your API key.';
+      } else if (lowerError.includes('rate limit')) {
+        assistantContent =
+          'The LLM provider rate limit was exceeded. Please wait a moment and try again.';
+      } else if (lowerError.includes('network error') || lowerError.includes('timeout')) {
+        assistantContent =
+          'Could not reach the LLM provider. Check your network connection and try again.';
+      } else {
+        assistantContent =
+          'The LLM provider returned an error. Check your API key in Settings → LLM Provider.';
+      }
+      usedModel = undefined;
+    } else {
+      assistantContent = llmResult.value.content;
+      usedModel = llmResult.value.model;
     }
-
-    const { content: assistantContent, model: usedModel } = llmResult.value;
 
     // Source IDs used in this response (unique source_ids from retrieved chunks + notes)
     const sourceIds = [

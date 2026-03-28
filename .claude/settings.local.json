@@ -87,7 +87,12 @@
       "mcp__plugin_playwright_playwright__browser_select_option",
       "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(m[''''name'''']\\) for m in data.get\\(''''models'''',[]\\)]\")",
       "mcp__plugin_playwright_playwright__browser_evaluate",
-      "mcp__plugin_playwright_playwright__browser_wait_for"
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "Bash(CI=true pnpm install)",
+      "Bash(node -e \"console.log\\(require\\(''D:/_source/delve/node_modules/@types/mdast/package.json''\\).version\\)\")",
+      "Bash(gh pr:*)",
+      "Bash(gh milestone:*)",
+      "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\)[''''items'''']; print\\([i[''''id''''] for i in items if i.get\\(''''content'''',{}\\).get\\(''''number''''\\)==210][0]\\)\")"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"

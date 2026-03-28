@@ -1,74 +1,37 @@
-version: '3.8'
-
-# Docker Hub compose file — pull pre-built images, no local build required.
+# Single-container Docker Hub compose file — pull pre-built all-in-one image.
 # Usage:
-#   1. Copy .env.example to .env and fill in your values
+#   1. Copy .env.example to .env and fill in your LLM provider key(s)
 #   2. docker compose -f docker-compose.hub.yml up -d
 #   3. Open http://localhost:8080
+#
+# Or run directly without compose:
+#   docker run -p 8080:8080 -v delve-data:/var/lib/postgresql/data creative-software/delve:latest
 
 services:
-  postgres:
-    image: pgvector/pgvector:pg16
+  delve:
+    image: creative-software/delve:latest
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-delve}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your .env file}
-      POSTGRES_DB: ${POSTGRES_DB:-delve}
+    ports:
+      - "${PORT:-8080}:8080"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-delve}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-
-  api:
-    image: creative-software/delve-api:latest
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - plugins:/app/plugins
+      - watched:/app/watched
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-delve}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-delve}
-      PORT: 3001
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:${WEB_PORT:-8080}}
-      AUTH_ENABLED: ${AUTH_ENABLED:-false}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      PLUGINS_DIR: /app/plugins
-      WEBHOOK_RATE_LIMIT: ${WEBHOOK_RATE_LIMIT:-60}
+      # PostgreSQL (internal — defaults are fine for single-container use)
+      POSTGRES_USER: ${POSTGRES_USER:-delve}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-delve}
+      POSTGRES_DB: ${POSTGRES_DB:-delve}
       # LLM providers — set the token/key for your chosen provider in .env
       ASK_SAGE_TOKEN: ${ASK_SAGE_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
-      # Bypass SSL verification for embedding model download (corporate proxies).
-      # The model is pre-baked into the image, so this is only needed if the
-      # cache is missing or the HuggingFace library re-downloads.
-      NODE_TLS_REJECT_UNAUTHORIZED: "0"
-    volumes:
-      - plugins:/app/plugins
-      - watched:/app/watched
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-
-  web:
-    image: creative-software/delve-web:latest
-    restart: unless-stopped
-    depends_on:
-      - api
-    ports:
-      - "${WEB_PORT:-8080}:80"
-    deploy:
-      resources:
-        limits:
-          memory: 128M
+      # Authentication (optional)
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      # Advanced
+      WEBHOOK_RATE_LIMIT: ${WEBHOOK_RATE_LIMIT:-60}
 
 volumes:
   pgdata:

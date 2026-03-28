@@ -7,20 +7,21 @@
  */
 import postgres from 'postgres';
 
-const connectionString = process.env['DATABASE_URL'];
-if (!connectionString) {
-  console.error('DATABASE_URL environment variable is required');
-  process.exit(1);
-}
+/**
+ * Run all database migrations. Safe to call multiple times — all statements
+ * use IF NOT EXISTS / idempotent patterns.
+ *
+ * @param connectionString - PostgreSQL connection URL
+ */
+export async function runMigrations(connectionString: string): Promise<void> {
+  const sql = postgres(connectionString);
 
-const sql = postgres(connectionString);
+  try {
+    console.log('Running migrations...');
 
-async function migrate(): Promise<void> {
-  console.log('Running migrations...');
-
-  // Enable pgvector extension
-  await sql`CREATE EXTENSION IF NOT EXISTS vector`;
-  console.log('  extension: vector');
+    // Enable pgvector extension
+    await sql`CREATE EXTENSION IF NOT EXISTS vector`;
+    console.log('  extension: vector');
 
   // sources table
   await sql`
@@ -307,11 +308,25 @@ async function migrate(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_note_folders_collection ON note_folders(collection_id)`;
   console.log('  table: note_folders');
 
-  console.log('Migrations complete.');
-  await sql.end();
+    console.log('Migrations complete.');
+  } finally {
+    await sql.end();
+  }
 }
 
-migrate().catch((err: unknown) => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+// Standalone CLI entry point: pnpm db:migrate
+const isCLI =
+  process.argv[1]?.endsWith('migrate.ts') ||
+  process.argv[1]?.endsWith('migrate.js');
+
+if (isCLI) {
+  const connectionString = process.env['DATABASE_URL'];
+  if (!connectionString) {
+    console.error('DATABASE_URL environment variable is required');
+    process.exit(1);
+  }
+  runMigrations(connectionString).catch((err: unknown) => {
+    console.error('Migration failed:', err);
+    process.exit(1);
+  });
+}
