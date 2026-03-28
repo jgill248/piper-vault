@@ -1,13 +1,20 @@
-import { Controller, Get, Patch, Body, Inject, Logger, BadRequestException } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
-import type { AppConfig } from '@delve/shared';
-import { DEFAULT_CONFIG } from '@delve/shared';
+import { Controller, Get, Patch, Body, Param, Inject, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import type { AppConfig, LlmProviderName, LlmProviderStatus } from '@delve/shared';
+import { DEFAULT_CONFIG, LLM_PROVIDERS } from '@delve/shared';
 import type { LlmProvider } from '@delve/core';
 import { ConfigStore } from './config.store';
 import { UpdateConfigCommand } from './commands/update-config.command';
+import { UpdateProviderSettingsCommand } from './commands/update-provider-settings.command';
+import { GetProviderSettingsQuery } from './queries/get-provider-settings.query';
 
 interface ModelsResponse {
   readonly models: readonly string[];
+}
+
+interface UpdateProviderBody {
+  readonly baseUrl?: string;
+  readonly apiKey?: string;
 }
 
 @Controller('config')
@@ -18,6 +25,7 @@ export class ConfigAppController {
     @Inject('LLM_PROVIDER') private readonly llm: LlmProvider,
     @Inject(ConfigStore) private readonly configStore: ConfigStore,
     @Inject(CommandBus) private readonly commandBus: CommandBus,
+    @Inject(QueryBus) private readonly queryBus: QueryBus,
   ) {}
 
   /**
@@ -67,5 +75,42 @@ export class ConfigAppController {
     }
 
     return { models: result.value };
+  }
+
+  /**
+   * GET /api/v1/config/providers
+   * Returns the status of all LLM providers including effective base URLs
+   * and masked credential hints.
+   */
+  @Get('providers')
+  async getProviderSettings(): Promise<LlmProviderStatus[]> {
+    return this.queryBus.execute(new GetProviderSettingsQuery());
+  }
+
+  /**
+   * PATCH /api/v1/config/providers/:provider
+   * Updates base URL and/or API key for a specific LLM provider.
+   */
+  @Patch('providers/:provider')
+  async updateProviderSettings(
+    @Param('provider') provider: string,
+    @Body() body: UpdateProviderBody,
+  ): Promise<LlmProviderStatus> {
+    if (!(LLM_PROVIDERS as readonly string[]).includes(provider)) {
+      throw new NotFoundException({
+        error: {
+          code: 'NOT_FOUND',
+          message: `Unknown provider: ${provider}. Must be one of: ${LLM_PROVIDERS.join(', ')}`,
+        },
+      });
+    }
+
+    return this.commandBus.execute(
+      new UpdateProviderSettingsCommand(
+        provider as LlmProviderName,
+        body.baseUrl,
+        body.apiKey,
+      ),
+    );
   }
 }

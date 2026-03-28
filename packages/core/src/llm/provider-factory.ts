@@ -12,8 +12,11 @@ import { OllamaProvider } from './ollama.js';
 export interface ProviderConfig {
   readonly provider: LlmProviderName;
   readonly askSageToken?: string;
+  readonly askSageBaseUrl?: string;
   readonly anthropicApiKey?: string;
+  readonly anthropicBaseUrl?: string;
   readonly openaiApiKey?: string;
+  readonly openaiBaseUrl?: string;
   readonly ollamaBaseUrl?: string;
   readonly defaultModel?: string;
 }
@@ -29,11 +32,11 @@ export interface ProviderConfig {
 export function createLlmProvider(config: ProviderConfig): LlmProvider {
   switch (config.provider) {
     case 'ask-sage':
-      return new AskSageProvider(config.askSageToken ?? '', config.defaultModel);
+      return new AskSageProvider(config.askSageToken ?? '', config.defaultModel, config.askSageBaseUrl);
     case 'anthropic':
-      return new AnthropicProvider(config.anthropicApiKey ?? '', config.defaultModel);
+      return new AnthropicProvider(config.anthropicApiKey ?? '', config.defaultModel, config.anthropicBaseUrl);
     case 'openai':
-      return new OpenAiProvider(config.openaiApiKey ?? '', config.defaultModel);
+      return new OpenAiProvider(config.openaiApiKey ?? '', config.defaultModel, config.openaiBaseUrl);
     case 'ollama':
       return new OllamaProvider(config.ollamaBaseUrl, config.defaultModel);
   }

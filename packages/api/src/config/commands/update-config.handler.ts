@@ -16,6 +16,14 @@ const ConfigUpdatesSchema = z
     similarityThreshold: z.number().min(0).max(1).optional(),
     maxContextTokens: z.number().int().min(500).max(32000).optional(),
     maxConversationTurns: z.number().int().min(1).max(50).optional(),
+    providerSettings: z
+      .record(
+        z.enum(['ask-sage', 'anthropic', 'openai', 'ollama']),
+        z.object({
+          baseUrl: z.string().url().or(z.literal('')).optional(),
+        }),
+      )
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // chunkOverlap must be less than chunkSize — validate against the merged

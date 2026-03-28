@@ -4,6 +4,32 @@ export type LlmProviderName = (typeof LLM_PROVIDERS)[number];
 export const RERANK_STRATEGIES = ['none', 'llm'] as const;
 export type RerankStrategy = (typeof RERANK_STRATEGIES)[number];
 
+/** Per-provider non-secret settings (stored in config.json). */
+export interface LlmProviderSettingsEntry {
+  readonly baseUrl?: string;
+}
+
+/** Map of per-provider settings keyed by provider name. */
+export type LlmProviderSettingsMap = {
+  readonly [K in LlmProviderName]?: LlmProviderSettingsEntry;
+};
+
+/** Hardcoded default base URLs for each provider. */
+export const DEFAULT_PROVIDER_URLS: Readonly<Record<LlmProviderName, string>> = {
+  'ask-sage': 'https://api.asksage.ai/server',
+  'anthropic': 'https://api.anthropic.com/v1',
+  'openai': 'https://api.openai.com/v1',
+  'ollama': 'http://localhost:11434',
+} as const;
+
+/** Provider status returned by GET /config/providers (credentials masked). */
+export interface LlmProviderStatus {
+  readonly provider: LlmProviderName;
+  readonly baseUrl: string;
+  readonly hasCredential: boolean;
+  readonly credentialHint: string;
+}
+
 export interface AppConfig {
   readonly llmModel: string;
   readonly llmProvider: LlmProviderName;
@@ -26,6 +52,8 @@ export interface AppConfig {
   readonly authEnabled: boolean;
   readonly graphBoostEnabled: boolean;
   readonly graphBoostFactor: number;
+  /** Per-provider settings (base URLs). Credentials stored separately in SecretsStore. */
+  readonly providerSettings: LlmProviderSettingsMap;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -48,4 +76,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   authEnabled: false,
   graphBoostEnabled: false,
   graphBoostFactor: 0.15,
+  providerSettings: {},
 };

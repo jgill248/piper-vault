@@ -43,10 +43,12 @@ interface AnthropicMessageResponse {
 export class AnthropicProvider implements LlmProvider {
   private readonly apiKey: string;
   private readonly defaultModel: string;
+  private readonly baseUrl: string;
 
-  constructor(apiKey: string, defaultModel = 'claude-sonnet-4-20250514') {
+  constructor(apiKey: string, defaultModel = 'claude-sonnet-4-20250514', baseUrl?: string) {
     this.apiKey = apiKey;
     this.defaultModel = defaultModel;
+    this.baseUrl = baseUrl ?? ANTHROPIC_BASE_URL;
   }
 
   /**
@@ -62,7 +64,7 @@ export class AnthropicProvider implements LlmProvider {
 
     let rawResponse: Response;
     try {
-      rawResponse = await fetch(`${ANTHROPIC_BASE_URL}/messages`, {
+      rawResponse = await fetch(`${this.baseUrl}/messages`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',

@@ -7,6 +7,8 @@ import type {
   Conversation,
   ConversationWithMessages,
   AppConfig,
+  LlmProviderName,
+  LlmProviderStatus,
   Collection,
   CreateCollectionInput,
   UpdateCollectionInput,
@@ -189,6 +191,18 @@ export const api = {
     request<AppConfig>('/config', { method: 'PATCH', body: JSON.stringify(body) }),
 
   getModels: (): Promise<ModelsResponse> => request<ModelsResponse>('/config/models'),
+
+  getProviderSettings: (): Promise<LlmProviderStatus[]> =>
+    request<LlmProviderStatus[]>('/config/providers'),
+
+  updateProviderSettings: (
+    provider: LlmProviderName,
+    body: { baseUrl?: string; apiKey?: string },
+  ): Promise<LlmProviderStatus> =>
+    request<LlmProviderStatus>(`/config/providers/${provider}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
 
   // Conversations
   deleteConversation: (id: string): Promise<void> =>
