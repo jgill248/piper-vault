@@ -88,6 +88,13 @@ export function NotesPanel() {
     [deleteNote, selectedNoteId],
   );
 
+  const handleMoveNote = useCallback(
+    (id: string, parentPath: string | null) => {
+      updateNote.mutate({ id, parentPath });
+    },
+    [updateNote],
+  );
+
   const handleCreateFolder = useCallback(
     (path: string) => {
       createFolder.mutate({ path, collectionId: activeCollectionId });
@@ -145,6 +152,8 @@ export function NotesPanel() {
             selectedNoteId={selectedNoteId}
             onSelectNote={setSelectedNoteId}
             onDeleteNote={handleDeleteNote}
+            onMoveNote={handleMoveNote}
+            folders={folders ?? []}
             isLoading={notesLoading}
           />
         </div>
