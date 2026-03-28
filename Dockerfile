@@ -8,7 +8,7 @@ WORKDIR /app
 RUN npm i -g pnpm@9
 
 # Copy workspace manifests and config files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json tsconfig.migrate.json .npmrc ./
 
 # Copy all package manifests (needed for pnpm workspace resolution)
 COPY packages/api/package.json ./packages/api/package.json
@@ -25,11 +25,8 @@ COPY packages/ ./packages/
 # Build all packages (shared → core → api + web in dependency order)
 RUN npx nx run-many --target=build --all
 
-# Compile the standalone migration script (webpack only bundles main.ts)
-RUN npx tsc packages/api/src/database/migrate.ts \
-    --outDir /app/migrate-out \
-    --esModuleInterop --module commonjs --target ES2022 \
-    --moduleResolution node --skipLibCheck
+# Compile the standalone migration script via dedicated tsconfig
+RUN npx tsc -p tsconfig.migrate.json
 
 # ============================================================
 # Stage 2: Production API server
@@ -42,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 RUN npm i -g pnpm@9
 
 # Copy workspace manifests for production install
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages/api/package.json ./packages/api/
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
@@ -112,7 +109,7 @@ WORKDIR /app
 RUN npm i -g pnpm@9
 
 # Copy workspace manifests for production install
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages/api/package.json ./packages/api/
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
@@ -126,7 +123,7 @@ COPY --from=builder /app/packages/core/dist ./packages/core/dist
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 
 # Copy compiled migration script
-COPY --from=builder /app/migrate-out/migrate.js /app/migrate.js
+COPY --from=builder /app/migrate-out/migrate.js /app/packages/api/migrate.cjs
 
 # Copy compiled frontend
 COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
@@ -148,7 +145,7 @@ COPY nginx.standalone.conf /etc/nginx/conf.d/default.conf
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY scripts/supervisord.conf /etc/supervisor/conf.d/delve.conf
 COPY scripts/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 8080
 

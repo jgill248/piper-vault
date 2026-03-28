@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "migrate-out",
+    "typeRoots": [
+      "node_modules/@types",
+      "packages/core/node_modules/@types"
+    ]
+  },
+  "files": ["packages/api/src/database/migrate.ts"]
+}
