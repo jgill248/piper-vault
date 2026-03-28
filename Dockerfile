@@ -25,6 +25,12 @@ COPY packages/ ./packages/
 # Build all packages (shared → core → api + web in dependency order)
 RUN npx nx run-many --target=build --all
 
+# Compile the standalone migration script (webpack only bundles main.ts)
+RUN npx tsc packages/api/src/database/migrate.ts \
+    --outDir /app/migrate-out \
+    --esModuleInterop --module commonjs --target ES2022 \
+    --moduleResolution node --skipLibCheck
+
 # ============================================================
 # Stage 2: Production API server
 # ============================================================
@@ -81,3 +87,74 @@ EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://127.0.0.1:80/ || exit 1
+
+# ============================================================
+# Stage 4: Standalone — all-in-one container (PostgreSQL + API + Nginx)
+# ============================================================
+FROM node:20-slim AS standalone
+
+# Install PostgreSQL 16 + pgvector, Nginx, and supervisord
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      gnupg2 curl ca-certificates lsb-release \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+       > /etc/apt/sources.list.d/pgdg.list \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+       | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg \
+    && apt-get update && apt-get install -y --no-install-recommends \
+      postgresql-16 \
+      postgresql-16-pgvector \
+      nginx \
+      supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN npm i -g pnpm@9
+
+# Copy workspace manifests for production install
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/core/package.json ./packages/core/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy compiled output from builder
+COPY --from=builder /app/packages/api/dist ./packages/api/dist
+COPY --from=builder /app/packages/core/dist ./packages/core/dist
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+# Copy compiled migration script
+COPY --from=builder /app/migrate-out/migrate.js /app/migrate.js
+
+# Copy compiled frontend
+COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
+
+# Pre-download the ONNX embedding model
+ENV HF_HOME=/app/.cache/huggingface
+COPY scripts/download-model.mjs ./packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+
+# Create directories for runtime volumes
+RUN mkdir -p /app/plugins /app/watched
+
+# Prepare PostgreSQL data directory
+ENV PGDATA=/var/lib/postgresql/data
+RUN mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA"
+
+# Copy configuration files
+COPY nginx.standalone.conf /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/sites-enabled/default
+COPY scripts/supervisord.conf /etc/supervisor/conf.d/delve.conf
+COPY scripts/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+EXPOSE 8080
+
+VOLUME ["/var/lib/postgresql/data"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -sf http://localhost:8080/api/v1/health || exit 1
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
