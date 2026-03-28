@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger, InternalServerErrorException } from '@nestjs/common';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
 import type { IngestionPipeline, Embedder } from '@delve/core';
@@ -192,6 +192,35 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
         .update(sources)
         .set({ status: 'ready', chunkCount, updatedAt: new Date() })
         .where(eq(sources.id, sourceId));
+    }
+
+    // Backfill targetSourceId on any pre-existing links pointing to this note's title.
+    // This handles the case where another note already contained [[This Note]] before
+    // this note was created, leaving targetSourceId = NULL.
+    try {
+      const collectionSources = await this.db
+        .select({ id: sources.id })
+        .from(sources)
+        .where(eq(sources.collectionId, collectionId));
+
+      if (collectionSources.length > 0) {
+        await this.db
+          .update(sourceLinks)
+          .set({ targetSourceId: sourceId })
+          .where(
+            and(
+              eq(sourceLinks.targetFilename, resolvedTitle),
+              isNull(sourceLinks.targetSourceId),
+              inArray(
+                sourceLinks.sourceId,
+                collectionSources.map((s) => s.id),
+              ),
+            ),
+          );
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to backfill incoming backlinks for note ${sourceId}: ${message}`);
     }
 
     this.logger.log(`Created note "${resolvedTitle}" → ${sourceId} (${chunkCount} chunks)`);

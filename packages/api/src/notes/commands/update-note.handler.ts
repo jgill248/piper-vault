@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger, NotFoundException } from '@nestjs/common';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
 import type { IngestionPipeline, Embedder } from '@delve/core';
@@ -192,6 +192,40 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
     }
 
     await this.db.update(sources).set(updates).where(eq(sources.id, noteId));
+
+    // Backfill targetSourceId on any links pointing to this note's (possibly new) title.
+    // Covers: (a) notes that linked to this title before it existed, (b) title renames
+    // where other notes linked using the new title.
+    if (content !== undefined || title !== undefined) {
+      const resolvedTitle = (updates['title'] as string | undefined) ?? note.title;
+      if (resolvedTitle) {
+        try {
+          const collectionSources = await this.db
+            .select({ id: sources.id })
+            .from(sources)
+            .where(eq(sources.collectionId, note.collectionId));
+
+          if (collectionSources.length > 0) {
+            await this.db
+              .update(sourceLinks)
+              .set({ targetSourceId: noteId })
+              .where(
+                and(
+                  eq(sourceLinks.targetFilename, resolvedTitle),
+                  isNull(sourceLinks.targetSourceId),
+                  inArray(
+                    sourceLinks.sourceId,
+                    collectionSources.map((s) => s.id),
+                  ),
+                ),
+              );
+          }
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`Failed to backfill incoming backlinks for note ${noteId}: ${message}`);
+        }
+      }
+    }
 
     this.logger.log(`Updated note ${noteId}`);
     return { ok: true, value: undefined };
