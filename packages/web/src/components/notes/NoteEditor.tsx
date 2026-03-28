@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Save, Eye, Edit3, Link } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { remarkWikiLinks } from './remark-wiki-links';
 import { WikiLink } from './WikiLink';
 
@@ -204,9 +205,9 @@ export function NoteEditor({
             )}
           </div>
         ) : (
-          <div className="p-4 prose prose-invert prose-sm max-w-none">
+          <div className="p-4 prose prose-invert max-w-none">
             <ReactMarkdown
-              remarkPlugins={[remarkWikiLinks]}
+              remarkPlugins={[remarkGfm, remarkWikiLinks]}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               components={{ 'wiki-link': WikiLinkRenderer } as any}
             >
