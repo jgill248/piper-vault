@@ -4,8 +4,15 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { AppModule } from './app.module';
 import { API_PREFIX } from '@delve/shared';
 import { GlobalExceptionFilter } from './filters/http-exception.filter';
+import { runMigrations } from './database/migrate';
 
 async function bootstrap(): Promise<void> {
+  // Run database migrations before starting the server
+  const dbUrl = process.env['DATABASE_URL'];
+  if (dbUrl) {
+    await runMigrations(dbUrl);
+  }
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
@@ -17,11 +24,18 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  app.enableCors({
-    origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',
-    methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT', 'OPTIONS'],
-    credentials: true,
-  });
+  // When CORS_ORIGIN is not set (e.g. single-container production where nginx
+  // serves both frontend and API from the same origin), disable cross-origin
+  // requests entirely so same-origin requests work without a wildcard.
+  // In dev, docker-compose.yml sets CORS_ORIGIN=http://localhost:5173.
+  const corsOrigin = process.env['CORS_ORIGIN'];
+  if (corsOrigin) {
+    app.enableCors({
+      origin: corsOrigin,
+      methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT', 'OPTIONS'],
+      credentials: true,
+    });
+  }
 
   const port = process.env['PORT'] ?? 3001;
   await app.listen(port, '0.0.0.0');
