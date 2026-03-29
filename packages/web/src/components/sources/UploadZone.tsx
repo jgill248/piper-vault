@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, Loader2 } from 'lucide-react';
+import { FILE_EXTENSIONS } from '@delve/shared';
 import { useUploadSource } from '../../hooks/use-sources';
 import { useActiveCollection } from '../../context/CollectionContext';
 
@@ -70,7 +71,8 @@ export function UploadZone() {
 
       try {
         const content = await readFileAsBase64(file);
-        const mimeType = file.type || 'text/plain';
+        const ext = `.${file.name.split('.').pop()?.toLowerCase() ?? ''}`;
+        const mimeType = FILE_EXTENSIONS[ext] ?? (file.type || 'text/plain');
 
         await uploadSource.mutateAsync({ filename: file.name, content, mimeType, collectionId: activeCollectionId });
 

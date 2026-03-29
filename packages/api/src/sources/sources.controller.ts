@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  ParseUUIDPipe,
   Logger,
   Inject,
 } from '@nestjs/common';
@@ -145,7 +146,7 @@ export class SourcesController {
    * GET /api/v1/sources/:id
    */
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<Source> {
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<Source> {
     return this.queryBus.execute(new GetSourceQuery(id));
   }
 
@@ -154,7 +155,7 @@ export class SourcesController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.commandBus.execute(new DeleteSourceCommand(id));
   }
 
@@ -165,7 +166,7 @@ export class SourcesController {
    */
   @Post(':id/reindex')
   @HttpCode(HttpStatus.OK)
-  async reindex(@Param('id') id: string): Promise<{ message: string }> {
+  async reindex(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
     return this.commandBus.execute(new ReindexSourceCommand(id));
   }
 
@@ -175,7 +176,7 @@ export class SourcesController {
    */
   @Patch(':id/tags')
   async updateTags(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ): Promise<{ tags: string[] }> {
     const parsed = UpdateTagsSchema.safeParse(body);
