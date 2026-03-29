@@ -6,6 +6,7 @@ import { useTheme } from '../../hooks/use-theme';
 import { PluginsPanel } from './PluginsPanel';
 import { ApiKeysSection } from './ApiKeysSection';
 import { WatchedFoldersSection } from './WatchedFoldersSection';
+import { ProviderSettingsSection } from './ProviderSettingsSection';
 
 interface SectionProps {
   title: string;
@@ -229,6 +230,7 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
             unit="TURNS"
           />
         </FieldRow>
+        <ProviderSettingsSection activeProvider={draft.llmProvider} />
       </Section>
 
       <Section index="02" title="EMBEDDING_CONFIGURATION">

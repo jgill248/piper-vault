@@ -5,6 +5,7 @@ import { OnnxEmbedder, DefaultIngestionPipeline, createLlmProvider, LlmReranker 
 import type { LlmProvider, LlmQuery, LlmResponse, PluginRegistry } from '@delve/core';
 import type { Result } from '@delve/shared';
 import { ConfigStore } from '../config/config.store.js';
+import { SecretsStore } from '../config/secrets.store.js';
 import { RetrievalService } from '../search/services/retrieval.service';
 import { PLUGIN_REGISTRY } from '../plugins/plugins.providers.js';
 import { PluginsModule } from '../plugins/plugins.module.js';
@@ -21,10 +22,13 @@ import { PluginsModule } from '../plugins/plugins.module.js';
 export class LlmProviderProxy implements LlmProvider {
   private provider: LlmProvider;
   private lastProvider: string = '';
+  private lastConfigSnapshot: string = '';
+  private lastSecretsGeneration: number = -1;
 
   constructor(
     @Inject(ConfigStore) private readonly configStore: ConfigStore,
     @Inject(ConfigService) private readonly configService: ConfigService,
+    @Inject(SecretsStore) private readonly secretsStore: SecretsStore,
   ) {
     this.provider = this.buildProvider();
   }
@@ -40,31 +44,62 @@ export class LlmProviderProxy implements LlmProvider {
   }
 
   /**
-   * Rebuilds the inner provider when the configured provider name changes.
-   * Called before each delegated method to pick up runtime config changes.
+   * Rebuilds the inner provider when the configured provider name, model,
+   * provider settings, or secrets change.
    */
   private refreshIfNeeded(): void {
-    const current = this.configStore.get().llmProvider;
-    if (current !== this.lastProvider) {
+    const config = this.configStore.get();
+    const snapshot = JSON.stringify({
+      p: config.llmProvider,
+      m: config.llmModel,
+      ps: config.providerSettings,
+    });
+    const secretsGen = this.secretsStore.generation;
+
+    if (snapshot !== this.lastConfigSnapshot || secretsGen !== this.lastSecretsGeneration) {
       this.provider = this.buildProvider();
     }
   }
 
   /**
-   * Constructs a fresh LlmProvider instance from the current AppConfig and
-   * environment variables. Environment variables supply secrets (API keys);
-   * AppConfig supplies user-facing settings (provider name, model).
+   * Constructs a fresh LlmProvider instance using layered resolution:
+   *   Credentials: SecretsStore > env var > empty
+   *   Base URLs: providerSettings > env var > hardcoded default
    */
   private buildProvider(): LlmProvider {
     const appConfig = this.configStore.get();
+    const ps = appConfig.providerSettings;
+
     this.lastProvider = appConfig.llmProvider;
+    this.lastConfigSnapshot = JSON.stringify({
+      p: appConfig.llmProvider,
+      m: appConfig.llmModel,
+      ps: appConfig.providerSettings,
+    });
+    this.lastSecretsGeneration = this.secretsStore.generation;
 
     return createLlmProvider({
       provider: appConfig.llmProvider,
-      askSageToken: this.configService.get<string>('ASK_SAGE_TOKEN') ?? '',
-      anthropicApiKey: this.configService.get<string>('ANTHROPIC_API_KEY') ?? '',
-      openaiApiKey: this.configService.get<string>('OPENAI_API_KEY') ?? '',
-      ollamaBaseUrl: this.configService.get<string>('OLLAMA_BASE_URL'),
+      // Credentials: SecretsStore > env var > empty
+      askSageToken:
+        this.secretsStore.getSecret('llm.ask-sage.token')
+        ?? this.configService.get<string>('ASK_SAGE_TOKEN')
+        ?? '',
+      anthropicApiKey:
+        this.secretsStore.getSecret('llm.anthropic.apiKey')
+        ?? this.configService.get<string>('ANTHROPIC_API_KEY')
+        ?? '',
+      openaiApiKey:
+        this.secretsStore.getSecret('llm.openai.apiKey')
+        ?? this.configService.get<string>('OPENAI_API_KEY')
+        ?? '',
+      // Base URLs: providerSettings > env var > undefined (adapter uses its default)
+      askSageBaseUrl: ps?.['ask-sage']?.baseUrl ?? undefined,
+      anthropicBaseUrl: ps?.['anthropic']?.baseUrl ?? undefined,
+      openaiBaseUrl: ps?.['openai']?.baseUrl ?? undefined,
+      ollamaBaseUrl:
+        ps?.['ollama']?.baseUrl
+        ?? this.configService.get<string>('OLLAMA_BASE_URL'),
       defaultModel: appConfig.llmModel,
     });
   }

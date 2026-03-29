@@ -54,10 +54,12 @@ interface OpenAiChatResponse {
 export class OpenAiProvider implements LlmProvider {
   private readonly apiKey: string;
   private readonly defaultModel: string;
+  private readonly baseUrl: string;
 
-  constructor(apiKey: string, defaultModel = 'gpt-4o') {
+  constructor(apiKey: string, defaultModel = 'gpt-4o', baseUrl?: string) {
     this.apiKey = apiKey;
     this.defaultModel = defaultModel;
+    this.baseUrl = baseUrl ?? OPENAI_BASE_URL;
   }
 
   /**
@@ -79,7 +81,7 @@ export class OpenAiProvider implements LlmProvider {
 
     let rawResponse: Response;
     try {
-      rawResponse = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+      rawResponse = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

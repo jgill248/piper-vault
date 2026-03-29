@@ -43,10 +43,12 @@ interface AskSageModelsResponse {
 export class AskSageProvider implements LlmProvider {
   private readonly token: string;
   private readonly defaultModel: string;
+  private readonly baseUrl: string;
 
-  constructor(token: string, defaultModel = 'claude-3.5-sonnet') {
+  constructor(token: string, defaultModel = 'claude-3.5-sonnet', baseUrl?: string) {
     this.token = token;
     this.defaultModel = defaultModel;
+    this.baseUrl = baseUrl ?? ASK_SAGE_BASE_URL;
   }
 
   /**
@@ -61,7 +63,7 @@ export class AskSageProvider implements LlmProvider {
 
     let rawResponse: Response;
     try {
-      rawResponse = await fetch(`${ASK_SAGE_BASE_URL}/query`, {
+      rawResponse = await fetch(`${this.baseUrl}/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +123,7 @@ export class AskSageProvider implements LlmProvider {
   async getModels(): Promise<Result<readonly string[], string>> {
     let rawResponse: Response;
     try {
-      rawResponse = await fetch(`${ASK_SAGE_BASE_URL}/get-models`, {
+      rawResponse = await fetch(`${this.baseUrl}/get-models`, {
         method: 'GET',
         headers: {
           'x-access-tokens': this.token,
