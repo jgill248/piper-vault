@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIPER VAULT | Intelligence Terminal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Work+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#ecdfe0",
+              "surface-container-lowest": "#120d0e",
+              "error": "#ffb4ab",
+              "on-tertiary-container": "#674f2b",
+              "on-primary-container": "#654d4d",
+              "on-primary": "#402b2b",
+              "tertiary": "#ffdeb2",
+              "primary-fixed-dim": "#e0bfbf",
+              "background": "#181213",
+              "secondary": "#bdc7d6",
+              "inverse-primary": "#725858",
+              "surface-variant": "#3a3334",
+              "on-tertiary-fixed": "#281800",
+              "inverse-surface": "#ecdfe0",
+              "on-surface": "#ecdfe0",
+              "surface": "#181213",
+              "primary-container": "#e0bfbf",
+              "secondary-fixed": "#d9e3f2",
+              "primary": "#fddbdb",
+              "on-error": "#690005",
+              "tertiary-fixed": "#ffddb0",
+              "primary-fixed": "#fddada",
+              "on-tertiary": "#412d0c",
+              "on-surface-variant": "#d3c3c2",
+              "secondary-container": "#404a56",
+              "surface-container": "#241e1f",
+              "on-error-container": "#ffdad6",
+              "surface-container-highest": "#3a3334",
+              "outline-variant": "#4f4444",
+              "on-tertiary-fixed-variant": "#594320",
+              "surface-container-low": "#201a1b",
+              "secondary-fixed-dim": "#bdc7d6",
+              "on-secondary-fixed": "#131c27",
+              "outline": "#9b8d8d",
+              "on-primary-fixed-variant": "#584141",
+              "tertiary-container": "#e3c295",
+              "on-secondary": "#28313c",
+              "inverse-on-surface": "#362f30",
+              "on-secondary-container": "#afb9c7",
+              "surface-tint": "#e0bfbf",
+              "on-primary-fixed": "#291717",
+              "on-secondary-fixed-variant": "#3e4853",
+              "surface-dim": "#181213",
+              "surface-bright": "#3f3738",
+              "error-container": "#93000a",
+              "tertiary-fixed-dim": "#e2c194",
+              "surface-container-high": "#2f2829"
+            },
+            fontFamily: {
+              "headline": ["Newsreader"],
+              "body": ["Work Sans"],
+              "label": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        font-size: 18px;
+      }
+      .ink-gradient {
+        background: linear-gradient(135deg, #fddbdb 0%, #e0bfbf 100%);
+      }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: #181213; }
+      ::-webkit-scrollbar-thumb { background: #4f4444; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-tertiary/30">
+<!-- TopNavBar -->
+<header class="fixed top-0 z-50 flex justify-between items-center w-full px-6 py-3 bg-[#181213] dark:bg-stone-950 border-b border-[#4f4444] flat no shadows">
+<div class="font-['Newsreader'] font-bold text-xl text-[#fddbdb] tracking-tighter uppercase">PIPER VAULT</div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Analysis</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Archives</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#fddbdb] border-b-2 border-[#ffdeb2] pb-1" href="#">Intelligence</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Protocols</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container border border-outline-variant px-10 py-1.5 text-xs font-label uppercase tracking-wider focus:outline-none focus:border-primary w-64" placeholder="QUERY LEDGER..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors">notifications</span>
+</div>
+</header>
+<!-- SideNavBar (Navigation Anchor) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-16 bg-[#181213] dark:bg-stone-950 border-r border-[#4f4444] w-64 hidden lg:flex">
+<div class="p-6 flex flex-col gap-1 border-b border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 border border-outline-variant p-0.5 bg-surface-container-low">
+<img alt="Master Printer Portrait" class="w-full h-full grayscale opacity-80" data-alt="close-up of an elderly man with sharp features, wearing vintage round spectacles and a dark wool vest, dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBODl2kUwALbWZ0iRTZH2dX03xxMSYdZwX4JAM3ppjVsQKHg-oVuWJvI0MHRCqTWEh0sP2dB52ieOlYpKjCMS6gZkETAtwurPCBHX64HY-P7X-KJH59fgWPq_xubrh1eed83QiXD07JE9TXupcTXpfWsld71gmcCH5PW2iChC23fE3kHrTIx7lrL5YBdePWoDPpj8C9w7F74WonbfTEQVCm0mecwIv7OXIyvUBsnLqz78t0bfYcZxBOOHXLD4Oj4EgQlSTiU3zDQQ"/>
+</div>
+<div>
+<h2 class="text-[#ffdeb2] font-['Newsreader'] italic text-lg leading-tight">The Ledger</h2>
+<p class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-widest text-secondary">Station 04-B</p>
+</div>
+</div>
+</div>
+<div class="flex-1 py-4">
+<nav class="flex flex-col">
+<a class="text-[#bdc7d6] px-6 py-4 flex items-center gap-4 hover:bg-[#4f4444]/10 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider transition-all" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+                    User Profile
+                </a>
+<a class="bg-[#4f4444]/30 text-[#fddbdb] border-l-4 border-[#ffdeb2] px-6 py-4 flex items-center gap-4 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+                    Workspace
+                </a>
+<a class="text-[#bdc7d6] px-6 py-4 flex items-center gap-4 hover:bg-[#4f4444]/10 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                    Collections
+                </a>
+<a class="text-[#bdc7d6] px-6 py-4 flex items-center gap-4 hover:bg-[#4f4444]/10 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</nav>
+</div>
+<div class="p-6">
+<button class="w-full py-3 bg-primary text-on-primary font-label text-xs font-bold tracking-widest uppercase hover:opacity-90 transition-opacity">
+                NEW ENTRY
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:pl-64 pt-16 h-screen flex flex-col">
+<div class="flex flex-1 overflow-hidden">
+<!-- High-Density Conversation View -->
+<section class="flex-1 flex flex-col bg-surface border-r border-outline-variant overflow-y-auto">
+<div class="p-6 space-y-8">
+<!-- System Message -->
+<div class="flex gap-4 max-w-4xl">
+<div class="flex-shrink-0 w-8 h-8 border border-outline flex items-center justify-center bg-surface-container-high">
+<span class="material-symbols-outlined text-tertiary text-sm">terminal</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<span class="font-headline italic text-primary text-sm">System Intelligence</span>
+<span class="text-[10px] font-label uppercase text-outline tracking-tighter">14:02:18 / OCT-24</span>
+</div>
+<div class="text-on-surface leading-relaxed text-sm font-body max-w-2xl bg-surface-container-low border border-outline-variant/30 p-4">
+                                Authentication confirmed. Ledger access granted for <span class="text-tertiary">STATION 04-B</span>. Historical data stream is now active. I have analyzed the previous sequence of operations regarding the industrial printing strike of 1892. Would you like the summarized intelligence or the raw data snippets?
+                            </div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 max-w-4xl self-end flex-row-reverse">
+<div class="flex-shrink-0 w-8 h-8 border border-primary flex items-center justify-center bg-primary">
+<span class="material-symbols-outlined text-on-primary text-sm">person</span>
+</div>
+<div class="space-y-4 text-right">
+<div class="flex items-center gap-3 justify-end">
+<span class="text-[10px] font-label uppercase text-outline tracking-tighter">14:05:44 / OCT-24</span>
+<span class="font-headline italic text-primary text-sm">Chief Archivist</span>
+</div>
+<div class="text-on-surface leading-relaxed text-sm font-body max-w-2xl bg-surface-container-high border border-outline-variant p-4">
+                                Pull the raw data snippets. Cross-reference them with the 'London Gazette' archives from the same period. Focus on the wage distribution tables.
+                            </div>
+</div>
+</div>
+<!-- System Data Feed (Bento Grid Inspired Intelligence) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl">
+<div class="col-span-1 md:col-span-2 p-1 border border-outline-variant bg-surface-container-lowest">
+<div class="border border-outline-variant/50 p-4">
+<h3 class="font-headline text-lg text-primary mb-2">Cross-Reference Active: London Gazette (1892)</h3>
+<div class="h-1 w-full bg-surface-container-high mb-4">
+<div class="h-full bg-tertiary w-2/3"></div>
+</div>
+<p class="text-xs text-secondary font-body leading-relaxed">System has identified 14 matches within the wage distribution metadata. Rendering statistical distribution below.</p>
+</div>
+</div>
+<div class="border border-outline-variant p-4 bg-surface">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-label uppercase text-outline">Metric ID: W-01</span>
+<span class="material-symbols-outlined text-tertiary text-sm">trending_up</span>
+</div>
+<div class="font-headline text-2xl text-on-surface mb-1">£4 2s 6d</div>
+<div class="text-[10px] font-label uppercase text-secondary tracking-widest">Avg. Weekly Compositor Wage</div>
+</div>
+<div class="border border-outline-variant p-4 bg-surface">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-label uppercase text-outline">Metric ID: W-02</span>
+<span class="material-symbols-outlined text-error text-sm">warning</span>
+</div>
+<div class="font-headline text-2xl text-on-surface mb-1">-18.4%</div>
+<div class="text-[10px] font-label uppercase text-secondary tracking-widest">Deviation from Apprentices</div>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex gap-4 max-w-4xl">
+<div class="flex-shrink-0 w-8 h-8 border border-outline flex items-center justify-center bg-surface-container-high">
+<span class="material-symbols-outlined text-tertiary text-sm">terminal</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<span class="font-headline italic text-primary text-sm">System Intelligence</span>
+<span class="text-[10px] font-label uppercase text-outline tracking-tighter">14:06:01 / OCT-24</span>
+</div>
+<div class="text-on-surface leading-relaxed text-sm font-body max-w-2xl bg-surface-container-low border border-outline-variant/30 p-4">
+                                Parsing complete. The wage distribution tables indicate a significant discrepancy in the 'Pressmen' category during the transition to rotary presses. I have highlighted several snippets in your <span class="text-tertiary italic">Current Context</span> sidebar for immediate review.
+                            </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Sidebar: Current Context -->
+<aside class="w-80 hidden xl:flex flex-col bg-surface-container-low border-l border-outline-variant">
+<div class="p-4 border-b border-outline-variant bg-surface-container flex items-center justify-between">
+<h2 class="font-headline italic text-primary">Current Context</h2>
+<span class="material-symbols-outlined text-secondary text-sm">bookmark</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<div class="group border border-outline-variant p-3 bg-surface hover:border-tertiary transition-colors cursor-pointer">
+<div class="flex justify-between text-[9px] font-label uppercase text-outline mb-2">
+<span>Snippet #0822</span>
+<span>Archive 1892</span>
+</div>
+<p class="text-xs font-body italic text-secondary group-hover:text-on-surface leading-tight">"...the transition to the Hoe rotary machine has rendered certain hand-press skills obsolete, leading to a 12% reduction in piecerate..."</p>
+</div>
+<div class="border border-outline-variant p-3 bg-surface-container-lowest">
+<div class="flex justify-between text-[9px] font-label uppercase text-outline mb-2">
+<span>Snippet #0845</span>
+<span>Archive 1892</span>
+</div>
+<p class="text-xs font-body italic text-secondary leading-tight">"Master printers in the Fleet Street district report a total cessation of labor as of Tuesday evening."</p>
+</div>
+<div class="relative overflow-hidden border border-outline-variant aspect-[4/3] bg-surface-container">
+<img alt="Antique printing press diagram" class="w-full h-full object-cover grayscale opacity-50 mix-blend-lighten" data-alt="detailed 19th century technical illustration of a mechanical printing press, ivory ink on charcoal paper, blueprint style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAE3mCo1Gbeg0qMJNy9Dhcjl8nGGzD0BOEClNffPzTMYYMNqvaUWUaWjp3AtcnuiTTMjegw8ht5knA-YLB90Y38Sae14THXsWRxCnlOJqs9l90HDjxPkAWomzmQYyup0OI7Sk_45zXkfCmTgFP3A6s2DOATyQdEw1_uxSFAoQ7GRLNtzspyPG9skvewna1RkL6Vm6Xf4_l99VE9ApaQ_z6dfINC6AwV7CzxXOTH3VbWKYYVus1Yb2g-aK-FISSRJFhbSeUL2vJ3Hg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest to-transparent flex items-end p-3">
+<span class="text-[9px] font-label uppercase text-primary tracking-widest">Fig. 4 - Rotary Mechanism</span>
+</div>
+</div>
+<div class="border border-outline-variant p-3 bg-surface">
+<div class="flex justify-between text-[9px] font-label uppercase text-outline mb-2">
+<span>Snippet #0912</span>
+<span>Analysis</span>
+</div>
+<p class="text-xs font-body italic text-secondary leading-tight">Projection: Continued labor unrest is 84% likely if the current wage structure persists through the winter session.</p>
+</div>
+</div>
+<div class="p-4 border-t border-outline-variant bg-surface-container-lowest text-center">
+<button class="text-[10px] font-label uppercase text-tertiary hover:underline tracking-widest">Clear Active Context</button>
+</div>
+</aside>
+</div>
+<!-- Bottom Input Terminal -->
+<footer class="p-6 bg-surface-container-high border-t border-outline-variant">
+<div class="max-w-5xl mx-auto">
+<div class="relative flex items-end gap-4 bg-surface border border-outline p-1 pr-3 focus-within:border-primary transition-colors">
+<div class="flex-1">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm font-body text-on-surface placeholder:text-outline/50 resize-none py-3 px-4" placeholder="INPUT COMMAND OR QUERY FOR THE VAULT..." rows="1"></textarea>
+</div>
+<div class="flex items-center gap-2 pb-2">
+<button class="p-2 hover:bg-surface-container text-secondary transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<button class="px-6 py-2 ink-gradient text-on-primary font-label text-xs font-bold tracking-widest uppercase hover:opacity-90 active:opacity-70 transition-all">
+                            EXECUTE
+                        </button>
+</div>
+</div>
+<div class="mt-2 flex justify-between px-1">
+<div class="flex gap-4">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 bg-tertiary"></span>
+<span class="text-[9px] font-label uppercase text-secondary">Neural Engine: Active</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 bg-outline-variant"></span>
+<span class="text-[9px] font-label uppercase text-secondary">Latency: 42ms</span>
+</div>
+</div>
+<span class="text-[9px] font-label uppercase text-outline/50">Sovereign OS v4.1.2 // Secure Session</span>
+</div>
+</div>
+</footer>
+</main>
+</body></html>

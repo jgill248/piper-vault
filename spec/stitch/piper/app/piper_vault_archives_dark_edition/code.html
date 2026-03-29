@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIPER VAULT | Archives</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,700;1,400&amp;family=Work+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#ecdfe0",
+              "surface-container-lowest": "#120d0e",
+              "error": "#ffb4ab",
+              "on-tertiary-container": "#674f2b",
+              "on-primary-container": "#654d4d",
+              "on-primary": "#402b2b",
+              "tertiary": "#ffdeb2",
+              "primary-fixed-dim": "#e0bfbf",
+              "background": "#181213",
+              "secondary": "#bdc7d6",
+              "inverse-primary": "#725858",
+              "surface-variant": "#3a3334",
+              "on-tertiary-fixed": "#281800",
+              "inverse-surface": "#ecdfe0",
+              "on-surface": "#ecdfe0",
+              "surface": "#181213",
+              "primary-container": "#e0bfbf",
+              "secondary-fixed": "#d9e3f2",
+              "primary": "#fddbdb",
+              "on-error": "#690005",
+              "tertiary-fixed": "#ffddb0",
+              "primary-fixed": "#fddada",
+              "on-tertiary": "#412d0c",
+              "on-surface-variant": "#d3c3c2",
+              "secondary-container": "#404a56",
+              "surface-container": "#241e1f",
+              "on-error-container": "#ffdad6",
+              "surface-container-highest": "#3a3334",
+              "outline-variant": "#4f4444",
+              "on-tertiary-fixed-variant": "#594320",
+              "surface-container-low": "#201a1b",
+              "secondary-fixed-dim": "#bdc7d6",
+              "on-secondary-fixed": "#131c27",
+              "outline": "#9b8d8d",
+              "on-primary-fixed-variant": "#584141",
+              "tertiary-container": "#e3c295",
+              "on-secondary": "#28313c",
+              "inverse-on-surface": "#362f30",
+              "on-secondary-container": "#afb9c7",
+              "surface-tint": "#e0bfbf",
+              "on-primary-fixed": "#291717",
+              "on-secondary-fixed-variant": "#3e4853",
+              "surface-dim": "#181213",
+              "surface-bright": "#3f3738",
+              "error-container": "#93000a",
+              "tertiary-fixed-dim": "#e2c194",
+              "surface-container-high": "#2f2829"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Work Sans", "sans-serif"],
+              "label": ["Work Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .ink-gradient {
+            background: linear-gradient(135deg, #fddbdb 0%, #e0bfbf 100%);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #181213; }
+        ::-webkit-scrollbar-thumb { background: #4f4444; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-tertiary/30">
+<!-- Top Navigation -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 bg-[#181213] border-b border-[#4f4444] font-['Newsreader'] uppercase tracking-widest text-sm h-14">
+<div class="font-['Newsreader'] font-bold text-xl text-[#fddbdb] tracking-tighter">PIPER VAULT</div>
+<div class="hidden md:flex gap-8">
+<a class="text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Analysis</a>
+<a class="text-[#fddbdb] border-b-2 border-[#ffdeb2] pb-1" href="#">Archives</a>
+<a class="text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Intelligence</a>
+<a class="text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Protocols</a>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">search</span>
+<div class="w-8 h-8 bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">account_circle</span>
+</div>
+</div>
+</nav>
+<!-- Side Navigation (The Ledger) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#181213] border-r border-[#4f4444] pt-20 flex flex-col z-40">
+<div class="px-6 mb-8">
+<div class="text-[#ffdeb2] font-['Newsreader'] italic text-lg">The Ledger</div>
+<div class="text-[#bdc7d6] font-['Work_Sans'] text-xs font-medium uppercase tracking-wider">Station 04-B</div>
+</div>
+<nav class="flex-1">
+<a class="text-[#bdc7d6] px-4 py-3 flex items-center gap-3 hover:bg-[#4f4444]/10 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider transition-colors" href="#">
+<span class="material-symbols-outlined">account_circle</span> User Profile
+            </a>
+<a class="text-[#bdc7d6] px-4 py-3 flex items-center gap-3 hover:bg-[#4f4444]/10 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider transition-colors" href="#">
+<span class="material-symbols-outlined">grid_view</span> Workspace
+            </a>
+<a class="bg-[#4f4444]/30 text-[#fddbdb] border-l-4 border-[#ffdeb2] px-4 py-3 flex items-center gap-3 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">inventory_2</span> Collections
+            </a>
+<a class="text-[#bdc7d6] px-4 py-3 flex items-center gap-3 hover:bg-[#4f4444]/10 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<button class="w-full py-3 ink-gradient text-on-primary font-bold text-xs tracking-widest uppercase">NEW ENTRY</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mr-80 pt-14 min-h-screen">
+<div class="p-8">
+<!-- Header Section -->
+<header class="mb-10 flex justify-between items-end border-b border-outline-variant pb-6">
+<div>
+<h1 class="font-headline text-5xl text-primary mb-2">Archive Ingestion</h1>
+<p class="font-body text-secondary text-sm tracking-wide">METADATA CLEARANCE STATION // SECTOR 7</p>
+</div>
+<div class="flex gap-4">
+<div class="text-right">
+<div class="text-[10px] text-outline font-label uppercase tracking-tighter">System Load</div>
+<div class="font-mono text-tertiary text-lg">0.44 RMS</div>
+</div>
+<div class="text-right border-l border-outline-variant pl-4">
+<div class="text-[10px] text-outline font-label uppercase tracking-tighter">Status</div>
+<div class="font-mono text-primary text-lg">OPERATIONAL</div>
+</div>
+</div>
+</header>
+<!-- Top Grid: Drop Zone & Stats -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+<!-- Drop Zone -->
+<div class="col-span-8 bg-surface-container-low border border-outline-variant h-64 flex flex-col items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
+<div class="border-2 border-dashed border-outline-variant p-10 flex flex-col items-center gap-4 group-hover:border-primary transition-colors cursor-pointer w-[90%] h-[80%] justify-center">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary">upload_file</span>
+<div class="text-center">
+<p class="font-headline text-xl text-primary-fixed-dim">Drag and Drop Manifests</p>
+<p class="font-label text-xs text-secondary mt-1 uppercase tracking-widest">Supports PDF, JSON, and Encrypted Blotters</p>
+</div>
+</div>
+</div>
+<!-- Summary Panel -->
+<div class="col-span-4 grid grid-rows-2 gap-4">
+<div class="bg-surface-container-high border border-outline-variant p-5">
+<h3 class="font-label text-[10px] uppercase tracking-[0.2em] text-outline mb-4">Storage Metrics</h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-xs text-secondary">Vault Capacity</span>
+<span class="text-xs text-primary font-mono">72.4 TB</span>
+</div>
+<div class="w-full bg-surface-container h-1">
+<div class="bg-tertiary h-full" style="width: 65%"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-secondary">Integrity Level</span>
+<span class="text-xs text-primary font-mono">99.998%</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container border border-outline-variant p-5 flex flex-col justify-between">
+<h3 class="font-label text-[10px] uppercase tracking-[0.2em] text-outline">Active Protocols</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold tracking-widest uppercase">AES-4096</span>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold tracking-widest uppercase">STAMP_VALID</span>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold tracking-widest uppercase">SCRUB_ACTIVE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Repository Table -->
+<section class="bg-surface-container border border-outline-variant">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center">
+<h2 class="font-headline text-2xl text-primary">Indexed Repository</h2>
+<div class="flex gap-4">
+<div class="relative">
+<input class="bg-surface border border-outline-variant text-xs px-3 py-1.5 w-64 focus:border-primary outline-none transition-all placeholder:text-outline" placeholder="Filter by Ledger ID..." type="text"/>
+<span class="material-symbols-outlined absolute right-2 top-1.5 text-xs text-outline">filter_list</span>
+</div>
+<button class="border border-outline-variant px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-secondary hover:bg-outline-variant/20 transition-all">Export Blotter</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high text-[10px] font-bold uppercase tracking-[0.15em] text-outline">
+<th class="p-4 border-b border-outline-variant">Entry ID</th>
+<th class="p-4 border-b border-outline-variant">Object Name</th>
+<th class="p-4 border-b border-outline-variant">Origin</th>
+<th class="p-4 border-b border-outline-variant">Classification</th>
+<th class="p-4 border-b border-outline-variant">Date Added</th>
+<th class="p-4 border-b border-outline-variant text-right">Size</th>
+</tr>
+</thead>
+<tbody class="text-xs font-medium">
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="p-4 border-b border-outline-variant/30 font-mono text-tertiary">#PV-9021-X</td>
+<td class="p-4 border-b border-outline-variant/30 text-primary">Logistics_Core_Dump_V4.enc</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">Terminal_01</td>
+<td class="p-4 border-b border-outline-variant/30">
+<span class="px-2 py-0.5 border border-error text-error text-[9px] font-bold tracking-tighter">RESTRICTED</span>
+</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">12 OCT 1884</td>
+<td class="p-4 border-b border-outline-variant/30 text-right font-mono text-primary">1.2 GB</td>
+</tr>
+<tr class="bg-surface-container-low hover:bg-surface-container-highest transition-colors">
+<td class="p-4 border-b border-outline-variant/30 font-mono text-tertiary">#PV-9022-Y</td>
+<td class="p-4 border-b border-outline-variant/30 text-primary">Personnel_Manifest_S7.csv</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">HR_Vault_Internal</td>
+<td class="p-4 border-b border-outline-variant/30">
+<span class="px-2 py-0.5 border border-outline text-outline text-[9px] font-bold tracking-tighter uppercase">Public</span>
+</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">14 OCT 1884</td>
+<td class="p-4 border-b border-outline-variant/30 text-right font-mono text-primary">45 KB</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="p-4 border-b border-outline-variant/30 font-mono text-tertiary">#PV-9023-Z</td>
+<td class="p-4 border-b border-outline-variant/30 text-primary">Steam_Pressure_Logs.log</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">Engine_Room_A</td>
+<td class="p-4 border-b border-outline-variant/30">
+<span class="px-2 py-0.5 border border-secondary text-secondary text-[9px] font-bold tracking-tighter uppercase">Internal</span>
+</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">15 OCT 1884</td>
+<td class="p-4 border-b border-outline-variant/30 text-right font-mono text-primary">892 MB</td>
+</tr>
+<tr class="bg-surface-container-low hover:bg-surface-container-highest transition-colors">
+<td class="p-4 border-b border-outline-variant/30 font-mono text-tertiary">#PV-9024-A</td>
+<td class="p-4 border-b border-outline-variant/30 text-primary">Overseer_Directive_09.pdf</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">Command_Center</td>
+<td class="p-4 border-b border-outline-variant/30">
+<span class="px-2 py-0.5 border border-error text-error text-[9px] font-bold tracking-tighter">RESTRICTED</span>
+</td>
+<td class="p-4 border-b border-outline-variant/30 text-secondary">15 OCT 1884</td>
+<td class="p-4 border-b border-outline-variant/30 text-right font-mono text-primary">2.4 MB</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Right Sidebar: Ingestion Progress -->
+<aside class="fixed right-0 top-0 h-full w-80 bg-surface-container-low border-l border-[#4f4444] pt-20 flex flex-col z-40">
+<div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<h3 class="font-headline text-lg text-primary">Live Ingestion</h3>
+<span class="w-2 h-2 bg-error rounded-full animate-pulse"></span>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-8">
+<!-- Active Job 1 -->
+<div class="space-y-3">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[10px] font-bold text-tertiary uppercase tracking-widest">Active Thread 01</p>
+<p class="text-xs text-primary mt-1 font-headline italic">Hydraulic_Schematics_Archive.bundle</p>
+</div>
+<span class="text-[10px] font-mono text-secondary">84%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest">
+<div class="h-full bg-primary" style="width: 84%"></div>
+</div>
+<div class="flex gap-2">
+<div class="w-1/2 p-2 bg-surface-container border border-outline-variant">
+<p class="text-[8px] text-outline uppercase tracking-tighter">Status</p>
+<p class="text-[10px] text-secondary font-mono">Parsing JSON</p>
+</div>
+<div class="w-1/2 p-2 bg-surface-container border border-outline-variant">
+<p class="text-[8px] text-outline uppercase tracking-tighter">Bitrate</p>
+<p class="text-[10px] text-secondary font-mono">1.2 Gbps</p>
+</div>
+</div>
+</div>
+<!-- Active Job 2 -->
+<div class="space-y-3 opacity-60">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[10px] font-bold text-outline uppercase tracking-widest">Queued Thread 02</p>
+<p class="text-xs text-on-surface-variant mt-1 font-headline">Supply_Chain_Metadata_1884.csv</p>
+</div>
+<span class="text-[10px] font-mono text-outline">Waiting</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest">
+<div class="h-full bg-secondary" style="width: 0%"></div>
+</div>
+</div>
+<!-- System Logs -->
+<div class="pt-6 border-t border-outline-variant">
+<p class="text-[10px] font-bold text-outline uppercase tracking-[0.2em] mb-4">Transmission Log</p>
+<div class="space-y-3 font-mono text-[9px] leading-relaxed">
+<div class="flex gap-2">
+<span class="text-outline">14:02:11</span>
+<span class="text-primary">[INFO]</span>
+<span class="text-secondary">Handshake established with Station 04-B.</span>
+</div>
+<div class="flex gap-2">
+<span class="text-outline">14:05:44</span>
+<span class="text-tertiary">[WARN]</span>
+<span class="text-secondary">Data parity check delayed on Block 77.</span>
+</div>
+<div class="flex gap-2">
+<span class="text-outline">14:10:02</span>
+<span class="text-primary">[INFO]</span>
+<span class="text-secondary">Manifest PV-9024-A validated successfully.</span>
+</div>
+<div class="flex gap-2">
+<span class="text-outline">14:12:30</span>
+<span class="text-error">[ERR]</span>
+<span class="text-on-error-container">Unauthorized ping detected from unknown CIDR.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Tool -->
+<div class="p-4 bg-surface-container-highest border-t border-outline-variant">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-tertiary" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Vault Lockdown</span>
+</div>
+<div class="w-10 h-5 bg-surface border border-outline-variant relative flex items-center px-1">
+<div class="w-3 h-3 bg-outline-variant"></div>
+</div>
+</div>
+</div>
+</aside>
+</body></html>

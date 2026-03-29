@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIPER VAULT | Protocols</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,600;0,700;1,400&amp;family=Work+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-background": "#ecdfe0",
+                        "surface-container-lowest": "#120d0e",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#674f2b",
+                        "on-primary-container": "#654d4d",
+                        "on-primary": "#402b2b",
+                        "tertiary": "#ffdeb2",
+                        "primary-fixed-dim": "#e0bfbf",
+                        "background": "#181213",
+                        "secondary": "#bdc7d6",
+                        "inverse-primary": "#725858",
+                        "surface-variant": "#3a3334",
+                        "on-tertiary-fixed": "#281800",
+                        "inverse-surface": "#ecdfe0",
+                        "on-surface": "#ecdfe0",
+                        "surface": "#181213",
+                        "primary-container": "#e0bfbf",
+                        "secondary-fixed": "#d9e3f2",
+                        "primary": "#fddbdb",
+                        "on-error": "#690005",
+                        "tertiary-fixed": "#ffddb0",
+                        "primary-fixed": "#fddada",
+                        "on-tertiary": "#412d0c",
+                        "on-surface-variant": "#d3c3c2",
+                        "secondary-container": "#404a56",
+                        "surface-container": "#241e1f",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-highest": "#3a3334",
+                        "outline-variant": "#4f4444",
+                        "on-tertiary-fixed-variant": "#594320",
+                        "surface-container-low": "#201a1b",
+                        "secondary-fixed-dim": "#bdc7d6",
+                        "on-secondary-fixed": "#131c27",
+                        "outline": "#9b8d8d",
+                        "on-primary-fixed-variant": "#584141",
+                        "tertiary-container": "#e3c295",
+                        "on-secondary": "#28313c",
+                        "inverse-on-surface": "#362f30",
+                        "on-secondary-container": "#afb9c7",
+                        "surface-tint": "#e0bfbf",
+                        "on-primary-fixed": "#291717",
+                        "on-secondary-fixed-variant": "#3e4853",
+                        "surface-dim": "#181213",
+                        "surface-bright": "#3f3738",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#e2c194",
+                        "surface-container-high": "#2f2829"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Work Sans", "sans-serif"],
+                        "label": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        /* Custom scrollbar for the ledger feel */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #181213; }
+        ::-webkit-scrollbar-thumb { background: #4f4444; }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 1px;
+            background: #4f4444;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            background: #ffdeb2;
+            margin-top: -5.5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-tertiary-container selection:text-on-tertiary-container">
+<!-- TopNavBar -->
+<header class="fixed top-0 z-50 flex justify-between items-center w-full px-6 py-3 bg-[#181213] dark:bg-stone-950 border-b border-[#4f4444]">
+<div class="font-['Newsreader'] font-bold text-xl text-[#fddbdb] tracking-tighter">PIPER VAULT</div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Analysis</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Archives</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#bdc7d6] hover:text-[#e0bfbf] transition-colors" href="#">Intelligence</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#fddbdb] border-b-2 border-[#ffdeb2] pb-1" href="#">Protocols</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">search</span>
+<div class="w-8 h-8 border border-outline-variant flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of an elderly master printer with a sharp gaze, dramatic chiaroscuro lighting, dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxShBPb8tUEzNlZtjbwkVO5tDmO9rKIu8wZkUStw0pfjIbwpXnWu22U8CessGaqh-PIfYvS3YGQvLRhJ8Zg121h3AAWkccm9Kzb1_xC4rn-FMakm_vxK7s1bRs8MUzrPl8zI82taWC-5Z0a_1eTl7l6hT8WcSCeLH6w3cFP8OSBQHQQA3lCuiS62lJrnIw4NGT-xuPZsDXxedyLIfbz810FuSy15Tql8q4prNnwzZG9Se1uQdSRP-G9mz25kczPLAQdQuiluF5tg"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-16 bg-[#181213] dark:bg-stone-950 border-r border-[#4f4444] w-64 hidden lg:flex">
+<div class="px-6 py-8 border-b border-outline-variant mb-4">
+<div class="text-[#ffdeb2] font-['Newsreader'] italic text-lg">The Ledger</div>
+<div class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-widest text-secondary mt-1 opacity-60">Station 04-B</div>
+</div>
+<nav class="flex-1">
+<a class="text-[#bdc7d6] px-4 py-3 flex items-center gap-3 hover:bg-[#4f4444]/10 hover:text-[#fddbdb] font-['Work_Sans'] text-xs font-medium uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined">account_circle</span> User Profile
+            </a>
+<a class="text-[#bdc7d6] px-4 py-3 flex items-center gap-3 hover:bg-[#4f4444]/10 hover:text-[#fddbdb] font-['Work_Sans'] text-xs font-medium uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined">grid_view</span> Workspace
+            </a>
+<a class="text-[#bdc7d6] px-4 py-3 flex items-center gap-3 hover:bg-[#4f4444]/10 hover:text-[#fddbdb] font-['Work_Sans'] text-xs font-medium uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined">inventory_2</span> Collections
+            </a>
+<a class="bg-[#4f4444]/30 text-[#fddbdb] border-l-4 border-[#ffdeb2] px-4 py-3 flex items-center gap-3 font-['Work_Sans'] text-xs font-medium uppercase tracking-wider translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+<div class="p-4">
+<button class="w-full py-3 bg-primary text-on-primary font-['Work_Sans'] font-bold text-xs uppercase tracking-tighter hover:opacity-90 transition-opacity">
+                NEW ENTRY
+            </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="lg:ml-64 pt-20 px-6 pb-12">
+<div class="max-w-6xl mx-auto">
+<!-- Header Section -->
+<header class="py-12 border-b border-outline-variant">
+<h1 class="font-headline text-5xl font-bold text-primary tracking-tight leading-none italic">System Control Panel</h1>
+<p class="font-body text-secondary mt-4 max-w-2xl text-sm leading-relaxed uppercase tracking-wider">Configure the underlying retrieval heuristics and large language model providers for the Vault's neural indexing engine.</p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-px bg-outline-variant mt-12 border border-outline-variant">
+<!-- Retrieval Heuristics Section -->
+<section class="md:col-span-8 bg-surface p-8">
+<div class="flex justify-between items-baseline mb-8">
+<h2 class="font-headline text-2xl text-tertiary">Retrieval Heuristics</h2>
+<span class="font-label text-[10px] text-outline tracking-widest uppercase">Sub-Routine: Index_Query_09</span>
+</div>
+<div class="space-y-12">
+<!-- Slider Component 1 -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<label class="font-label text-xs uppercase text-secondary tracking-widest">Top-K Density</label>
+<span class="font-headline text-2xl text-primary">12</span>
+</div>
+<input class="w-full accent-tertiary" max="50" min="1" type="range" value="12"/>
+<p class="text-[10px] text-outline-variant uppercase">Determines the volume of document chunks retrieved for synthesis.</p>
+</div>
+<!-- Slider Component 2 -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<label class="font-label text-xs uppercase text-secondary tracking-widest">Similarity Threshold</label>
+<span class="font-headline text-2xl text-primary">0.84</span>
+</div>
+<input class="w-full accent-tertiary" max="1" min="0" step="0.01" type="range" value="0.84"/>
+<p class="text-[10px] text-outline-variant uppercase">Cosine similarity cutoff for vector embedding matches.</p>
+</div>
+<!-- Slider Component 3 -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<label class="font-label text-xs uppercase text-secondary tracking-widest">Context Window Bias</label>
+<span class="font-headline text-2xl text-primary">Balanced</span>
+</div>
+<input class="w-full accent-tertiary" max="3" min="1" type="range" value="2"/>
+<div class="flex justify-between text-[10px] text-outline uppercase">
+<span>Precision</span>
+<span>Expansive</span>
+</div>
+</div>
+</div>
+</section>
+<!-- LLM Provider Sidebar Section -->
+<section class="md:col-span-4 bg-surface-container-low p-8 border-l border-outline-variant">
+<h3 class="font-headline text-xl text-primary mb-6">LLM Providers</h3>
+<div class="space-y-6">
+<!-- Form Field 1 -->
+<div class="border border-outline-variant p-3 group focus-within:border-primary transition-colors">
+<label class="block font-label text-[9px] uppercase text-outline tracking-widest mb-1">Primary Engine</label>
+<input class="w-full bg-transparent border-none p-0 text-secondary focus:ring-0 font-body text-sm uppercase tracking-tight" type="text" value="PIPER-O-7B-INSTRUCT"/>
+</div>
+<!-- Form Field 2 -->
+<div class="border border-outline-variant p-3 group focus-within:border-primary transition-colors">
+<label class="block font-label text-[9px] uppercase text-outline tracking-widest mb-1">API Endpoint</label>
+<input class="w-full bg-transparent border-none p-0 text-secondary focus:ring-0 font-body text-sm" type="text" value="https://api.pipervault.intel/v1"/>
+</div>
+<!-- Form Field 3 -->
+<div class="border border-outline-variant p-3 group focus-within:border-primary transition-colors">
+<label class="block font-label text-[9px] uppercase text-outline tracking-widest mb-1">Bearer Token</label>
+<input class="w-full bg-transparent border-none p-0 text-tertiary focus:ring-0 font-body text-sm" type="password" value="••••••••••••••••"/>
+</div>
+<div class="pt-4">
+<div class="flex items-center gap-2 mb-4">
+<div class="w-2 h-2 bg-tertiary"></div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface">System Status: Operative</span>
+</div>
+<img class="w-full h-32 object-cover opacity-40 grayscale hover:grayscale-0 transition-all duration-700" data-alt="Close up of a high-tech circuit board with copper traces and glowing orange indicators, dark moody tech aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC05Iw9PBHEff5A3GhLqcZyRatQnZ1eprfDndbS4XIkVvcCTZbOBLQLdL1TENTpCsai8wkouq2u5Mrs-PXASltjBJuj_EYm2tvt2ZV_X1zKlJ9LXCfJwwdHC1xdPmvL5Pb9NauGells0Zc1abMTOHNRz590V-ymD-c_h14XFDoGb0fXmUv_cPjtvuFOT1BrdY4kFtnFN65alNclKaoLF6ilTt_b1T___UMqwAaSx29Fs6969QIdS0qijps-029XsR8SStYKIsYCnw"/>
+</div>
+</div>
+</section>
+<!-- Full Width Technical Data Row -->
+<section class="md:col-span-12 bg-surface p-8 border-t border-outline-variant">
+<div class="flex items-center gap-4 mb-6">
+<span class="material-symbols-outlined text-tertiary">data_object</span>
+<h4 class="font-headline text-lg italic text-secondary">Neural Weights Distribution</h4>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<div class="p-4 bg-surface-container border border-outline-variant/30">
+<div class="text-[9px] uppercase tracking-widest text-outline mb-1">Inference Latency</div>
+<div class="font-headline text-2xl text-primary">124ms</div>
+</div>
+<div class="p-4 bg-surface-container border border-outline-variant/30">
+<div class="text-[9px] uppercase tracking-widest text-outline mb-1">Token Throughput</div>
+<div class="font-headline text-2xl text-primary">42.8k/s</div>
+</div>
+<div class="p-4 bg-surface-container border border-outline-variant/30">
+<div class="text-[9px] uppercase tracking-widest text-outline mb-1">Cache Hit Ratio</div>
+<div class="font-headline text-2xl text-primary">91.4%</div>
+</div>
+<div class="p-4 bg-surface-container border border-outline-variant/30">
+<div class="text-[9px] uppercase tracking-widest text-outline mb-1">Vault Integrity</div>
+<div class="font-headline text-2xl text-tertiary">SECURE</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Actions -->
+<footer class="mt-8 flex justify-end gap-4">
+<button class="px-8 py-3 border border-outline-variant text-secondary font-label text-xs uppercase tracking-widest hover:bg-surface-variant transition-colors">
+                    Discard Changes
+                </button>
+<button class="px-10 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-label text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">
+                    Commit Protocol
+                </button>
+</footer>
+</div>
+</main>
+<!-- Bottom Mobile Nav -->
+<nav class="fixed bottom-0 left-0 w-full bg-surface-container-low md:hidden flex justify-around items-center py-3 border-t border-outline-variant z-50">
+<div class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[9px] uppercase">Stats</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">folder_zip</span>
+<span class="text-[9px] uppercase">Archive</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<span class="text-[9px] uppercase">System</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="text-[9px] uppercase">Profile</span>
+</div>
+</nav>
+</body></html>
