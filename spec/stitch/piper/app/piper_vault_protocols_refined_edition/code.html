@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIPER Vault Protocols</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,700;0,800;1,400&amp;family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-container": "#d2e4fb",
+              "primary-container": "#570013",
+              "on-secondary-container": "#556679",
+              "inverse-surface": "#323029",
+              "secondary-fixed-dim": "#b6c8de",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e7e2d7",
+              "on-tertiary-container": "#7292b3",
+              "on-primary-fixed-variant": "#83232f",
+              "surface-bright": "#fff9ee",
+              "outline-variant": "#dcc0c0",
+              "on-surface": "#1d1c15",
+              "surface-tint": "#a23b45",
+              "on-secondary-fixed": "#0a1d2d",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#d2e4fb",
+              "on-primary-container": "#e06a72",
+              "background": "#fff9ee",
+              "on-secondary": "#ffffff",
+              "surface-container-high": "#ede8dd",
+              "surface": "#fff9ee",
+              "on-tertiary": "#ffffff",
+              "primary": "#300007",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#a9caed",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#cee5ff",
+              "on-tertiary-fixed": "#001d33",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#002a46",
+              "tertiary": "#001526",
+              "on-primary-fixed": "#40000c",
+              "on-tertiary-fixed-variant": "#284967",
+              "outline": "#897172",
+              "surface-dim": "#dfd9cf",
+              "primary-fixed": "#ffdada",
+              "on-primary": "#ffffff",
+              "secondary": "#4f6073",
+              "on-surface-variant": "#564242",
+              "on-background": "#1d1c15",
+              "surface-variant": "#e7e2d7",
+              "surface-container": "#f3ede2",
+              "inverse-primary": "#ffb3b5",
+              "primary-fixed-dim": "#ffb3b5",
+              "surface-container-low": "#f9f3e8",
+              "on-secondary-fixed-variant": "#37485a",
+              "inverse-on-surface": "#f6f0e5"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Work Sans", "sans-serif"],
+              "label": ["Work Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fff9ee;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            background-blend-mode: overlay;
+            opacity: 0.98;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #dcc0c0;
+            height: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            background: #570013;
+            margin-top: -7px;
+            border-radius: 0;
+        }
+        .paper-stack {
+            box-shadow: 0 4px 0 0 #f3ede2, 0 8px 0 0 #ede8dd;
+        }
+    </style>
+</head>
+<body class="font-body text-on-surface min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-[#fff9ee] dark:bg-[#1d1c15] flex justify-between items-center w-full px-12 py-6 max-w-full sticky top-0 z-50">
+<div class="text-3xl font-black text-[#570013] dark:text-[#ffb4ab] font-serif tracking-tighter">
+            PIPER Vault
+        </div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="text-[#4f6073] dark:text-[#91a0b0] font-medium font-serif text-lg tracking-tight uppercase hover:text-[#570013] dark:hover:text-[#ffb4ab] transition-colors duration-200" href="#">Analysis</a>
+<a class="text-[#4f6073] dark:text-[#91a0b0] font-medium font-serif text-lg tracking-tight uppercase hover:text-[#570013] dark:hover:text-[#ffb4ab] transition-colors duration-200" href="#">Archives</a>
+<a class="text-[#4f6073] dark:text-[#91a0b0] font-medium font-serif text-lg tracking-tight uppercase hover:text-[#570013] dark:hover:text-[#ffb4ab] transition-colors duration-200" href="#">Intelligence</a>
+<a class="text-[#570013] dark:text-[#ffb4ab] border-b-4 border-[#570013] font-bold pb-1 font-serif text-lg tracking-tight uppercase" href="#">Protocols</a>
+</nav>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen border-none pt-8 pb-4 bg-[#f3ede2] dark:bg-[#2a2922] w-72 shadow-[20px_0px_40px_rgba(29,28,21,0.04)] sticky top-0">
+<div class="px-8 mb-10">
+<div class="flex items-center gap-4 mb-2">
+<img class="w-12 h-12 grayscale brightness-90 contrast-125 border border-outline" data-alt="High-contrast black and white portrait of a stern 19th-century intellectual in a tweed suit with sharp lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbQhnt-rHEMI1WTDkpM_sR0DJ2DcJJOuvrqVhB9YB_QmMvz2QsW0YaCFdYJ0qnRT_GmzNP18UTa0XR5_Tcy_2Kdhi-6CZN7PdPntf3IB3bReGKT9-9zjjg3feGAbfIpJ6vPMu_C5C4qONSbbx7e4xVl_hu1yBgh4urot95wpIkQLhj7YbuN_weLqfx6fQ2XWXHw5yOW_Ns24O1kcfy_x_Jgu5hR07O9oUxk4pBVo_0_jYERBGyl5Ef83zipVtc3C0jZ5ajvMjymA"/>
+<div>
+<div class="font-headline font-bold text-lg leading-none">The Curator</div>
+<div class="text-xs text-secondary tracking-widest uppercase mt-1">Station 04 Intelligence</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 text-[#4f6073] dark:text-[#91a0b0] px-8 py-3 hover:bg-[#e8e2d7] dark:hover:bg-[#35342d] hover:translate-x-1 transition-transform duration-200 font-sans text-sm font-medium leading-relaxed" href="#">
+<span class="material-symbols-outlined" data-icon="vibration">vibration</span>
+                    Knowledge Vault
+                </a>
+<a class="flex items-center gap-3 text-[#4f6073] dark:text-[#91a0b0] px-8 py-3 hover:bg-[#e8e2d7] dark:hover:bg-[#35342d] hover:translate-x-1 transition-transform duration-200 font-sans text-sm font-medium leading-relaxed" href="#">
+<span class="material-symbols-outlined" data-icon="print">print</span>
+                    Neural Press
+                </a>
+<a class="flex items-center gap-3 text-[#4f6073] dark:text-[#91a0b0] px-8 py-3 hover:bg-[#e8e2d7] dark:hover:bg-[#35342d] hover:translate-x-1 transition-transform duration-200 font-sans text-sm font-medium leading-relaxed" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+                    Ledger
+                </a>
+<a class="flex items-center gap-3 bg-[#570013] text-[#fff9ee] px-8 py-3 shadow-inner font-sans text-sm font-medium leading-relaxed" href="#">
+<span class="material-symbols-outlined" data-icon="construction">construction</span>
+                    Vault Settings
+                </a>
+</nav>
+<div class="px-8 mt-auto pt-8">
+<button class="w-full bg-primary-container text-on-primary py-3 font-headline font-bold uppercase tracking-widest text-sm hover:brightness-110 active:scale-[0.98] transition-all">
+                    New Analysis
+                </button>
+<div class="mt-8 space-y-4 text-secondary text-xs border-t border-outline-variant pt-6">
+<div class="flex items-center gap-3 opacity-70 cursor-pointer hover:opacity-100">
+<span class="material-symbols-outlined scale-75" data-icon="memory">memory</span>
+                        SYSTEM STATUS
+                    </div>
+<div class="flex items-center gap-3 opacity-70 cursor-pointer hover:opacity-100">
+<span class="material-symbols-outlined scale-75" data-icon="inventory_2">inventory_2</span>
+                        ARCHIVES
+                    </div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto p-12 bg-background">
+<div class="max-w-6xl mx-auto">
+<div class="mb-16">
+<h1 class="font-headline text-7xl font-extrabold text-primary tracking-tighter leading-none mb-4 -ml-1">PIPER Vault Protocols</h1>
+<p class="font-body text-secondary text-lg max-w-2xl leading-relaxed">Adjustment of the core heuristic engine and retrieval mechanisms for the sovereign intelligence unit. Every modification is logged in the permanent ledger.</p>
+</div>
+<div class="grid grid-cols-12 gap-12">
+<!-- Protocol Controls -->
+<div class="col-span-12 lg:col-span-8 space-y-12">
+<!-- Core Processing Section -->
+<section class="bg-surface-container-low p-12 border-l-4 border-primary paper-stack relative overflow-hidden">
+<h2 class="font-headline text-3xl font-bold text-primary mb-10 tracking-tight">Core Processing Parameters</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+<div class="space-y-4">
+<label class="block font-label text-xs font-bold text-secondary uppercase tracking-widest">LLM Provider</label>
+<input class="w-full bg-transparent border-b border-outline py-2 focus:border-primary focus:ring-0 text-lg font-medium transition-colors" type="text" value="PIPER-Industrial-Large-V3"/>
+</div>
+<div class="space-y-4">
+<label class="block font-label text-xs font-bold text-secondary uppercase tracking-widest">Access Key</label>
+<input class="w-full bg-transparent border-b border-outline py-2 focus:border-primary focus:ring-0 text-lg font-medium transition-colors" type="password" value="••••••••••••••••"/>
+</div>
+<div class="col-span-full space-y-6 pt-4">
+<div class="flex justify-between items-end">
+<label class="font-label text-xs font-bold text-secondary uppercase tracking-widest">Reasoning Temperament</label>
+<span class="font-headline font-bold text-primary text-xl">0.84</span>
+</div>
+<input class="w-full" max="100" min="0" type="range" value="84"/>
+<div class="flex justify-between text-[10px] text-outline font-bold uppercase tracking-tighter">
+<span>Conservative</span>
+<span>Speculative</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Retrieval Heuristics -->
+<section class="bg-surface-container-high p-12 relative">
+<h2 class="font-headline text-3xl font-bold text-primary mb-10 tracking-tight">Retrieval Heuristics</h2>
+<div class="space-y-12">
+<div class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<label class="font-label text-xs font-bold text-secondary uppercase tracking-widest">Heuristic Depth</label>
+<p class="text-xs text-on-surface-variant italic mt-1">Determines the recursion depth of retrieval branches.</p>
+</div>
+<span class="font-headline font-bold text-primary text-xl">Level 4</span>
+</div>
+<input class="w-full" max="10" min="1" type="range" value="4"/>
+</div>
+<div class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<label class="font-label text-xs font-bold text-secondary uppercase tracking-widest">Similarity Threshold</label>
+<p class="text-xs text-on-surface-variant italic mt-1">Minimum cosine similarity for document admission.</p>
+</div>
+<span class="font-headline font-bold text-primary text-xl">0.92</span>
+</div>
+<input class="w-full" max="100" min="0" type="range" value="92"/>
+</div>
+</div>
+<div class="mt-12 flex gap-4">
+<button class="px-8 py-3 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest text-sm hover:brightness-125 transition-all">
+                                    COMMIT PROTOCOLS
+                                </button>
+<button class="px-8 py-3 bg-transparent border border-outline text-secondary font-headline font-bold uppercase tracking-widest text-sm hover:bg-surface-container-highest transition-all">
+                                    RESET TO DEFAULTS
+                                </button>
+</div>
+</section>
+</div>
+<!-- Metrics Sidebar -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<div class="bg-surface-container p-8 space-y-10">
+<h3 class="font-headline text-xl font-bold text-secondary border-b border-outline-variant pb-4 tracking-tight italic">Live Metrics</h3>
+<div class="space-y-2">
+<div class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Current Latency</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-5xl font-black text-primary">124</span>
+<span class="text-secondary font-bold italic">ms</span>
+</div>
+<div class="w-full h-1 bg-outline-variant relative">
+<div class="absolute inset-y-0 left-0 bg-primary w-[40%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Token Throughput</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-5xl font-black text-primary">1.8</span>
+<span class="text-secondary font-bold italic">k/s</span>
+</div>
+<div class="w-full h-1 bg-outline-variant relative">
+<div class="absolute inset-y-0 left-0 bg-primary w-[75%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Context Usage</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-5xl font-black text-primary">64</span>
+<span class="text-secondary font-bold italic">%</span>
+</div>
+<div class="w-full h-1 bg-outline-variant relative">
+<div class="absolute inset-y-0 left-0 bg-primary w-[64%]"></div>
+</div>
+</div>
+</div>
+<div class="bg-[#2a2922] p-8 text-[#fff9ee]">
+<h3 class="font-headline text-lg font-bold mb-6 tracking-tight flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="history">history</span>
+                                Protocol History
+                            </h3>
+<ul class="space-y-4 font-label text-xs tracking-tight">
+<li class="flex justify-between items-start opacity-60">
+<span>HEURISTIC_REVISION_44</span>
+<span class="font-mono">14:22:01</span>
+</li>
+<li class="flex justify-between items-start opacity-60">
+<span>SIMILARITY_BUMP_V2</span>
+<span class="font-mono">12:05:44</span>
+</li>
+<li class="flex justify-between items-start opacity-60">
+<span>CORE_RESET_STATION_04</span>
+<span class="font-mono">09:15:22</span>
+</li>
+</ul>
+<div class="mt-8">
+<img class="w-full opacity-40 mix-blend-screen grayscale" data-alt="Intricate technical etching of a massive iron vault door with complex gears and steam pipes in a vintage Victorian style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1ZaFqUwyavVIWi4f-RXPd3GZoSeqs1TicDw3VubPISpEE_DvZSECS_1mcpeUCnfiP-BWJdGu-E_6Qb0t8nSFYef42ca9KW1YaFkDObvT7qVk3f5UQ-ElDZPAwhIUVZM6ag_fMnYrreidEnKziw9G_6KmeMO51QsjOO3ZYCO5sh7FCNbtE6WsjfK2fPPN69xK_TOW0Auq0JJ1yeVfJEp6geaH9U68j_W2f25PAZnfouTo1avKCwVV5W01B4Xq41kknjeE4m8IZ-w"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#fff9ee] dark:bg-[#1d1c15] flex justify-around items-center py-4 border-t border-outline-variant">
+<div class="flex flex-col items-center gap-1 text-[#4f6073]">
+<span class="material-symbols-outlined" data-icon="vibration">vibration</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Vault</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#4f6073]">
+<span class="material-symbols-outlined" data-icon="print">print</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Press</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#570013]">
+<span class="material-symbols-outlined" data-icon="construction" style="font-variation-settings: 'FILL' 1;">construction</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Protocols</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#4f6073]">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Ledger</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIPER Vault | Intelligence Graph</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-container": "#d2e4fb",
+                        "primary-container": "#570013",
+                        "on-secondary-container": "#556679",
+                        "inverse-surface": "#323029",
+                        "secondary-fixed-dim": "#b6c8de",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e7e2d7",
+                        "on-tertiary-container": "#7292b3",
+                        "on-primary-fixed-variant": "#83232f",
+                        "surface-bright": "#fff9ee",
+                        "outline-variant": "#dcc0c0",
+                        "on-surface": "#1d1c15",
+                        "surface-tint": "#a23b45",
+                        "on-secondary-fixed": "#0a1d2d",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d2e4fb",
+                        "on-primary-container": "#e06a72",
+                        "background": "#fff9ee",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#ede8dd",
+                        "surface": "#fff9ee",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#300007",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#a9caed",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#cee5ff",
+                        "on-tertiary-fixed": "#001d33",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#002a46",
+                        "tertiary": "#001526",
+                        "on-primary-fixed": "#40000c",
+                        "on-tertiary-fixed-variant": "#284967",
+                        "outline": "#897172",
+                        "surface-dim": "#dfd9cf",
+                        "primary-fixed": "#ffdada",
+                        "on-primary": "#ffffff",
+                        "secondary": "#4f6073",
+                        "on-surface-variant": "#564242",
+                        "on-background": "#1d1c15",
+                        "surface-variant": "#e7e2d7",
+                        "surface-container": "#f3ede2",
+                        "inverse-primary": "#ffb3b5",
+                        "primary-fixed-dim": "#ffb3b5",
+                        "surface-container-low": "#f9f3e8",
+                        "on-secondary-fixed-variant": "#37485a",
+                        "inverse-on-surface": "#f6f0e5"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Work Sans", "sans-serif"],
+                        "label": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24
+    }
+.parchment-grid {
+    background-image: linear-gradient(to right, rgba(86, 66, 66, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(86, 66, 66, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px
+    }
+.ink-bleed {
+    filter: contrast(1.1) brightness(0.95) sepia(0.1)
+    }
+.noise-overlay {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuClKy6WMEyqlfE7fFnDZ8gXnSfo_s0MS05jStSNvQP7-i35_B8R4z4woTf2I-_D7sYA4PSBUP4-MU6Rx1cRgBxOInVI1xTq_4fS_CbMykXhH0XohmCGxVc-_kojovppI60H3pzHlYGby0pQIaeX9Cwn5dtEEVrENoMc59EDdOu0jmAy5wv6OIq7qeTL2go1a7JXtkCFcvBSUt0Hi42TGFQ4bKim1tADMGMU14krZ-8YpTBqMjaEONdgqnm-I8rhR2n3jA2poYqpUA);
+    opacity: 0.03;
+    pointer-events: none
+    }</style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-fixed selection:text-primary overflow-hidden">
+<div class="fixed inset-0 noise-overlay z-50"></div>
+<!-- TopNavBar -->
+<nav class="bg-[#fff9ee] dark:bg-[#1d1c15] flex justify-between items-center w-full px-12 py-6 max-w-full docked full-width top-0 z-40">
+<div class="text-3xl font-black text-[#570013] dark:text-[#ffb4ab] font-serif tracking-tighter">PIPER Vault</div>
+<div class="hidden md:flex items-center gap-8 font-serif text-lg tracking-tight uppercase">
+<a class="text-[#4f6073] dark:text-[#91a0b0] font-medium hover:text-[#570013] dark:hover:text-[#ffb4ab] transition-colors duration-200" href="#">Analysis</a>
+<a class="text-[#4f6073] dark:text-[#91a0b0] font-medium hover:text-[#570013] dark:hover:text-[#ffb4ab] transition-colors duration-200" href="#">Archives</a>
+<a class="text-[#570013] dark:text-[#ffb4ab] border-b-4 border-[#570013] font-bold pb-1" href="#">Intelligence</a>
+<a class="text-[#4f6073] dark:text-[#91a0b0] font-medium hover:text-[#570013] dark:hover:text-[#ffb4ab] transition-colors duration-200" href="#">Protocols</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#4f6073] p-2 hover:bg-surface-container transition-colors">settings</button>
+<button class="material-symbols-outlined text-[#4f6073] p-2 hover:bg-surface-container transition-colors">account_circle</button>
+</div>
+</nav>
+<div class="flex h-[calc(100vh-88px)] mt-[88px]">
+<!-- SideNavBar (Suppressed for Intelligence Graph Canvas as per "Destination Rule" filter if focused task, but kept as context here) -->
+<aside class="hidden lg:flex flex-col h-full bg-[#f3ede2] dark:bg-[#2a2922] w-72 pt-8 pb-4 shadow-[20px_0px_40px_rgba(29,28,21,0.04)] z-30">
+<div class="px-8 mb-12">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div>
+<div class="text-sm font-bold uppercase tracking-wider text-primary">The Curator</div>
+<div class="text-[10px] text-secondary">Station 04 Intelligence</div>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-1 px-4">
+<a class="flex items-center gap-3 text-[#4f6073] dark:text-[#91a0b0] px-4 py-3 hover:bg-[#e8e2d7] dark:hover:bg-[#35342d] transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">vibration</span> Knowledge Vault
+                </a>
+<a class="flex items-center gap-3 text-[#4f6073] dark:text-[#91a0b0] px-4 py-3 hover:bg-[#e8e2d7] dark:hover:bg-[#35342d] transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">print</span> Neural Press
+                </a>
+<a class="flex items-center gap-3 bg-[#570013] text-[#fff9ee] px-4 py-3 shadow-inner transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">menu_book</span> Ledger
+                </a>
+<a class="flex items-center gap-3 text-[#4f6073] dark:text-[#91a0b0] px-4 py-3 hover:bg-[#e8e2d7] dark:hover:bg-[#35342d] transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">construction</span> Vault Settings
+                </a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full bg-primary-container text-on-primary py-4 px-6 text-sm font-bold uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">
+                    New Analysis
+                </button>
+<div class="border-t border-outline/10 pt-4 space-y-1">
+<a class="flex items-center gap-3 text-[#4f6073] px-4 py-2 text-xs font-medium opacity-70 hover:opacity-100" href="#">
+<span class="material-symbols-outlined text-sm">memory</span> System Status
+                    </a>
+<a class="flex items-center gap-3 text-[#4f6073] px-4 py-2 text-xs font-medium opacity-70 hover:opacity-100" href="#">
+<span class="material-symbols-outlined text-sm">inventory_2</span> Archives
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 relative overflow-hidden flex flex-col">
+<!-- Header Section: Intentional Asymmetry -->
+<header class="p-12 pb-6 relative z-10">
+<div class="max-w-4xl">
+<h1 class="font-headline text-6xl font-black text-primary tracking-tighter leading-none mb-4 ink-bleed">
+                        SEMANTIC<br/>INTELLIGENCE GRAPH
+                    </h1>
+<div class="flex items-center gap-6">
+<div class="h-[1px] w-24 bg-primary"></div>
+<p class="font-body text-secondary text-lg max-w-md italic">
+                            Visualizing high-dimensional vector relationships within the Station 04 knowledge aggregate.
+                        </p>
+</div>
+</div>
+</header>
+<!-- Graph Area -->
+<div class="flex-1 relative mx-12 mb-12 bg-surface-container-low parchment-grid overflow-hidden border-b border-primary/20">
+<!-- SVG Visualization Mockup -->
+<svg class="absolute inset-0 w-full h-full opacity-80" viewbox="0 0 1000 600">
+<defs>
+<marker id="dot" markerheight="4" markerwidth="4" refx="5" refy="5" viewbox="0 0 10 10">
+<circle cx="5" cy="5" fill="#570013" r="3"></circle>
+</marker>
+</defs>
+<!-- Lines (Burgundy Ink) -->
+<g opacity="0.4" stroke="#570013" stroke-width="0.5">
+<line x1="200" x2="450" y1="150" y2="300"></line>
+<line x1="450" x2="380" y1="300" y2="450"></line>
+<line x1="450" x2="650" y1="300" y2="250"></line>
+<line x1="650" x2="800" y1="250" y2="100"></line>
+<line x1="650" x2="720" y1="250" y2="400"></line>
+<line x1="200" x2="100" y1="150" y2="350"></line>
+</g>
+<!-- Nodes -->
+<g fill="#570013" font-family="Newsreader" font-size="12" font-weight="700">
+<circle cx="200" cy="150" fill="#570013" r="4"></circle>
+<text x="210" y="145">CORPUS_A_92</text>
+<circle cx="450" cy="300" fill="#570013" r="8"></circle>
+<text font-size="16" x="465" y="305">CENTRAL_NEXUS_04</text>
+<circle cx="380" cy="450" fill="#570013" r="4"></circle>
+<text x="390" y="465">SIGNAL_ECHO</text>
+<circle cx="650" cy="250" fill="#570013" r="6"></circle>
+<text x="665" y="245">LEDGER_INTERSECT</text>
+<circle cx="800" cy="100" fill="#570013" r="4"></circle>
+<text x="810" y="95">VOID_POINTER</text>
+<circle cx="100" cy="350" fill="#570013" r="4"></circle>
+<text x="110" y="365">LEGACY_ENCRYPT</text>
+</g>
+</svg>
+<!-- Floating Interaction Tools -->
+<div class="absolute bottom-8 left-8 flex flex-col gap-2">
+<button class="bg-surface p-3 border-b border-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary">zoom_in</span>
+</button>
+<button class="bg-surface p-3 border-b border-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary">zoom_out</span>
+</button>
+<button class="bg-surface p-3 border-b border-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary">filter_center_focus</span>
+</button>
+</div>
+</div>
+<!-- Global Vector Stats: Editorial Blocks -->
+<div class="px-12 pb-12 grid grid-cols-4 gap-8">
+<div class="border-l-4 border-primary pl-4 py-2">
+<div class="text-[10px] uppercase tracking-[0.2em] font-bold text-secondary mb-1">Total Dimension Density</div>
+<div class="font-headline text-3xl font-black text-primary italic">0.884 <span class="text-xs font-body not-italic align-middle">ρ</span></div>
+</div>
+<div class="border-l-4 border-primary pl-4 py-2">
+<div class="text-[10px] uppercase tracking-[0.2em] font-bold text-secondary mb-1">Semantic Clusters</div>
+<div class="font-headline text-3xl font-black text-primary italic">142 <span class="text-xs font-body not-italic align-middle">NODES</span></div>
+</div>
+<div class="border-l-4 border-primary pl-4 py-2">
+<div class="text-[10px] uppercase tracking-[0.2em] font-bold text-secondary mb-1">Mean Distance</div>
+<div class="font-headline text-3xl font-black text-primary italic">4.2 <span class="text-xs font-body not-italic align-middle">LVLS</span></div>
+</div>
+<div class="border-l-4 border-primary pl-4 py-2">
+<div class="text-[10px] uppercase tracking-[0.2em] font-bold text-secondary mb-1">Intelligence Integrity</div>
+<div class="font-headline text-3xl font-black text-primary italic">99.8%</div>
+</div>
+</div>
+</main>
+<!-- Side Panel: Node Inspection -->
+<aside class="w-96 bg-surface-container-high h-full p-8 flex flex-col gap-8 z-20 border-l border-primary/10">
+<div>
+<div class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-6 border-b border-outline-variant pb-2">Active Node Inspection</div>
+<h2 class="font-headline text-4xl font-bold text-primary mb-2 ink-bleed">CENTRAL_NEXUS_04</h2>
+<div class="text-xs font-mono bg-primary-fixed text-on-primary-fixed px-2 py-1 inline-block mb-6">UID: VX-9920-ALPHA</div>
+<p class="text-sm leading-relaxed text-on-surface-variant font-medium">
+                    The primary distillation point for all Station 04 sensory inputs. Contains semantic pointers to the "Sovereign Ledger" and "Neural Press" aggregates.
+                </p>
+</div>
+<div class="space-y-6">
+<div class="text-[10px] uppercase tracking-[0.2em] font-bold text-secondary">Similarity Rankings</div>
+<div class="space-y-4">
+<div class="flex flex-col">
+<div class="flex justify-between items-end mb-1">
+<span class="font-serif font-bold text-primary text-sm uppercase">Corpus_A_92</span>
+<span class="font-body text-xs font-bold">0.962</span>
+</div>
+<div class="h-1 bg-surface-variant w-full overflow-hidden">
+<div class="h-full bg-primary w-[96%]"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex justify-between items-end mb-1">
+<span class="font-serif font-bold text-primary text-sm uppercase">Ledger_Intersect</span>
+<span class="font-body text-xs font-bold">0.841</span>
+</div>
+<div class="h-1 bg-surface-variant w-full overflow-hidden">
+<div class="h-full bg-primary w-[84%]"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex justify-between items-end mb-1">
+<span class="font-serif font-bold text-primary text-sm uppercase">Signal_Echo</span>
+<span class="font-body text-xs font-bold">0.719</span>
+</div>
+<div class="h-1 bg-surface-variant w-full overflow-hidden">
+<div class="h-full bg-primary w-[71%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto space-y-4">
+<div class="p-6 bg-surface-bright flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">history_edu</span>
+<span class="text-[10px] uppercase font-bold tracking-widest text-primary">Metadata Extraction</span>
+</div>
+<div class="grid grid-cols-2 gap-y-4">
+<div>
+<div class="text-[9px] uppercase text-secondary font-bold">Origin</div>
+<div class="text-xs font-bold">PRESS_04</div>
+</div>
+<div>
+<div class="text-[9px] uppercase text-secondary font-bold">Latency</div>
+<div class="text-xs font-bold">2.4ms</div>
+</div>
+<div>
+<div class="text-[9px] uppercase text-secondary font-bold">Type</div>
+<div class="text-xs font-bold">ROOT_INDEX</div>
+</div>
+<div>
+<div class="text-[9px] uppercase text-secondary font-bold">Security</div>
+<div class="text-xs font-bold">VAULT_CLS</div>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-white py-4 font-bold uppercase tracking-widest hover:bg-on-primary-fixed-variant transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+                    EXPAND ARCHIVES
+                </button>
+</div>
+</aside>
+</div>
+<!-- Bottom Nav for Mobile Suppression as per rules -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface flex justify-around py-4 border-t border-primary/10 z-50">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] uppercase font-bold">Graph</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-[10px] uppercase font-bold">Archives</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] uppercase font-bold">Setup</span>
+</button>
+</nav>
+</body></html>

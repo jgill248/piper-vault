@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PIPER Vault Intelligence Chat</title>
+<!-- Typography: Newsreader (Headline) & Work Sans (Body) -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-container": "#d2e4fb",
+              "primary-container": "#570013",
+              "on-secondary-container": "#556679",
+              "inverse-surface": "#323029",
+              "secondary-fixed-dim": "#b6c8de",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e7e2d7",
+              "on-tertiary-container": "#7292b3",
+              "on-primary-fixed-variant": "#83232f",
+              "surface-bright": "#fff9ee",
+              "outline-variant": "#dcc0c0",
+              "on-surface": "#1d1c15",
+              "surface-tint": "#a23b45",
+              "on-secondary-fixed": "#0a1d2d",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#d2e4fb",
+              "on-primary-container": "#e06a72",
+              "background": "#fff9ee",
+              "on-secondary": "#ffffff",
+              "surface-container-high": "#ede8dd",
+              "surface": "#fff9ee",
+              "on-tertiary": "#ffffff",
+              "primary": "#300007",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#a9caed",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#cee5ff",
+              "on-tertiary-fixed": "#001d33",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#002a46",
+              "tertiary": "#001526",
+              "on-primary-fixed": "#40000c",
+              "on-tertiary-fixed-variant": "#284967",
+              "outline": "#897172",
+              "surface-dim": "#dfd9cf",
+              "primary-fixed": "#ffdada",
+              "on-primary": "#ffffff",
+              "secondary": "#4f6073",
+              "on-surface-variant": "#564242",
+              "on-background": "#1d1c15",
+              "surface-variant": "#e7e2d7",
+              "surface-container": "#f3ede2",
+              "inverse-primary": "#ffb3b5",
+              "primary-fixed-dim": "#ffb3b5",
+              "surface-container-low": "#f9f3e8",
+              "on-secondary-fixed-variant": "#37485a",
+              "inverse-on-surface": "#f6f0e5"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Work Sans", "sans-serif"],
+              "label": ["Work Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .paper-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+        .stamp-shadow {
+            box-shadow: 0 20px 40px rgba(29, 28, 21, 0.06);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #564242; }
+    </style>
+</head>
+<body class="bg-background font-body text-on-background paper-texture min-h-screen flex flex-col">
+<!-- Top Navigation Anchor -->
+<header class="bg-[#fff9ee] flex justify-between items-center w-full px-12 py-6 max-w-full docked full-width top-0 z-50">
+<div class="text-3xl font-black text-[#570013] font-headline tracking-tighter">PIPER Vault</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-headline text-lg tracking-tight uppercase transition-colors duration-200 text-[#4f6073] font-medium hover:text-[#570013]" href="#">Analysis</a>
+<a class="font-headline text-lg tracking-tight uppercase transition-colors duration-200 text-[#4f6073] font-medium hover:text-[#570013]" href="#">Archives</a>
+<a class="font-headline text-lg tracking-tight uppercase transition-colors duration-200 text-[#570013] border-b-4 border-[#570013] font-bold pb-1" href="#">Intelligence</a>
+<a class="font-headline text-lg tracking-tight uppercase transition-colors duration-200 text-[#4f6073] font-medium hover:text-[#570013]" href="#">Protocols</a>
+</nav>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-[#4f6073] cursor-pointer">settings</span>
+<span class="material-symbols-outlined text-[#4f6073] cursor-pointer">account_circle</span>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Current Context -->
+<aside class="hidden lg:flex flex-col w-72 bg-[#f3ede2] border-none pt-8 pb-4 h-full shrink-0 stamp-shadow">
+<div class="px-8 mb-10">
+<h2 class="font-headline text-2xl font-bold text-primary mb-1 tracking-tight">Current Context</h2>
+<p class="text-xs text-secondary uppercase tracking-widest font-semibold">Active Intelligence Dossiers</p>
+</div>
+<div class="flex-1 px-4 space-y-4 overflow-y-auto">
+<div class="bg-surface-container-high p-4 border-l-4 border-primary-container">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-sm text-primary">menu_book</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter text-secondary">Document V-882</span>
+</div>
+<p class="text-sm font-bold leading-tight text-on-surface">Neural Press Logistics: Quarter IV</p>
+</div>
+<div class="bg-surface-container-low p-4 hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-sm text-secondary group-hover:text-primary">inventory_2</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter text-secondary">Archive Ledger</span>
+</div>
+<p class="text-sm font-medium leading-tight text-on-surface">Sovereign Debt Cycles 1890-1910</p>
+</div>
+<div class="bg-surface-container-low p-4 hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-sm text-secondary group-hover:text-primary">vibration</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter text-secondary">Signal Intelligence</span>
+</div>
+<p class="text-sm font-medium leading-tight text-on-surface">Transmission Frequency Logs</p>
+</div>
+</div>
+<div class="px-6 mt-6">
+<button class="w-full bg-primary-container text-on-primary py-3 font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
+                    New Analysis
+                </button>
+</div>
+</aside>
+<!-- Main Chat Canvas -->
+<main class="flex-1 flex flex-col bg-background relative overflow-hidden">
+<div class="flex-1 overflow-y-auto px-6 py-12 md:px-16 lg:px-24 space-y-12">
+<!-- Time/Date Marker -->
+<div class="flex items-center justify-center gap-4">
+<div class="h-[1px] flex-1 bg-outline-variant opacity-30"></div>
+<span class="font-headline italic text-secondary text-sm">October 14th, Session 04 Intelligence</span>
+<div class="h-[1px] flex-1 bg-outline-variant opacity-30"></div>
+</div>
+<!-- User Message -->
+<div class="max-w-2xl ml-auto text-right">
+<div class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-2">The Curator</div>
+<p class="text-xl font-headline leading-relaxed text-on-surface italic">
+                        "Cross-reference the Q4 logistics report with the historical archival ledgers for significant deviations in frequency patterns."
+                    </p>
+</div>
+<!-- Assistant Message (Editorial Style) -->
+<div class="max-w-3xl mr-auto">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">print</span>
+<div class="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Vault Intelligence Engine</div>
+</div>
+<div class="bg-surface-container p-8 stamp-shadow border-t-2 border-primary relative">
+<div class="absolute -top-3 -right-3">
+<span class="bg-primary text-background text-[10px] px-2 py-1 font-bold">STAMPED: AUTHENTIC</span>
+</div>
+<div class="space-y-6 text-on-surface font-body leading-loose text-lg">
+<p>
+                                Analysis of <span class="text-primary font-bold">Document V-882</span> reveals a marked 12.4% variance in signal resonance when compared to the 1894 standard ledger. This deviation suggests an intentional manual typesetting error in the transmission protocols <span class="bg-secondary-container text-on-secondary-container px-1.5 py-0.5 text-[10px] font-bold align-top ml-1">[REF_001]</span>.
+                            </p>
+<p>
+                                Further probing into the Archives shows that similar patterns preceded the Great Printing House Strike. The logistical bottlenecks identified in Station 04 correlate with these archival markers <span class="bg-secondary-container text-on-secondary-container px-1.5 py-0.5 text-[10px] font-bold align-top ml-1">[REF_004]</span>.
+                            </p>
+<div class="pt-6 border-t border-outline-variant border-dashed">
+<h4 class="text-xs font-bold text-secondary uppercase tracking-widest mb-3">Supporting Documentation</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center gap-3 p-3 bg-surface-container-lowest">
+<span class="material-symbols-outlined text-secondary">description</span>
+<span class="text-sm font-medium">Logistics_Matrix_Q4.vlt</span>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container-lowest">
+<span class="material-symbols-outlined text-secondary">link</span>
+<span class="text-sm font-medium">Archive_1894_Ledger.vlt</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="max-w-2xl ml-auto text-right">
+<div class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-2">The Curator</div>
+<p class="text-xl font-headline leading-relaxed text-on-surface italic">
+                        "Is there a secondary frequency mask being utilized to obscure these deviations?"
+                    </p>
+</div>
+</div>
+<!-- Chat Input Area (The Ledger Input) -->
+<div class="px-6 md:px-16 lg:px-24 pb-12 pt-4 bg-background/80 backdrop-blur-md">
+<div class="relative flex items-end">
+<div class="flex-1">
+<label class="block text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-1">Inquiry Terminal</label>
+<input class="w-full bg-transparent border-t-0 border-x-0 border-b border-outline focus:border-primary-container focus:ring-0 px-0 py-4 text-lg font-headline italic text-on-surface placeholder:text-outline-variant" placeholder="Direct your inquiry to the Vault..." type="text"/>
+</div>
+<button class="ml-6 p-4 bg-primary-container text-on-primary hover:brightness-110 transition-all active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Right Sidebar: Intelligence Metrics -->
+<aside class="hidden xl:flex flex-col w-80 bg-[#f9f3e8] border-none pt-8 pb-4 h-full shrink-0">
+<div class="px-8 mb-10">
+<h2 class="font-headline text-2xl font-bold text-primary mb-1 tracking-tight">Intelligence Metrics</h2>
+<p class="text-xs text-secondary uppercase tracking-widest font-semibold">Semantic Depth Analysis</p>
+</div>
+<div class="px-8 space-y-10 overflow-y-auto">
+<!-- Metric 1 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold uppercase tracking-tighter text-on-surface">Syntactic Rigor</span>
+<span class="font-headline italic text-primary">94.2%</span>
+</div>
+<div class="h-1 bg-surface-container-highest w-full">
+<div class="h-1 bg-primary w-[94%]"></div>
+</div>
+</div>
+<!-- Metric 2 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold uppercase tracking-tighter text-on-surface">Historical Correlation</span>
+<span class="font-headline italic text-primary">High</span>
+</div>
+<div class="grid grid-cols-5 gap-1">
+<div class="h-2 bg-primary"></div>
+<div class="h-2 bg-primary"></div>
+<div class="h-2 bg-primary"></div>
+<div class="h-2 bg-primary"></div>
+<div class="h-2 bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Engraving Style Map Placeholder -->
+<div class="pt-4">
+<div class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4">Node Connectivity</div>
+<div class="aspect-square bg-surface-container-high relative overflow-hidden flex items-center justify-center">
+<img alt="Technical diagram" class="opacity-40 grayscale mix-blend-multiply w-full h-full object-cover" data-alt="Vintage technical engraving of a complex mechanical gear system and interconnected copper wires on aged parchment paper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe4QMnVo8QozSL00_vYrC-wLZyInU2b_WOIL5PLp0tY3uBCU9z84Lkm2m78ZekUCMuKwcfxchrF3hurqFY5g0PNex-OEise6lPt2m0IZffTFmovD3M1j0WxhPG6l0jHp4ESjPKS-Mgooc9Y57-Z4N4vFAswLiAmEgMgmKoABmxLa7TVzC8asS7axW4tjV5RUVP_PtOLSb6lbd4hGka5Nw4eSXuh31JNqG3dGResp5KckR8lCN7PB5C1Spdk92dpv7gY3oP4XoT7Q"/>
+<div class="absolute inset-0 bg-primary/10 pointer-events-none"></div>
+<!-- Decorative lines to enhance 'engraving' feel -->
+<div class="absolute inset-0 border-[20px] border-surface-container-high border-opacity-60"></div>
+</div>
+<p class="mt-3 text-[10px] leading-relaxed text-secondary italic">
+                        Cross-referencing topological mapping of Vault nodes 04 through 09. Resonance detected in sub-layer Archives.
+                    </p>
+</div>
+<!-- System Status -->
+<div class="bg-primary text-background p-4 flex items-center gap-4">
+<span class="material-symbols-outlined text-xl">memory</span>
+<div>
+<div class="text-[10px] font-bold uppercase tracking-widest leading-none">System Status</div>
+<div class="text-sm font-headline">Press operational. All ink reservoirs full.</div>
+</div>
+</div>
+</div>
+<div class="mt-auto px-8 pt-6">
+<div class="flex justify-between items-center text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">
+<span>Ledger ID: 0094-V</span>
+<span>14:32:01</span>
+</div>
+</div>
+</aside>
+</div>
+</body></html>
