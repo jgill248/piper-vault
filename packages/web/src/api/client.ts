@@ -32,6 +32,14 @@ import type {
 
 export type { AppConfig };
 
+/** Events emitted by the /chat/stream SSE endpoint. */
+export type StreamEvent =
+  | { type: 'meta'; conversationId: string; messageId: string }
+  | { type: 'delta'; content: string }
+  | { type: 'sources'; sourceIds: string[] }
+  | { type: 'done'; model?: string; tokensUsed?: number }
+  | { type: 'error'; message: string };
+
 const BASE_URL = API_PREFIX;
 
 /** Module-level token store — set by AuthContext after login/register. */
@@ -139,6 +147,65 @@ export const api = {
   // Chat
   sendMessage: (body: ChatRequest): Promise<ChatResponse> =>
     request<ChatResponse>('/chat', { method: 'POST', body: JSON.stringify(body) }),
+
+  /**
+   * Stream a chat response via SSE. Returns an async iterable of parsed events.
+   */
+  sendMessageStream: async function* (body: ChatRequest): AsyncGenerator<StreamEvent> {
+    const authHeaders: Record<string, string> =
+      _authToken ? { Authorization: `Bearer ${_authToken}` } : {};
+
+    const response = await fetch(`${BASE_URL}/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 401) {
+      _onUnauthorized?.();
+      throw new Error('Unauthorized');
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+      throw new Error(
+        (error as { error?: { message?: string } }).error?.message ?? 'Request failed',
+      );
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No response body');
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (!data) continue;
+          try {
+            yield JSON.parse(data) as StreamEvent;
+          } catch {
+            // Skip malformed events
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  },
 
   // Conversations
   listConversations: async (collectionId?: string): Promise<readonly Conversation[]> => {

@@ -6,6 +6,7 @@ import { DeleteConversationHandler } from './commands/delete-conversation.handle
 import { ListConversationsHandler } from './queries/list-conversations.handler';
 import { GetConversationHandler } from './queries/get-conversation.handler';
 import { ExportConversationHandler } from './queries/export-conversation.handler';
+import { StreamChatService } from './services/stream-chat.service';
 
 const CommandHandlers = [SendMessageHandler, DeleteConversationHandler];
 const QueryHandlers = [ListConversationsHandler, GetConversationHandler, ExportConversationHandler];
@@ -13,6 +14,6 @@ const QueryHandlers = [ListConversationsHandler, GetConversationHandler, ExportC
 @Module({
   imports: [CqrsModule],
   controllers: [ChatController],
-  providers: [...CommandHandlers, ...QueryHandlers],
+  providers: [...CommandHandlers, ...QueryHandlers, StreamChatService],
 })
 export class ChatModule {}

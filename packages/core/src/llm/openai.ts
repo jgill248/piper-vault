@@ -1,6 +1,6 @@
 import { ok, err } from '@delve/shared';
 import type { Result } from '@delve/shared';
-import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
+import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
 
 const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 const LLM_FETCH_TIMEOUT_MS = 30_000;
@@ -120,6 +120,96 @@ export class OpenAiProvider implements LlmProvider {
       model: json.model ?? input.model ?? this.defaultModel,
       tokensUsed: json.usage?.completion_tokens,
     });
+  }
+
+  /**
+   * Streams a response from the OpenAI Chat Completions API via SSE.
+   */
+  async *streamQuery(input: LlmQuery): AsyncIterable<LlmStreamChunk> {
+    const messages: OpenAiMessage[] = [];
+    if (input.systemPrompt !== undefined) {
+      messages.push({ role: 'system', content: input.systemPrompt });
+    }
+    messages.push({ role: 'user', content: input.prompt });
+
+    const body = {
+      model: input.model ?? this.defaultModel,
+      stream: true,
+      ...(input.maxTokens !== undefined ? { max_tokens: input.maxTokens } : {}),
+      messages,
+    };
+
+    let rawResponse: Response;
+    try {
+      rawResponse = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120_000),
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      yield { delta: `[Error: ${message}]`, done: true };
+      return;
+    }
+
+    if (!rawResponse.ok) {
+      const text = await rawResponse.text().catch(() => rawResponse.statusText);
+      yield { delta: `[Error: HTTP ${rawResponse.status} — ${text}]`, done: true };
+      return;
+    }
+
+    const reader = rawResponse.body?.getReader();
+    if (!reader) {
+      yield { delta: '[Error: no response body]', done: true };
+      return;
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let model = input.model ?? this.defaultModel;
+    let tokensUsed: number | undefined;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+
+          try {
+            const chunk = JSON.parse(data) as Record<string, unknown>;
+            if (chunk['model']) model = chunk['model'] as string;
+
+            const choices = chunk['choices'] as readonly Record<string, unknown>[] | undefined;
+            const delta = choices?.[0]?.['delta'] as Record<string, unknown> | undefined;
+            const content = delta?.['content'] as string | undefined;
+            if (content) yield { delta: content, done: false };
+
+            const usage = chunk['usage'] as Record<string, unknown> | undefined;
+            if (usage?.['completion_tokens']) {
+              tokensUsed = usage['completion_tokens'] as number;
+            }
+          } catch {
+            // Skip malformed JSON lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    yield { delta: '', done: true, model, tokensUsed };
   }
 
   /**
