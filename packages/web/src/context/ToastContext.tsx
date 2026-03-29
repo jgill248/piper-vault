@@ -40,18 +40,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center gap-2 px-3 py-2 border font-mono text-xs uppercase tracking-wider shadow-lg transition-all duration-200 ${
+            className={`pointer-events-auto flex items-center gap-2 px-3 py-2 border font-label text-xs uppercase tracking-wider transition-all duration-200 ${
               toast.variant === 'success'
-                ? 'bg-obsidian-raised border-phosphor/40 text-phosphor'
+                ? 'bg-surface-container-high border-primary/40 text-primary'
                 : toast.variant === 'error'
-                  ? 'bg-obsidian-raised border-red-400/40 text-red-300'
-                  : 'bg-obsidian-raised border-obsidian-border/40 text-ui-muted'
+                  ? 'bg-surface-container-high border-red-400/40 text-red-300'
+                  : 'bg-surface-container-high border-outline-variant/40 text-secondary'
             }`}
           >
             <span className="flex-1">{toast.message}</span>
             <button
               onClick={() => dismiss(toast.id)}
-              className="text-ui-dim hover:text-ui-text transition-colors ml-1"
+              className="text-on-surface-variant hover:text-on-surface transition-colors ml-1"
               aria-label="Dismiss"
             >
               ✕

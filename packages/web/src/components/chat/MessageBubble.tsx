@@ -43,17 +43,17 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         className={`flex items-center gap-2 mb-1 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
       >
         {/* Role icon */}
-        <span className={`shrink-0 ${isUser ? 'text-ui-dim' : 'text-phosphor'}`}>
+        <span className={`shrink-0 ${isUser ? 'text-on-surface-variant' : 'text-primary'}`}>
           {isUser ? <User size={10} strokeWidth={1.5} /> : <Cpu size={10} strokeWidth={1.5} />}
         </span>
         <span
-          className={`font-mono text-[9px] uppercase tracking-widest ${
-            isUser ? 'text-ui-muted' : 'text-phosphor'
+          className={`font-label text-[9px] uppercase tracking-widest ${
+            isUser ? 'text-secondary' : 'text-primary'
           }`}
         >
           {isUser ? 'USER' : 'DELVE'}
         </span>
-        <span className="font-mono text-[9px] text-ui-dim">
+        <span className="font-label text-[9px] text-on-surface-variant">
           {formatTimestamp(message.createdAt)}
         </span>
       </div>
@@ -62,28 +62,27 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       <div
         className={`max-w-[80%] px-4 py-3 text-sm ${
           isUser
-            ? 'bg-obsidian-raised text-ui-text border-r-2 border-r-ui-dim/30'
-            : 'bg-obsidian-surface text-ui-text border-l-3 border-l-phosphor/50'
+            ? 'bg-surface-container-high text-on-surface border-r-2 border-r-on-surface-variant/30'
+            : 'bg-surface text-on-surface border-l-3 border-l-primary/50'
         }`}
-        style={isAssistant ? { backgroundColor: 'rgba(171,214,0,0.02)' } : undefined}
       >
         {isUser ? (
-          <p className="font-sans text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+          <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-invert prose-sm max-w-none font-sans leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+          <div className="prose prose-sm max-w-none font-body leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
             <ReactMarkdown
               components={{
                 code({ children, className, ...props }) {
                   const isInline = !className;
                   return isInline ? (
                     <code
-                      className="font-mono text-phosphor bg-obsidian-sunken px-1.5 py-0.5 text-xs"
+                      className="font-mono text-primary bg-surface-container px-1.5 py-0.5 text-xs"
                       {...props}
                     >
                       {children}
                     </code>
                   ) : (
-                    <code className="font-mono text-xs text-ui-text" {...props}>
+                    <code className="font-mono text-xs text-on-surface" {...props}>
                       {children}
                     </code>
                   );
@@ -91,7 +90,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 pre({ children, ...props }) {
                   return (
                     <pre
-                      className="bg-obsidian-sunken border border-obsidian-border/30 p-3 overflow-x-auto font-mono text-xs my-2"
+                      className="bg-surface-container border border-outline-variant/30 p-3 overflow-x-auto font-mono text-xs my-2"
                       {...props}
                     >
                       {children}
@@ -102,7 +101,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                   return (
                     <a
                       href={href}
-                      className="text-phosphor underline underline-offset-2"
+                      className="text-primary underline underline-offset-2"
                       target="_blank"
                       rel="noopener noreferrer"
                       {...props}
@@ -134,21 +133,21 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 },
                 h1({ children, ...props }) {
                   return (
-                    <h1 className="font-display font-semibold text-base mb-2 text-ui-text" {...props}>
+                    <h1 className="font-headline font-semibold text-base mb-2 text-on-surface" {...props}>
                       {children}
                     </h1>
                   );
                 },
                 h2({ children, ...props }) {
                   return (
-                    <h2 className="font-display font-semibold text-sm mb-2 text-ui-text" {...props}>
+                    <h2 className="font-headline font-semibold text-sm mb-2 text-on-surface" {...props}>
                       {children}
                     </h2>
                   );
                 },
                 h3({ children, ...props }) {
                   return (
-                    <h3 className="font-display font-medium text-sm mb-1 text-ui-text" {...props}>
+                    <h3 className="font-headline font-medium text-sm mb-1 text-on-surface" {...props}>
                       {children}
                     </h3>
                   );
@@ -156,7 +155,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 blockquote({ children, ...props }) {
                   return (
                     <blockquote
-                      className="border-l-2 border-phosphor/40 pl-3 text-ui-muted italic my-2"
+                      className="border-l-2 border-primary/40 pl-3 text-secondary italic my-2"
                       {...props}
                     >
                       {children}
@@ -174,7 +173,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       {/* Source citations */}
       {isAssistant && message.sources && message.sources.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1.5 max-w-[80%]">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest self-center">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest self-center">
             SOURCES:
           </span>
           {message.sources.map((sourceId, i) => {
@@ -185,7 +184,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             return (
               <span
                 key={sourceId}
-                className="font-mono text-[9px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-2 py-0.5 uppercase tracking-wider cursor-default"
+                className="font-label text-[9px] text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 uppercase tracking-wider cursor-default"
                 title={fullName}
               >
                 [{String(i + 1).padStart(2, '0')}] {displayName}

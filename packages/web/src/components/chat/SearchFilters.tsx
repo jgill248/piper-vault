@@ -70,7 +70,7 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
   }
 
   return (
-    <div className="border-b border-obsidian-border/20 bg-obsidian-sunken shrink-0">
+    <div className="border-b border-outline-variant/20 bg-surface-container shrink-0">
       {/* Toggle bar */}
       <div className="flex items-center justify-between px-4 py-1.5">
         <button
@@ -81,25 +81,25 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
           aria-label="Toggle search filters"
           title="Toggle search filters (sources, file types, tags, date range)"
         >
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             FILTERS
           </span>
           {activeCount > 0 && (
-            <span className="font-mono text-[9px] text-phosphor uppercase tracking-wider bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5">
+            <span className="font-label text-[9px] text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-1.5 py-0.5">
               {activeCount} ACTIVE
             </span>
           )}
           {expanded ? (
-            <ChevronUp size={10} className="text-ui-dim" />
+            <ChevronUp size={10} className="text-on-surface-variant" />
           ) : (
-            <ChevronDown size={10} className="text-ui-dim" />
+            <ChevronDown size={10} className="text-on-surface-variant" />
           )}
         </button>
 
         {activeCount > 0 && (
           <button
             onClick={handleClearAll}
-            className="flex items-center gap-1 font-mono text-[9px] text-ui-dim hover:text-ui-muted uppercase tracking-wider transition-colors duration-100"
+            className="flex items-center gap-1 font-label text-[9px] text-on-surface-variant hover:text-secondary uppercase tracking-wider transition-colors duration-100"
             aria-label="Clear all filters"
           >
             <X size={9} strokeWidth={2} />
@@ -112,22 +112,22 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
       {!expanded && activeCount > 0 && (
         <div className="flex items-center gap-1.5 px-4 pb-1.5 flex-wrap">
           {filters.fileTypes.map((ft) => (
-            <span key={ft} className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+            <span key={ft} className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider">
               {ft}
             </span>
           ))}
           {filters.tags.map((tag) => (
-            <span key={tag} className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+            <span key={tag} className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider">
               #{tag}
             </span>
           ))}
           {(filters.dateFrom || filters.dateTo) && (
-            <span className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+            <span className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider">
               {filters.dateFrom || '...'} — {filters.dateTo || '...'}
             </span>
           )}
           {filters.sourceIds.length > 0 && (
-            <span className="font-mono text-[8px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider">
+            <span className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider">
               {filters.sourceIds.length} SOURCE{filters.sourceIds.length > 1 ? 'S' : ''}
             </span>
           )}
@@ -138,15 +138,15 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
       {expanded && (
         <div
           id="search-filter-panel"
-          className="px-4 pb-3 pt-1 grid grid-cols-4 gap-4 border-t border-obsidian-border/10"
+          className="px-4 pb-3 pt-1 grid grid-cols-4 gap-4 border-t border-outline-variant/10"
         >
           {/* Source multi-select */}
           <div>
-            <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mb-2">
+            <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-2">
               SOURCES
             </p>
             {sources.length === 0 ? (
-              <span className="font-mono text-[9px] text-ui-dim uppercase">NONE INDEXED</span>
+              <span className="font-label text-[9px] text-on-surface-variant uppercase">NONE INDEXED</span>
             ) : (
               <div className="space-y-1 max-h-24 overflow-y-auto">
                 {sources.map((src) => {
@@ -156,13 +156,13 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
                       key={src.id}
                       onClick={() => toggleSourceId(src.id)}
                       aria-pressed={active}
-                      className={`flex items-center gap-1.5 w-full text-left font-mono text-[9px] uppercase tracking-wider transition-colors duration-100 ${
-                        active ? 'text-phosphor' : 'text-ui-dim hover:text-ui-muted'
+                      className={`flex items-center gap-1.5 w-full text-left font-label text-[9px] uppercase tracking-wider transition-colors duration-100 ${
+                        active ? 'text-primary' : 'text-on-surface-variant hover:text-secondary'
                       }`}
                     >
                       <span
                         className={`inline-block w-2 h-2 border shrink-0 ${
-                          active ? 'bg-phosphor border-phosphor' : 'border-obsidian-border'
+                          active ? 'bg-primary border-primary' : 'border-outline-variant'
                         }`}
                         aria-hidden="true"
                       />
@@ -176,7 +176,7 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
 
           {/* File type multi-select */}
           <div>
-            <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mb-2">
+            <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-2">
               FILE TYPES
             </p>
             <div className="flex flex-wrap gap-1">
@@ -187,10 +187,10 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
                     key={ft}
                     onClick={() => toggleFileType(ft)}
                     aria-pressed={active}
-                    className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border transition-all duration-100 ${
+                    className={`font-label text-[9px] uppercase tracking-wider px-2 py-0.5 border transition-all duration-100 ${
                       active
-                        ? 'border-phosphor text-phosphor bg-phosphor/10'
-                        : 'border-obsidian-border/40 text-ui-dim hover:border-obsidian-border hover:text-ui-muted'
+                        ? 'border-primary text-primary bg-primary/10'
+                        : 'border-outline-variant/40 text-on-surface-variant hover:border-outline-variant hover:text-secondary'
                     }`}
                   >
                     {ft}
@@ -202,11 +202,11 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
 
           {/* Tags multi-select */}
           <div>
-            <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mb-2">
+            <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-2">
               TAGS
             </p>
             {(!availableTags || availableTags.length === 0) ? (
-              <span className="font-mono text-[9px] text-ui-dim uppercase">NO TAGS</span>
+              <span className="font-label text-[9px] text-on-surface-variant uppercase">NO TAGS</span>
             ) : (
               <div className="flex flex-wrap gap-1">
                 {availableTags.map((tag) => {
@@ -216,10 +216,10 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
                       key={tag}
                       onClick={() => toggleTag(tag)}
                       aria-pressed={active}
-                      className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border transition-all duration-100 ${
+                      className={`font-label text-[9px] uppercase tracking-wider px-2 py-0.5 border transition-all duration-100 ${
                         active
-                          ? 'border-phosphor text-phosphor bg-phosphor/10'
-                          : 'border-obsidian-border/40 text-ui-dim hover:border-obsidian-border hover:text-ui-muted'
+                          ? 'border-primary text-primary bg-primary/10'
+                          : 'border-outline-variant/40 text-on-surface-variant hover:border-outline-variant hover:text-secondary'
                       }`}
                     >
                       {tag}
@@ -232,12 +232,12 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
 
           {/* Date range */}
           <div>
-            <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mb-2">
+            <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-2">
               DATE RANGE
             </p>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[9px] text-ui-dim uppercase w-6 shrink-0">
+                <span className="font-label text-[9px] text-on-surface-variant uppercase w-6 shrink-0">
                   FROM
                 </span>
                 <input
@@ -245,17 +245,17 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
                   value={filters.dateFrom}
                   onChange={(e) => onChange({ ...filters, dateFrom: e.target.value })}
                   aria-label="Filter from date"
-                  className="flex-1 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[9px] text-ui-text px-1 py-0.5 outline-none focus:border-phosphor transition-colors duration-100 uppercase"
+                  className="flex-1 bg-surface-container border-b border-outline-variant font-mono text-[9px] text-on-surface px-1 py-0.5 outline-none focus:border-primary transition-colors duration-100 uppercase"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[9px] text-ui-dim uppercase w-6 shrink-0">TO</span>
+                <span className="font-label text-[9px] text-on-surface-variant uppercase w-6 shrink-0">TO</span>
                 <input
                   type="date"
                   value={filters.dateTo}
                   onChange={(e) => onChange({ ...filters, dateTo: e.target.value })}
                   aria-label="Filter to date"
-                  className="flex-1 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[9px] text-ui-text px-1 py-0.5 outline-none focus:border-phosphor transition-colors duration-100 uppercase"
+                  className="flex-1 bg-surface-container border-b border-outline-variant font-mono text-[9px] text-on-surface px-1 py-0.5 outline-none focus:border-primary transition-colors duration-100 uppercase"
                 />
               </div>
             </div>

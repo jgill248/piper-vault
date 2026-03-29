@@ -36,15 +36,15 @@ function MoveFolderMenu({
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full z-50 mt-0.5 min-w-[140px] bg-obsidian-raised border border-obsidian-border/30 shadow-lg"
+      className="absolute right-0 top-full z-50 mt-0.5 min-w-[140px] bg-surface-container-high border border-outline-variant/30"
     >
-      <div className="px-2 py-1 border-b border-obsidian-border/20">
-        <span className="text-[9px] font-mono text-ui-dim uppercase tracking-wider">Move to folder</span>
+      <div className="px-2 py-1 border-b border-outline-variant/20">
+        <span className="text-[9px] font-label text-on-surface-variant uppercase tracking-wider">Move to folder</span>
       </div>
       <button
         onClick={() => { onMove(null); onClose(); }}
-        className={`w-full text-left px-2 py-1.5 text-xs font-mono transition-colors hover:bg-obsidian-surface ${
-          !currentPath ? 'text-phosphor' : 'text-ui-muted hover:text-ui-text'
+        className={`w-full text-left px-2 py-1.5 text-xs font-label transition-colors hover:bg-surface ${
+          !currentPath ? 'text-primary' : 'text-secondary hover:text-on-surface'
         }`}
       >
         / (root)
@@ -53,15 +53,15 @@ function MoveFolderMenu({
         <button
           key={folder.id}
           onClick={() => { onMove(folder.path); onClose(); }}
-          className={`w-full text-left px-2 py-1.5 text-xs font-mono transition-colors hover:bg-obsidian-surface ${
-            currentPath === folder.path ? 'text-phosphor' : 'text-ui-muted hover:text-ui-text'
+          className={`w-full text-left px-2 py-1.5 text-xs font-label transition-colors hover:bg-surface ${
+            currentPath === folder.path ? 'text-primary' : 'text-secondary hover:text-on-surface'
           }`}
         >
           {folder.path}
         </button>
       ))}
       {folders.length === 0 && (
-        <div className="px-2 py-1.5 text-[10px] font-mono text-ui-dim">No folders yet</div>
+        <div className="px-2 py-1.5 text-[10px] font-label text-on-surface-variant">No folders yet</div>
       )}
     </div>
   );
@@ -80,7 +80,7 @@ export function NoteList({
 
   if (isLoading) {
     return (
-      <div className="p-4 text-xs font-mono text-ui-dim uppercase tracking-wider animate-pulse">
+      <div className="p-4 text-xs font-label text-on-surface-variant uppercase tracking-wider animate-pulse">
         Loading notes...
       </div>
     );
@@ -88,7 +88,7 @@ export function NoteList({
 
   if (notes.length === 0) {
     return (
-      <div className="p-4 text-xs font-mono text-ui-dim text-center uppercase tracking-wider">
+      <div className="p-4 text-xs font-label text-on-surface-variant text-center uppercase tracking-wider">
         No notes yet. Create one to get started.
       </div>
     );
@@ -106,19 +106,19 @@ export function NoteList({
             tabIndex={0}
             onClick={() => onSelectNote(note.id)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectNote(note.id); }}
-            className={`relative w-full text-left px-3 py-2.5 border-b border-obsidian-border/10 transition-all duration-100 group cursor-pointer border-l-2 ${
+            className={`relative w-full text-left px-3 py-2.5 border-b border-outline-variant/10 transition-all duration-100 group cursor-pointer border-l-2 ${
               isSelected
-                ? 'bg-obsidian-raised text-ui-text border-l-phosphor'
-                : 'text-ui-muted hover:bg-obsidian-surface hover:text-ui-text border-l-transparent hover:border-l-obsidian-border'
+                ? 'bg-surface-container-high text-on-surface border-l-primary'
+                : 'text-secondary hover:bg-surface hover:text-on-surface border-l-transparent hover:border-l-outline-variant'
             }`}
           >
             <div className="flex items-center gap-2">
               <FileText
                 size={12}
                 strokeWidth={1.5}
-                className={`shrink-0 ${isSelected ? 'text-phosphor' : 'text-ui-dim'}`}
+                className={`shrink-0 ${isSelected ? 'text-primary' : 'text-on-surface-variant'}`}
               />
-              <span className="flex-1 text-xs font-mono truncate">
+              <span className="flex-1 text-xs font-label truncate">
                 {note.title || note.filename}
               </span>
               <button
@@ -126,7 +126,7 @@ export function NoteList({
                   e.stopPropagation();
                   setMoveMenuNoteId(showMoveMenu ? undefined : note.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-ui-dim hover:text-phosphor transition-all"
+                className="opacity-0 group-hover:opacity-100 p-0.5 text-on-surface-variant hover:text-primary transition-all"
                 title="Move to folder"
                 aria-label={`Move ${note.title || note.filename} to folder`}
               >
@@ -137,7 +137,7 @@ export function NoteList({
                   e.stopPropagation();
                   onDeleteNote(note.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-ui-dim hover:text-red-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 p-0.5 text-on-surface-variant hover:text-red-400 transition-all"
                 title="Delete note"
                 aria-label={`Delete ${note.title || note.filename}`}
               >
@@ -149,7 +149,7 @@ export function NoteList({
                 {note.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
-                    className="text-[10px] font-mono text-ui-dim bg-obsidian-surface px-1"
+                    className="text-[10px] font-label text-on-surface-variant bg-surface px-1"
                   >
                     #{tag}
                   </span>

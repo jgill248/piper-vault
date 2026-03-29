@@ -27,18 +27,12 @@ export function WikiLink({
       <button
         type="button"
         onClick={onClick}
-        className="font-mono text-xs text-phosphor underline decoration-phosphor/30 underline-offset-2 cursor-pointer hover:decoration-phosphor transition-all inline"
+        className="font-label text-xs text-primary underline decoration-primary/30 underline-offset-2 cursor-pointer hover:decoration-primary transition-all inline"
         style={{
           background: 'none',
           border: 'none',
           padding: 0,
           margin: 0,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.textShadow = '0 0 6px rgba(171,214,0,0.4)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.textShadow = 'none';
         }}
       >
         {label}
@@ -48,7 +42,7 @@ export function WikiLink({
 
   return (
     <span
-      className="font-mono text-xs text-ui-dim underline decoration-dashed decoration-ui-dim/30 underline-offset-2 cursor-default"
+      className="font-label text-xs text-on-surface-variant underline decoration-dashed decoration-on-surface-variant/30 underline-offset-2 cursor-default"
       title={`"${targetFilename}" does not exist yet`}
     >
       {label}

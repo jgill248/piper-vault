@@ -91,22 +91,22 @@ export function CollectionSelector() {
             aria-haspopup="listbox"
             aria-expanded={dropdownOpen}
             aria-label="Select active collection"
-            className="flex-1 flex items-center gap-2 px-3 py-2 bg-obsidian-sunken hover:bg-obsidian-raised/30 transition-colors duration-100 min-w-0"
+            className="flex-1 flex items-center gap-2 px-3 py-2 bg-surface-container hover:bg-surface-container-high/30 transition-colors duration-100 min-w-0"
           >
-            <Layers size={10} className="text-phosphor shrink-0" strokeWidth={1.5} />
-            <span className="font-mono text-[9px] text-ui-muted uppercase tracking-wider truncate flex-1 text-left">
+            <Layers size={10} className="text-primary shrink-0" strokeWidth={1.5} />
+            <span className="font-label text-[9px] text-secondary uppercase tracking-wider truncate flex-1 text-left">
               {displayName}
             </span>
             <ChevronDown
               size={9}
-              className={`text-ui-dim shrink-0 transition-transform duration-100 ${dropdownOpen ? 'rotate-180' : ''}`}
+              className={`text-on-surface-variant shrink-0 transition-transform duration-100 ${dropdownOpen ? 'rotate-180' : ''}`}
             />
           </button>
           <button
             onClick={handleOpenCreate}
             aria-label="Create new collection"
             title="Create new collection"
-            className="p-2 text-ui-dim hover:text-phosphor transition-colors duration-100"
+            className="p-2 text-on-surface-variant hover:text-primary transition-colors duration-100"
           >
             <Plus size={10} strokeWidth={2} />
           </button>
@@ -114,7 +114,7 @@ export function CollectionSelector() {
             onClick={handleOpenManage}
             aria-label="Manage collections"
             title="Manage collections"
-            className="p-2 text-ui-dim hover:text-ui-muted transition-colors duration-100"
+            className="p-2 text-on-surface-variant hover:text-secondary transition-colors duration-100"
           >
             <Settings2 size={10} strokeWidth={1.5} />
           </button>
@@ -125,13 +125,13 @@ export function CollectionSelector() {
           <div
             role="listbox"
             aria-label="Collections"
-            className="absolute left-0 right-0 top-full mt-0.5 z-50 bg-obsidian-raised border border-obsidian-border/30 overflow-hidden"
+            className="absolute left-0 right-0 top-full mt-0.5 z-50 bg-surface-container-high border border-outline-variant/30 overflow-hidden"
           >
             {/* Create form */}
             {createOpen && (
               <form
                 onSubmit={handleCreateSubmit}
-                className="border-b border-obsidian-border/20 px-2 py-2"
+                className="border-b border-outline-variant/20 px-2 py-2"
               >
                 <input
                   ref={createInputRef}
@@ -140,20 +140,20 @@ export function CollectionSelector() {
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="COLLECTION NAME..."
                   aria-label="New collection name"
-                  className="w-full bg-obsidian-sunken font-mono text-[9px] text-ui-text placeholder:text-ui-dim uppercase tracking-wider px-2 py-1.5 outline-none border-b border-obsidian-border focus:border-phosphor transition-colors duration-100"
+                  className="w-full bg-surface-container font-label text-[9px] text-on-surface placeholder:text-on-surface-variant uppercase tracking-wider px-2 py-1.5 outline-none border-b border-outline-variant focus:border-primary transition-colors duration-100"
                 />
                 <div className="flex gap-1 mt-1.5">
                   <button
                     type="submit"
                     disabled={!newName.trim() || createCollection.isPending}
-                    className="flex-1 font-mono text-[9px] text-phosphor uppercase tracking-wider px-2 py-1 bg-phosphor/10 hover:bg-phosphor/20 transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex-1 font-label text-[9px] text-primary uppercase tracking-wider px-2 py-1 bg-primary/10 hover:bg-primary/20 transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {createCollection.isPending ? 'CREATING...' : 'CREATE_'}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setCreateOpen(false); setNewName(''); }}
-                    className="font-mono text-[9px] text-ui-dim uppercase tracking-wider px-2 py-1 hover:text-ui-muted transition-colors duration-100"
+                    className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider px-2 py-1 hover:text-secondary transition-colors duration-100"
                   >
                     CANCEL
                   </button>
@@ -164,7 +164,7 @@ export function CollectionSelector() {
             {/* Collection list */}
             {isLoading ? (
               <div className="px-3 py-2">
-                <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+                <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
                   LOADING...
                 </span>
               </div>
@@ -221,17 +221,17 @@ function CollectionOption({ id, name, isDefault, isActive, onSelect }: Collectio
       onClick={() => onSelect(id)}
       className={`flex items-center gap-2 w-full px-3 py-2 text-left transition-colors duration-100 ${
         isActive
-          ? 'bg-phosphor/10 text-phosphor'
-          : 'text-ui-muted hover:bg-obsidian-raised/50 hover:text-ui-text'
+          ? 'bg-primary/10 text-primary'
+          : 'text-secondary hover:bg-surface-container-high/50 hover:text-on-surface'
       }`}
     >
       <span
-        className={`inline-block w-1.5 h-1.5 shrink-0 ${isActive ? 'bg-phosphor' : 'bg-obsidian-border/50'}`}
+        className={`inline-block w-1.5 h-1.5 shrink-0 ${isActive ? 'bg-primary' : 'bg-outline-variant/50'}`}
         aria-hidden="true"
       />
-      <span className="font-mono text-[9px] uppercase tracking-wider truncate flex-1">{name}</span>
+      <span className="font-label text-[9px] uppercase tracking-wider truncate flex-1">{name}</span>
       {isDefault && (
-        <span className="font-mono text-[8px] text-ui-dim uppercase tracking-wider shrink-0">
+        <span className="font-label text-[8px] text-on-surface-variant uppercase tracking-wider shrink-0">
           DEFAULT
         </span>
       )}

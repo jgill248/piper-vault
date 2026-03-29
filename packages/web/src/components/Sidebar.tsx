@@ -44,35 +44,31 @@ export function Sidebar({ activeView, onNavigate }: SidebarProps) {
   const [statusExpanded, setStatusExpanded] = useState(false);
 
   const systemStatus = isLoading
-    ? { label: 'CONNECTING', color: 'text-ui-dim', healthy: false }
+    ? { label: 'CONNECTING', color: 'text-on-surface-variant', healthy: false }
     : isError || health?.status !== 'ok'
-      ? { label: 'OFFLINE', color: 'text-red-400', healthy: false }
-      : { label: 'ONLINE', color: 'text-phosphor', healthy: true };
+      ? { label: 'OFFLINE', color: 'text-error', healthy: false }
+      : { label: 'ONLINE', color: 'text-primary', healthy: true };
 
   const hasIssue = !systemStatus.healthy || (health && (health.db !== 'ok' || health.embedding !== 'ok'));
 
   return (
-    <aside className="flex flex-col w-52 bg-obsidian-surface border-r border-obsidian-border/20 shrink-0 h-full">
+    <aside className="flex flex-col w-52 bg-surface-container stamp-shadow shrink-0 h-full">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-obsidian-border/20">
+      <div className="px-4 py-5 border-b-4 border-primary-container">
         <div className="flex items-baseline gap-1">
-          <span
-            className="font-mono font-bold text-lg tracking-[0.2em] text-phosphor"
-            style={{ textShadow: '0 0 12px rgba(171,214,0,0.5)' }}
-          >
+          <span className="font-headline font-bold text-lg tracking-tight text-primary">
             DELVE
           </span>
-          <span className="font-mono text-xs text-ui-dim">_</span>
         </div>
-        <p className="font-mono text-[10px] text-ui-dim tracking-wider mt-0.5 uppercase">
+        <p className="font-label text-[10px] text-secondary tracking-wider mt-0.5 uppercase">
           Knowledge Engine
         </p>
       </div>
 
       {/* Collection selector */}
-      <div className="border-b border-obsidian-border/20">
+      <div className="bg-surface-container-high">
         <div className="px-3 pt-2 pb-1">
-          <span className="font-mono text-[8px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[8px] text-on-surface-variant uppercase tracking-widest">
             COLLECTION
           </span>
         </div>
@@ -94,39 +90,39 @@ export function Sidebar({ activeView, onNavigate }: SidebarProps) {
         ))}
       </nav>
 
-      {/* System Status — collapsed by default, expands on click or when unhealthy */}
+      {/* System Status */}
       <div
-        className="px-4 py-3 border-t border-obsidian-border/20 cursor-pointer select-none"
+        className="px-4 py-3 bg-surface-container-high cursor-pointer select-none"
         onClick={() => setStatusExpanded((v) => !v)}
         title="Click to expand system status"
       >
         <div className="flex items-center gap-2">
           <div
             className={`w-2 h-2 shrink-0 ${
-              hasIssue ? 'bg-red-400 animate-pulse' : 'bg-phosphor'
+              hasIssue ? 'bg-error animate-pulse' : 'bg-primary-container'
             }`}
           />
-          <span className={`font-mono text-[10px] tracking-widest uppercase ${systemStatus.color}`}>
+          <span className={`font-label text-[10px] tracking-widest uppercase ${systemStatus.color}`}>
             SYS:{systemStatus.label}
           </span>
         </div>
         {(statusExpanded || hasIssue) && health && (
           <div className="mt-1.5 space-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] text-ui-dim uppercase">DB</span>
+              <span className="font-label text-[9px] text-on-surface-variant uppercase">DB</span>
               <span
-                className={`font-mono text-[9px] uppercase ${
-                  health.db === 'ok' ? 'text-phosphor' : 'text-red-400'
+                className={`font-label text-[9px] uppercase ${
+                  health.db === 'ok' ? 'text-primary' : 'text-error'
                 }`}
               >
                 {health.db === 'ok' ? 'CONNECTED' : 'ERROR'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] text-ui-dim uppercase">EMBED</span>
+              <span className="font-label text-[9px] text-on-surface-variant uppercase">EMBED</span>
               <span
-                className={`font-mono text-[9px] uppercase ${
-                  health.embedding === 'ok' ? 'text-phosphor' : 'text-yellow-400'
+                className={`font-label text-[9px] uppercase ${
+                  health.embedding === 'ok' ? 'text-primary' : 'text-yellow-700 dark:text-yellow-400'
                 }`}
               >
                 {health.embedding === 'ok' ? 'READY' : 'WARN'}

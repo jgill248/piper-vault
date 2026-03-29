@@ -24,15 +24,12 @@ interface EmptyStateProps {
 function EmptyState({ onQuerySelect }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 select-none px-4">
-      <div
-        className="border border-phosphor/20 p-6 bg-obsidian-surface/50"
-        style={{ boxShadow: 'inset 0 0 40px rgba(171,214,0,0.03)' }}
-      >
-        <MessageSquare size={32} className="text-phosphor/40" strokeWidth={1} />
+      <div className="border border-primary/20 p-6 bg-surface/50">
+        <MessageSquare size={32} className="text-primary/40" strokeWidth={1} />
       </div>
       <div className="text-center space-y-1">
-        <p className="font-display font-semibold text-ui-text text-sm">No active session</p>
-        <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
+        <p className="font-headline font-semibold text-on-surface text-sm">No active session</p>
+        <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-wider">
           Submit a query or try a suggestion below
         </p>
       </div>
@@ -43,15 +40,15 @@ function EmptyState({ onQuerySelect }: EmptyStateProps) {
           <button
             key={i}
             onClick={() => onQuerySelect(q.text)}
-            className="flex items-center gap-3 text-left bg-obsidian-surface border border-obsidian-border/30 hover:border-phosphor/40 px-4 py-3 transition-all duration-100 cursor-pointer group"
+            className="flex items-center gap-3 text-left bg-surface border border-outline-variant/30 hover:border-primary/40 px-4 py-3 transition-all duration-100 cursor-pointer group"
           >
-            <span className="text-ui-dim group-hover:text-phosphor transition-colors duration-100 shrink-0">
+            <span className="text-on-surface-variant group-hover:text-primary transition-colors duration-100 shrink-0">
               {q.icon}
             </span>
-            <span className="font-sans text-[12px] text-ui-muted group-hover:text-ui-text transition-colors duration-100 flex-1">
+            <span className="font-body text-[12px] text-secondary group-hover:text-on-surface transition-colors duration-100 flex-1">
               {q.text}
             </span>
-            <ArrowRight size={10} className="text-ui-dim group-hover:text-phosphor transition-colors duration-100 shrink-0 opacity-0 group-hover:opacity-100" />
+            <ArrowRight size={10} className="text-on-surface-variant group-hover:text-primary transition-colors duration-100 shrink-0 opacity-0 group-hover:opacity-100" />
           </button>
         ))}
       </div>
@@ -253,7 +250,7 @@ export function ChatPanel() {
       {/* Main chat area */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-obsidian-border/20 bg-obsidian-surface shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/20 bg-surface shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setShowHistory((v) => !v)}
@@ -262,20 +259,20 @@ export function ChatPanel() {
               title="Show conversation history"
               className={`p-1.5 transition-colors duration-100 shrink-0 ${
                 showHistory
-                  ? 'text-phosphor bg-phosphor/10'
-                  : 'text-ui-dim hover:text-ui-muted'
+                  ? 'text-primary bg-primary/10'
+                  : 'text-on-surface-variant hover:text-secondary'
               }`}
             >
               <History size={14} strokeWidth={1.5} />
             </button>
             <div className="min-w-0">
               <h1
-                className="font-display font-semibold text-ui-text text-sm truncate"
+                className="font-headline font-semibold text-on-surface text-sm truncate"
                 title={activeConversationTitle ?? 'Conversational Search'}
               >
                 {activeConversationTitle ?? 'Conversational Search'}
               </h1>
-              <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mt-0.5">
+              <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mt-0.5">
                 {activeConversationId
                   ? `SESSION: ${activeConversationId.slice(0, 8)}`
                   : 'RAG-POWERED · CITATION-BACKED'}
@@ -287,22 +284,22 @@ export function ChatPanel() {
             <div className="flex items-center gap-2 shrink-0">
               {confirmDelete ? (
                 <div className="flex items-center gap-1 border border-red-500/30 bg-red-950/20 px-2 py-1.5">
-                  <span className="font-mono text-[9px] text-red-400 uppercase tracking-wider mr-1">
+                  <span className="font-label text-[9px] text-red-400 uppercase tracking-wider mr-1">
                     DELETE?
                   </span>
                   <button
                     onClick={handleDeleteConversation}
                     disabled={deleteConversation.isPending}
                     aria-label="Confirm delete conversation"
-                    className="font-mono text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors duration-100 disabled:cursor-not-allowed"
+                    className="font-label text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors duration-100 disabled:cursor-not-allowed"
                   >
                     Y
                   </button>
-                  <span className="font-mono text-[9px] text-ui-dim">/</span>
+                  <span className="font-label text-[9px] text-on-surface-variant">/</span>
                   <button
                     onClick={handleCancelDelete}
                     aria-label="Cancel delete"
-                    className="font-mono text-[10px] text-ui-muted hover:text-ui-text uppercase tracking-wider transition-colors duration-100"
+                    className="font-label text-[10px] text-secondary hover:text-on-surface uppercase tracking-wider transition-colors duration-100"
                   >
                     N
                   </button>
@@ -358,14 +355,14 @@ export function ChatPanel() {
               {/* Suggested follow-ups */}
               {followUps.length > 0 && !sendMessage.isPending && (
                 <div className="flex flex-col gap-1.5 mb-4 max-w-[80%]">
-                  <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+                  <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
                     SUGGESTED FOLLOW-UPS
                   </span>
                   {followUps.map((q, i) => (
                     <button
                       key={i}
                       onClick={() => handleFollowUpClick(q)}
-                      className="text-left bg-obsidian-surface border border-obsidian-border/30 hover:border-phosphor/40 px-3 py-2 font-sans text-[12px] text-ui-muted hover:text-ui-text transition-all duration-100 cursor-pointer"
+                      className="text-left bg-surface border border-outline-variant/30 hover:border-primary/40 px-3 py-2 font-body text-[12px] text-secondary hover:text-on-surface transition-all duration-100 cursor-pointer"
                     >
                       {q}
                     </button>
@@ -376,13 +373,13 @@ export function ChatPanel() {
               {/* Pending indicator */}
               {sendMessage.isPending && (
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="bg-obsidian-surface border-l-2 border-l-phosphor/40 px-4 py-3 flex items-center gap-2">
+                  <div className="bg-surface border-l-2 border-l-primary/40 px-4 py-3 flex items-center gap-2">
                     <Loader2
                       size={12}
-                      className="animate-spin text-phosphor"
+                      className="animate-spin text-primary"
                       aria-hidden="true"
                     />
-                    <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest">
+                    <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
                       PROCESSING...
                     </span>
                   </div>
@@ -393,7 +390,7 @@ export function ChatPanel() {
               {sendMessage.isError && (
                 <div className="flex items-start mb-4">
                   <div className="bg-red-950/30 border-l-2 border-l-red-500 px-4 py-2">
-                    <p className="font-mono text-[10px] text-red-400 uppercase tracking-wider">
+                    <p className="font-label text-[10px] text-red-400 uppercase tracking-wider">
                       ERROR: {sendMessage.error.message}
                     </p>
                   </div>

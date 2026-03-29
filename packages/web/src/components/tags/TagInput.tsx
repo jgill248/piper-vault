@@ -35,11 +35,11 @@ export function TagInput({ tags, onChange, placeholder = 'Add tag...' }: TagInpu
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-1 px-2 py-1 border-b border-obsidian-border/20 bg-obsidian-surface">
+    <div className="flex flex-wrap items-center gap-1 px-2 py-1 border-b border-outline-variant/20 bg-surface">
       {tags.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-phosphor bg-obsidian-raised"
+          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-label text-primary bg-surface-container-high"
         >
           #{tag}
           <button
@@ -55,7 +55,7 @@ export function TagInput({ tags, onChange, placeholder = 'Add tag...' }: TagInpu
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="flex-1 min-w-[80px] bg-transparent text-xs font-mono text-ui-text outline-none placeholder:text-ui-dim"
+        className="flex-1 min-w-[80px] bg-transparent text-xs font-label text-on-surface outline-none placeholder:text-on-surface-variant"
         placeholder={tags.length === 0 ? placeholder : ''}
       />
     </div>

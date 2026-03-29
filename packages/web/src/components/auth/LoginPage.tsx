@@ -6,8 +6,8 @@ interface LoginPageProps {
 }
 
 /**
- * Full-page login form using Obsidian Protocol design language.
- * Deep obsidian background, monospace typography, phosphor green accent (#abd600).
+ * Full-page login form using Sovereign Press design language.
+ * Deep background, label typography, primary accent.
  * No rounded corners, no drop shadows.
  */
 export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
@@ -35,7 +35,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
 
   return (
     <div
-      className="min-h-screen bg-obsidian-base flex items-center justify-center"
+      className="min-h-screen bg-background flex items-center justify-center"
       style={{ background: '#05070A' }}
     >
       {/* Scanline overlay */}
@@ -43,7 +43,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
         style={{
           backgroundImage:
-            'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(171,214,0,0.15) 1px, rgba(171,214,0,0.15) 2px)',
+            'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.1) 1px, rgba(255,255,255,0.1) 2px)',
         }}
         aria-hidden="true"
       />
@@ -51,17 +51,17 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
       <div className="relative z-10 w-full max-w-sm px-4">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="font-mono text-[10px] text-[#abd600] uppercase tracking-[0.3em] mb-1">
+          <div className="font-label text-[10px] text-primary uppercase tracking-[0.3em] mb-1">
             Delve — Knowledge Base
           </div>
           <h1
-            className="font-mono text-xl uppercase tracking-wider"
+            className="font-label text-xl uppercase tracking-wider"
             style={{ color: '#e8edf2' }}
           >
             Sign In
           </h1>
           <div
-            className="mt-2 font-mono text-[9px] uppercase tracking-widest"
+            className="mt-2 font-label text-[9px] uppercase tracking-widest"
             style={{ color: '#4a5568' }}
           >
             Enter your credentials to access your knowledge base
@@ -75,8 +75,8 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
         >
           {/* Top accent bar */}
           <div
-            className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: '#abd600', opacity: 0.6 }}
+            className="absolute top-0 left-0 right-0 h-px bg-primary"
+            style={{ opacity: 0.6 }}
           />
 
           <form onSubmit={handleSubmit} noValidate>
@@ -84,7 +84,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <div className="mb-4">
               <label
                 htmlFor="login-username"
-                className="block font-mono text-[9px] uppercase tracking-widest mb-1.5"
+                className="block font-label text-[9px] uppercase tracking-widest mb-1.5"
                 style={{ color: '#4a5568' }}
               >
                 Username
@@ -97,7 +97,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-mono text-xs outline-none disabled:opacity-50"
+                className="w-full px-3 py-2 font-label text-xs outline-none disabled:opacity-50"
                 style={{
                   background: '#05070A',
                   border: '1px solid #1a2030',
@@ -117,7 +117,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <div className="mb-5">
               <label
                 htmlFor="login-password"
-                className="block font-mono text-[9px] uppercase tracking-widest mb-1.5"
+                className="block font-label text-[9px] uppercase tracking-widest mb-1.5"
                 style={{ color: '#4a5568' }}
               >
                 Password
@@ -130,7 +130,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-mono text-xs outline-none disabled:opacity-50"
+                className="w-full px-3 py-2 font-label text-xs outline-none disabled:opacity-50"
                 style={{
                   background: '#05070A',
                   border: '1px solid #1a2030',
@@ -149,7 +149,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             {/* Error message */}
             {error && (
               <div
-                className="mb-4 px-3 py-2 font-mono text-[10px] border"
+                className="mb-4 px-3 py-2 font-label text-[10px] border"
                 style={{
                   color: '#e85555',
                   borderColor: '#e85555',
@@ -165,7 +165,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <button
               type="submit"
               disabled={isSubmitting || !username || !password}
-              className="w-full py-2.5 font-mono text-[10px] uppercase tracking-widest transition-opacity disabled:opacity-40"
+              className="w-full py-2.5 font-label text-[10px] uppercase tracking-widest transition-opacity disabled:opacity-40"
               style={{
                 background: '#abd600',
                 color: '#05070A',
@@ -182,7 +182,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
         {/* Register link */}
         <div className="mt-4 text-center">
           <span
-            className="font-mono text-[9px] uppercase tracking-widest"
+            className="font-label text-[9px] uppercase tracking-widest"
             style={{ color: '#4a5568' }}
           >
             No account?{' '}
@@ -190,8 +190,8 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
           <button
             type="button"
             onClick={onNavigateToRegister}
-            className="font-mono text-[9px] uppercase tracking-widest transition-colors"
-            style={{ color: '#abd600', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            className="font-label text-[9px] uppercase tracking-widest transition-colors text-primary"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             Register
           </button>

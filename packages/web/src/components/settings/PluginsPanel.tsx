@@ -6,15 +6,15 @@ import { usePlugins, useReloadPlugins } from '../../hooks/use-plugins';
  */
 function PluginRow({ plugin }: { plugin: PluginInfo }) {
   return (
-    <div className="py-2.5 border-b border-obsidian-border/10 last:border-0">
+    <div className="py-2.5 border-b border-outline-variant/10 last:border-0">
       <div className="flex items-center justify-between gap-4 mb-1">
-        <span className="font-mono text-[11px] text-phosphor">{plugin.name}</span>
-        <span className="font-mono text-[9px] text-ui-dim tabular-nums">
+        <span className="font-label text-[11px] text-primary">{plugin.name}</span>
+        <span className="font-label text-[9px] text-on-surface-variant tabular-nums">
           v{plugin.version}
         </span>
       </div>
       {plugin.description && (
-        <p className="font-sans text-[10px] text-ui-dim leading-relaxed mb-1">
+        <p className="font-body text-[10px] text-on-surface-variant leading-relaxed mb-1">
           {plugin.description}
         </p>
       )}
@@ -23,7 +23,7 @@ function PluginRow({ plugin }: { plugin: PluginInfo }) {
           {plugin.supportedTypes.map((type) => (
             <span
               key={type}
-              className="font-mono text-[9px] text-ui-muted border border-obsidian-border/30 px-1.5 py-0.5 uppercase tracking-wide"
+              className="font-label text-[9px] text-secondary border border-outline-variant/30 px-1.5 py-0.5 uppercase tracking-wide"
             >
               {type}
             </span>
@@ -38,8 +38,8 @@ function PluginRow({ plugin }: { plugin: PluginInfo }) {
  * Plugins section for the settings page.
  *
  * Shows all currently loaded plugins and provides a "Reload Plugins" action.
- * Follows the Obsidian Protocol design system: no rounded corners, monospace
- * for data labels, #abd600 phosphor accent for the CTA.
+ * Follows the Sovereign Press design system: no rounded corners, label font
+ * for data labels, primary accent for the CTA.
  */
 export function PluginsPanel() {
   const { data: plugins, isLoading, isError } = usePlugins();
@@ -55,10 +55,10 @@ export function PluginsPanel() {
     <div className="mb-6">
       {/* Section header */}
       <div className="flex items-center gap-2 mb-3" id="section-plugins">
-        <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+        <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
           PLUGIN_SYSTEM
         </span>
-        <div className="flex-1 h-px bg-obsidian-border/20" />
+        <div className="flex-1 h-px bg-outline-variant/20" />
         <button
           onClick={handleReload}
           disabled={reload.isPending}
@@ -71,36 +71,36 @@ export function PluginsPanel() {
 
       {/* Status indicator row */}
       {reload.isSuccess && (
-        <p className="font-mono text-[9px] text-phosphor uppercase tracking-widest mb-2 animate-pulse">
+        <p className="font-label text-[9px] text-primary uppercase tracking-widest mb-2 animate-pulse">
           RELOAD_COMPLETE — {reload.data.loaded} PLUGIN(S) LOADED
         </p>
       )}
       {reload.isError && (
-        <p className="font-mono text-[9px] text-red-400 uppercase tracking-widest mb-2">
+        <p className="font-label text-[9px] text-red-400 uppercase tracking-widest mb-2">
           RELOAD_FAILED
         </p>
       )}
 
       {/* Plugin list */}
-      <div className="bg-obsidian-sunken border border-obsidian-border/20 px-3">
+      <div className="bg-surface-container border border-outline-variant/20 px-3">
         {isLoading && (
-          <p className="font-mono text-[10px] text-ui-dim uppercase tracking-widest py-4 text-center animate-pulse">
+          <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest py-4 text-center animate-pulse">
             LOADING...
           </p>
         )}
         {isError && (
-          <p className="font-mono text-[10px] text-red-400 uppercase tracking-widest py-4 text-center">
+          <p className="font-label text-[10px] text-red-400 uppercase tracking-widest py-4 text-center">
             FAILED_TO_LOAD_PLUGINS
           </p>
         )}
         {isEmpty && (
           <div className="py-6 text-center">
-            <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
+            <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-wider">
               NO_PLUGINS_INSTALLED
             </p>
-            <p className="font-sans text-[10px] text-ui-dim mt-1.5 leading-relaxed">
-              Place <span className="font-mono text-ui-muted">.js</span> plugin files in your plugins
-              directory, then click <span className="font-mono text-ui-muted">RELOAD_PLUGINS_</span>.
+            <p className="font-body text-[10px] text-on-surface-variant mt-1.5 leading-relaxed">
+              Place <span className="font-label text-secondary">.js</span> plugin files in your plugins
+              directory, then click <span className="font-label text-secondary">RELOAD_PLUGINS_</span>.
             </p>
           </div>
         )}

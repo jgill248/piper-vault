@@ -35,23 +35,23 @@ function CreatedKeyBanner({ fullKey, onDismiss }: CreatedKeyBannerProps) {
 
   return (
     <div className="border border-yellow-400/40 bg-yellow-400/5 p-3 mb-4">
-      <p className="font-mono text-[9px] text-yellow-400 uppercase tracking-widest mb-2">
+      <p className="font-label text-[9px] text-yellow-400 uppercase tracking-widest mb-2">
         KEY_CREATED — COPY NOW — NOT SHOWN AGAIN
       </p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 font-mono text-[10px] text-phosphor bg-obsidian-base px-2 py-1.5 overflow-x-auto whitespace-nowrap">
+        <code className="flex-1 font-label text-[10px] text-primary bg-background px-2 py-1.5 overflow-x-auto whitespace-nowrap">
           {fullKey}
         </code>
         <button
           onClick={handleCopy}
-          className="shrink-0 border border-obsidian-border px-2 py-1.5 font-mono text-[9px] uppercase tracking-widest text-ui-muted hover:border-phosphor hover:text-phosphor transition-colors"
+          className="shrink-0 border border-outline-variant px-2 py-1.5 font-label text-[9px] uppercase tracking-widest text-secondary hover:border-primary hover:text-primary transition-colors"
           aria-label="Copy API key"
         >
           {copied ? 'COPIED' : 'COPY_'}
         </button>
         <button
           onClick={onDismiss}
-          className="shrink-0 border border-obsidian-border px-2 py-1.5 font-mono text-[9px] uppercase tracking-widest text-ui-muted hover:border-red-400 hover:text-red-400 transition-colors"
+          className="shrink-0 border border-outline-variant px-2 py-1.5 font-label text-[9px] uppercase tracking-widest text-secondary hover:border-red-400 hover:text-red-400 transition-colors"
           aria-label="Dismiss key banner"
         >
           DISMISS_
@@ -81,26 +81,26 @@ function ApiKeyRowItem({ apiKey, collectionName, onRevoke, isRevoking }: ApiKeyR
   }
 
   return (
-    <div className="flex items-start justify-between py-2.5 border-b border-obsidian-border/10 last:border-0 gap-4">
+    <div className="flex items-start justify-between py-2.5 border-b border-outline-variant/10 last:border-0 gap-4">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] text-ui-text truncate">{apiKey.name}</span>
-          <code className="font-mono text-[9px] text-phosphor bg-obsidian-base px-1.5 py-0.5 shrink-0">
+          <span className="font-label text-[11px] text-on-surface truncate">{apiKey.name}</span>
+          <code className="font-label text-[9px] text-primary bg-background px-1.5 py-0.5 shrink-0">
             {apiKey.prefix}...
           </code>
         </div>
         <div className="flex items-center gap-3 mt-0.5">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             {collectionName}
           </span>
-          <span className="font-mono text-[9px] text-ui-dim">
+          <span className="font-label text-[9px] text-on-surface-variant">
             Created {formatDate(apiKey.createdAt)}
           </span>
-          <span className="font-mono text-[9px] text-ui-dim">
+          <span className="font-label text-[9px] text-on-surface-variant">
             Used {formatDate(apiKey.lastUsedAt)}
           </span>
           {apiKey.expiresAt && (
-            <span className={`font-mono text-[9px] ${new Date(apiKey.expiresAt) < new Date() ? 'text-red-400' : 'text-ui-dim'}`}>
+            <span className={`font-label text-[9px] ${new Date(apiKey.expiresAt) < new Date() ? 'text-red-400' : 'text-on-surface-variant'}`}>
               Expires {formatDate(apiKey.expiresAt)}
             </span>
           )}
@@ -108,7 +108,7 @@ function ApiKeyRowItem({ apiKey, collectionName, onRevoke, isRevoking }: ApiKeyR
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         {confirming && (
-          <span className="font-mono text-[9px] text-red-400 uppercase tracking-widest">
+          <span className="font-label text-[9px] text-red-400 uppercase tracking-widest">
             CONFIRM?
           </span>
         )}
@@ -116,10 +116,10 @@ function ApiKeyRowItem({ apiKey, collectionName, onRevoke, isRevoking }: ApiKeyR
           onClick={handleRevokeClick}
           disabled={isRevoking}
           onBlur={() => setTimeout(() => setConfirming(false), 200)}
-          className={`border px-2 py-1 font-mono text-[9px] uppercase tracking-widest transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`border px-2 py-1 font-label text-[9px] uppercase tracking-widest transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
             confirming
               ? 'border-red-400 text-red-400 bg-red-400/5'
-              : 'border-obsidian-border text-ui-dim hover:border-red-400 hover:text-red-400'
+              : 'border-outline-variant text-on-surface-variant hover:border-red-400 hover:text-red-400'
           }`}
           aria-label={confirming ? 'Confirm revoke' : `Revoke API key ${apiKey.name}`}
         >
@@ -166,7 +166,7 @@ function CreateApiKeyForm({ collectionOptions, onCreated }: CreateApiKeyFormProp
     <form onSubmit={handleSubmit} className="py-3 space-y-2">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="font-mono text-[9px] text-ui-dim uppercase tracking-widest block mb-1">
+          <label className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest block mb-1">
             KEY_NAME
           </label>
           <input
@@ -175,22 +175,22 @@ function CreateApiKeyForm({ collectionOptions, onCreated }: CreateApiKeyFormProp
             onChange={(e) => setName(e.target.value)}
             placeholder="my-automation"
             maxLength={200}
-            className="w-full bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-1 outline-none focus:border-phosphor transition-colors"
+            className="w-full bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-1 outline-none focus:border-primary transition-colors"
             aria-label="API key name"
           />
         </div>
         <div>
-          <label className="font-mono text-[9px] text-ui-dim uppercase tracking-widest block mb-1">
+          <label className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest block mb-1">
             COLLECTION
           </label>
           <select
             value={collectionId}
             onChange={(e) => setCollectionId(e.target.value)}
-            className="w-full bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-1 outline-none focus:border-phosphor transition-colors appearance-none cursor-pointer"
+            className="w-full bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-1 outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
             aria-label="Target collection"
           >
             {collectionOptions.map((opt) => (
-              <option key={opt.value} value={opt.value} className="bg-obsidian-raised">
+              <option key={opt.value} value={opt.value} className="bg-surface-container-high">
                 {opt.label}
               </option>
             ))}
@@ -199,14 +199,14 @@ function CreateApiKeyForm({ collectionOptions, onCreated }: CreateApiKeyFormProp
       </div>
       <div className="flex items-end gap-3">
         <div className="flex-1">
-          <label className="font-mono text-[9px] text-ui-dim uppercase tracking-widest block mb-1">
+          <label className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest block mb-1">
             EXPIRES_AT (optional)
           </label>
           <input
             type="datetime-local"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value ? new Date(e.target.value).toISOString() : '')}
-            className="w-full bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-ui-muted px-2 py-1 outline-none focus:border-phosphor transition-colors"
+            className="w-full bg-surface-container border-b border-outline-variant font-label text-[11px] text-secondary px-2 py-1 outline-none focus:border-primary transition-colors"
             aria-label="Key expiry date"
           />
         </div>
@@ -219,7 +219,7 @@ function CreateApiKeyForm({ collectionOptions, onCreated }: CreateApiKeyFormProp
         </button>
       </div>
       {createApiKey.isError && (
-        <p className="font-mono text-[9px] text-red-400">
+        <p className="font-label text-[9px] text-red-400">
           {createApiKey.error instanceof Error ? createApiKey.error.message : 'Failed to create key'}
         </p>
       )}
@@ -263,59 +263,59 @@ function WebhookDocs() {
     <div className="py-3 space-y-3">
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             ENDPOINT_URL
           </span>
         </div>
-        <code className="block font-mono text-[10px] text-phosphor bg-obsidian-base px-2 py-1.5">
+        <code className="block font-label text-[10px] text-primary bg-background px-2 py-1.5">
           {baseUrl}/webhooks/ingest
         </code>
       </div>
 
       <div>
-        <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest block mb-1">
+        <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest block mb-1">
           AUTH_HEADER
         </span>
-        <code className="block font-mono text-[10px] text-phosphor bg-obsidian-base px-2 py-1.5">
+        <code className="block font-label text-[10px] text-primary bg-background px-2 py-1.5">
           X-API-Key: dlv_your_key_here
         </code>
-        <p className="font-mono text-[9px] text-ui-dim mt-0.5">
+        <p className="font-label text-[9px] text-on-surface-variant mt-0.5">
           Also accepts: Authorization: Bearer dlv_your_key_here
         </p>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             INGEST_TEXT_CONTENT
           </span>
           <button
             onClick={() => handleCopy(curlJson, 'json')}
-            className="font-mono text-[9px] text-ui-dim hover:text-phosphor transition-colors"
+            className="font-label text-[9px] text-on-surface-variant hover:text-primary transition-colors"
             aria-label="Copy curl example for text ingestion"
           >
             {copied === 'json' ? 'COPIED' : 'COPY_'}
           </button>
         </div>
-        <pre className="font-mono text-[9px] text-ui-muted bg-obsidian-base px-2 py-1.5 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+        <pre className="font-label text-[9px] text-secondary bg-background px-2 py-1.5 overflow-x-auto whitespace-pre-wrap leading-relaxed">
           {curlJson}
         </pre>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             INGEST_FROM_URL
           </span>
           <button
             onClick={() => handleCopy(curlUrl, 'url')}
-            className="font-mono text-[9px] text-ui-dim hover:text-phosphor transition-colors"
+            className="font-label text-[9px] text-on-surface-variant hover:text-primary transition-colors"
             aria-label="Copy curl example for URL ingestion"
           >
             {copied === 'url' ? 'COPIED' : 'COPY_'}
           </button>
         </div>
-        <pre className="font-mono text-[9px] text-ui-muted bg-obsidian-base px-2 py-1.5 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+        <pre className="font-label text-[9px] text-secondary bg-background px-2 py-1.5 overflow-x-auto whitespace-pre-wrap leading-relaxed">
           {curlUrl}
         </pre>
       </div>
@@ -335,9 +335,9 @@ interface SectionHeaderProps {
 function SectionHeader({ index, title }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest">{index}</span>
-      <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">{title}</span>
-      <div className="flex-1 h-px bg-obsidian-border/20" />
+      <span className="font-label text-[9px] text-primary uppercase tracking-widest">{index}</span>
+      <span className="font-label text-[10px] text-secondary uppercase tracking-wider">{title}</span>
+      <div className="flex-1 h-px bg-outline-variant/20" />
     </div>
   );
 }
@@ -371,7 +371,7 @@ export function ApiKeysSection({ sectionIndex }: { sectionIndex: string }) {
       <div className="mb-6">
         <SectionHeader index={sectionIndex} title="API_KEYS" />
 
-        <div className="bg-obsidian-sunken border border-obsidian-border/20 px-3">
+        <div className="bg-surface-container border border-outline-variant/20 px-3">
           {newlyCreatedKey && (
             <CreatedKeyBanner
               fullKey={newlyCreatedKey}
@@ -386,18 +386,18 @@ export function ApiKeysSection({ sectionIndex }: { sectionIndex: string }) {
           />
 
           {/* Divider */}
-          <div className="border-t border-obsidian-border/20 my-1" />
+          <div className="border-t border-outline-variant/20 my-1" />
 
           {/* Key list */}
           {isLoading ? (
             <div className="py-4 text-center">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
                 LOADING...
               </span>
             </div>
           ) : !apiKeysList || apiKeysList.length === 0 ? (
             <div className="py-4 text-center">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
                 NO_KEYS_CONFIGURED
               </span>
             </div>
@@ -421,7 +421,7 @@ export function ApiKeysSection({ sectionIndex }: { sectionIndex: string }) {
       <div className="mb-6">
         <SectionHeader index={webhookSectionIndex} title="WEBHOOK_ENDPOINTS" />
 
-        <div className="bg-obsidian-sunken border border-obsidian-border/20 px-3">
+        <div className="bg-surface-container border border-outline-variant/20 px-3">
           <WebhookDocs />
         </div>
       </div>

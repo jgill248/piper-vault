@@ -38,7 +38,7 @@ export function ProviderSettingsSection({ activeProvider }: ProviderSettingsSect
   if (isLoading || !providers) {
     return (
       <div className="py-2">
-        <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+        <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
           LOADING_PROVIDERS...
         </span>
       </div>
@@ -61,10 +61,10 @@ export function ProviderSettingsSection({ activeProvider }: ProviderSettingsSect
   return (
     <div className="mt-2 mb-1">
       <div className="flex items-center gap-2 mb-2">
-        <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider">
+        <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider">
           PROVIDER_ENDPOINTS
         </span>
-        <div className="flex-1 h-px bg-obsidian-border/10" />
+        <div className="flex-1 h-px bg-outline-variant/10" />
       </div>
 
       {LLM_PROVIDERS.map((provider) => {
@@ -148,39 +148,39 @@ function ProviderRow({
   }
 
   return (
-    <div className="border border-obsidian-border/15 mb-1.5">
+    <div className="border border-outline-variant/15 mb-1.5">
       {/* Header row */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-2 hover:bg-obsidian-border/5 transition-colors duration-100"
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-outline-variant/5 transition-colors duration-100"
       >
         <div className="flex items-center gap-2">
           {/* Status dot */}
           <span
             className={`inline-block w-1.5 h-1.5 shrink-0 ${
-              !needsCred || hasCredential ? 'bg-phosphor' : 'bg-ui-dim/40'
+              !needsCred || hasCredential ? 'bg-primary' : 'bg-on-surface-variant/40'
             }`}
           />
-          <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+          <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
             {PROVIDER_LABELS[provider]}
           </span>
           {isActive && (
-            <span className="font-mono text-[8px] text-phosphor uppercase tracking-widest border border-phosphor/30 px-1.5 py-0.5">
+            <span className="font-label text-[8px] text-primary uppercase tracking-widest border border-primary/30 px-1.5 py-0.5">
               ACTIVE
             </span>
           )}
         </div>
-        <span className="font-mono text-[10px] text-ui-dim">
+        <span className="font-label text-[10px] text-on-surface-variant">
           {isExpanded ? '[-]' : '[+]'}
         </span>
       </button>
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="px-3 pb-3 border-t border-obsidian-border/10">
+        <div className="px-3 pb-3 border-t border-outline-variant/10">
           {/* Base URL */}
-          <div className="pt-2.5 pb-2 border-b border-obsidian-border/10">
-            <label className="font-mono text-[9px] text-ui-dim uppercase tracking-widest block mb-1">
+          <div className="pt-2.5 pb-2 border-b border-outline-variant/10">
+            <label className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest block mb-1">
               BASE_URL
             </label>
             <div className="flex items-center gap-2">
@@ -188,29 +188,29 @@ function ProviderRow({
                 type="text"
                 value={urlDraft}
                 onChange={(e) => setUrlDraft(e.target.value)}
-                className={`flex-1 bg-obsidian-sunken border-b font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none transition-colors duration-100 ${
+                className={`flex-1 bg-surface-container border-b font-label text-[11px] text-primary px-2 py-0.5 outline-none transition-colors duration-100 ${
                   urlError
                     ? 'border-red-400/70 focus:border-red-400'
-                    : 'border-obsidian-border focus:border-phosphor'
+                    : 'border-outline-variant focus:border-primary'
                 }`}
               />
               <button
                 onClick={handleSaveUrl}
                 disabled={isSaving}
-                className="font-mono text-[9px] text-phosphor uppercase tracking-wider border border-phosphor/30 px-2 py-0.5 hover:bg-phosphor/5 transition-all duration-100 disabled:opacity-40"
+                className="font-label text-[9px] text-primary uppercase tracking-wider border border-primary/30 px-2 py-0.5 hover:bg-primary/5 transition-all duration-100 disabled:opacity-40"
               >
                 SET
               </button>
               <button
                 onClick={handleResetUrl}
                 disabled={isSaving}
-                className="font-mono text-[9px] text-ui-dim uppercase tracking-wider border border-obsidian-border/30 px-2 py-0.5 hover:border-phosphor/30 hover:text-phosphor transition-all duration-100 disabled:opacity-40"
+                className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider border border-outline-variant/30 px-2 py-0.5 hover:border-primary/30 hover:text-primary transition-all duration-100 disabled:opacity-40"
               >
                 DEFAULT
               </button>
             </div>
             {urlError && (
-              <p className="font-mono text-[9px] text-red-400/80 mt-1">
+              <p className="font-label text-[9px] text-red-400/80 mt-1">
                 INVALID_URL — must be a valid http/https address
               </p>
             )}
@@ -219,17 +219,17 @@ function ProviderRow({
           {/* API Key / Token (not shown for Ollama) */}
           {needsCred && (
             <div className="pt-2.5">
-              <label className="font-mono text-[9px] text-ui-dim uppercase tracking-widest block mb-1">
+              <label className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest block mb-1">
                 {CREDENTIAL_LABELS[provider] ?? 'API_KEY'}
               </label>
 
               {/* Current status */}
               {hasCredential && !keyTouched && (
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="font-mono text-[10px] text-ui-muted">
+                  <span className="font-label text-[10px] text-secondary">
                     {status?.credentialHint || '••••••••'}
                   </span>
-                  <span className="font-mono text-[8px] text-phosphor/60 uppercase">configured</span>
+                  <span className="font-label text-[8px] text-primary/60 uppercase">configured</span>
                 </div>
               )}
 
@@ -242,12 +242,12 @@ function ProviderRow({
                     setKeyTouched(true);
                   }}
                   placeholder={hasCredential ? 'Enter new key to replace' : 'Enter API key'}
-                  className="flex-1 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none focus:border-phosphor transition-colors duration-100 placeholder:text-ui-dim/40"
+                  className="flex-1 bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-0.5 outline-none focus:border-primary transition-colors duration-100 placeholder:text-on-surface-variant/40"
                 />
                 <button
                   onClick={handleSaveKey}
                   disabled={isSaving || !keyDraft}
-                  className="font-mono text-[9px] text-phosphor uppercase tracking-wider border border-phosphor/30 px-2 py-0.5 hover:bg-phosphor/5 transition-all duration-100 disabled:opacity-40"
+                  className="font-label text-[9px] text-primary uppercase tracking-wider border border-primary/30 px-2 py-0.5 hover:bg-primary/5 transition-all duration-100 disabled:opacity-40"
                 >
                   SAVE
                 </button>
@@ -255,7 +255,7 @@ function ProviderRow({
                   <button
                     onClick={handleClearKey}
                     disabled={isSaving}
-                    className="font-mono text-[9px] text-red-400/70 uppercase tracking-wider border border-red-400/20 px-2 py-0.5 hover:border-red-400/40 hover:text-red-400 transition-all duration-100 disabled:opacity-40"
+                    className="font-label text-[9px] text-red-400/70 uppercase tracking-wider border border-red-400/20 px-2 py-0.5 hover:border-red-400/40 hover:text-red-400 transition-all duration-100 disabled:opacity-40"
                   >
                     CLEAR
                   </button>

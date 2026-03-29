@@ -55,7 +55,7 @@ function StatusChip({ status }: { status: Source['status'] }) {
     case SOURCE_STATUS.ERROR:
       return <span className="status-error">{status}</span>;
     default:
-      return <span className="font-mono text-xs text-ui-dim uppercase">{status}</span>;
+      return <span className="font-label text-xs text-on-surface-variant uppercase">{status}</span>;
   }
 }
 
@@ -106,13 +106,13 @@ function SourceRow({ source }: SourceRowProps) {
   }
 
   return (
-    <tr className="border-b border-obsidian-border/10 hover:bg-obsidian-raised/30 transition-colors duration-75 group">
+    <tr className="border-b border-outline-variant/10 hover:bg-surface-container-high/30 transition-colors duration-75 group">
       {/* Filename */}
       <td className="px-3 py-2" style={{ minWidth: '200px' }}>
         <div className="flex items-center gap-2 min-w-0">
-          <FileText size={11} className="text-ui-dim shrink-0" strokeWidth={1.5} />
+          <FileText size={11} className="text-on-surface-variant shrink-0" strokeWidth={1.5} />
           <span
-            className="font-mono text-[11px] text-ui-text truncate"
+            className="font-label text-[11px] text-on-surface truncate"
             title={source.filename}
           >
             {source.filename}
@@ -122,14 +122,14 @@ function SourceRow({ source }: SourceRowProps) {
 
       {/* Type */}
       <td className="px-3 py-2">
-        <span className="font-mono text-[10px] text-ui-muted">
+        <span className="font-label text-[10px] text-secondary">
           {formatFileType(source.fileType)}
         </span>
       </td>
 
       {/* Size */}
       <td className="px-3 py-2">
-        <span className="font-mono text-[10px] text-ui-muted tabular-nums">
+        <span className="font-label text-[10px] text-secondary tabular-nums">
           {formatBytes(source.fileSize)}
         </span>
       </td>
@@ -141,7 +141,7 @@ function SourceRow({ source }: SourceRowProps) {
 
       {/* Chunks */}
       <td className="px-3 py-2">
-        <span className="font-mono text-[10px] text-ui-muted tabular-nums">
+        <span className="font-label text-[10px] text-secondary tabular-nums">
           {source.chunkCount}
         </span>
       </td>
@@ -152,20 +152,20 @@ function SourceRow({ source }: SourceRowProps) {
           {source.tags.map((tag) => (
             <span
               key={tag}
-              className="font-mono text-[9px] text-phosphor bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5 uppercase tracking-wider"
+              className="font-label text-[9px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider"
             >
               {tag}
             </span>
           ))}
           {source.tags.length === 0 && (
-            <span className="font-mono text-[9px] text-ui-dim">—</span>
+            <span className="font-label text-[9px] text-on-surface-variant">—</span>
           )}
         </div>
       </td>
 
       {/* Date */}
       <td className="px-3 py-2">
-        <span className="font-mono text-[10px] text-ui-dim tabular-nums">
+        <span className="font-label text-[10px] text-on-surface-variant tabular-nums">
           {formatDate(source.createdAt)}
         </span>
       </td>
@@ -178,7 +178,7 @@ function SourceRow({ source }: SourceRowProps) {
             disabled={reindexSource.isPending}
             aria-label={`Reindex ${source.filename}`}
             title="Reindex"
-            className="text-ui-dim hover:text-phosphor disabled:cursor-not-allowed p-1 transition-colors duration-100"
+            className="text-on-surface-variant hover:text-primary disabled:cursor-not-allowed p-1 transition-colors duration-100"
           >
             <RefreshCw
               size={12}
@@ -189,21 +189,21 @@ function SourceRow({ source }: SourceRowProps) {
 
           {confirmDelete ? (
             <div className="flex items-center gap-1">
-              <span className="font-mono text-[9px] text-yellow-400 uppercase tracking-wider">
+              <span className="font-label text-[9px] text-yellow-400 uppercase tracking-wider">
                 CONFIRM?
               </span>
               <button
                 onClick={handleDeleteClick}
                 disabled={deleteSource.isPending}
                 aria-label={`Confirm delete ${source.filename}`}
-                className="font-mono text-[9px] text-red-400 hover:text-red-300 uppercase tracking-wider px-1 transition-colors duration-100 disabled:cursor-not-allowed"
+                className="font-label text-[9px] text-red-400 hover:text-red-300 uppercase tracking-wider px-1 transition-colors duration-100 disabled:cursor-not-allowed"
               >
                 YES
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
                 aria-label="Cancel delete"
-                className="font-mono text-[9px] text-ui-muted hover:text-ui-text uppercase tracking-wider px-1 transition-colors duration-100"
+                className="font-label text-[9px] text-secondary hover:text-on-surface uppercase tracking-wider px-1 transition-colors duration-100"
               >
                 NO
               </button>
@@ -213,7 +213,7 @@ function SourceRow({ source }: SourceRowProps) {
               onClick={handleDeleteClick}
               disabled={deleteSource.isPending}
               aria-label={`Delete ${source.filename}`}
-              className="text-ui-dim hover:text-red-400 disabled:cursor-not-allowed p-1 transition-colors duration-100"
+              className="text-on-surface-variant hover:text-red-400 disabled:cursor-not-allowed p-1 transition-colors duration-100"
             >
               <Trash2 size={12} strokeWidth={1.5} />
             </button>
@@ -237,8 +237,8 @@ export function SourceLedger({ sources, filters }: SourceLedgerProps) {
   if (sources.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-2">
-        <FileText size={24} className="text-ui-dim/40" strokeWidth={1} />
-        <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
+        <FileText size={24} className="text-on-surface-variant/40" strokeWidth={1} />
+        <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-wider">
           NO SOURCES INDEXED
         </p>
       </div>
@@ -248,8 +248,8 @@ export function SourceLedger({ sources, filters }: SourceLedgerProps) {
   if (filtered.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-2">
-        <FileText size={24} className="text-ui-dim/40" strokeWidth={1} />
-        <p className="font-mono text-[10px] text-ui-dim uppercase tracking-wider">
+        <FileText size={24} className="text-on-surface-variant/40" strokeWidth={1} />
+        <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-wider">
           NO SOURCES MATCH FILTERS
         </p>
       </div>
@@ -260,11 +260,11 @@ export function SourceLedger({ sources, filters }: SourceLedgerProps) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse" role="table">
         <thead>
-          <tr className="bg-obsidian-surface border-b border-obsidian-border/20">
+          <tr className="bg-surface border-b border-outline-variant/20">
             {COLUMNS.map((col) => (
               <th
                 key={col}
-                className="px-3 py-2 text-left font-mono text-[9px] text-ui-dim uppercase tracking-widest whitespace-nowrap"
+                className="px-3 py-2 text-left font-label text-[9px] text-on-surface-variant uppercase tracking-widest whitespace-nowrap"
                 scope="col"
               >
                 {col}

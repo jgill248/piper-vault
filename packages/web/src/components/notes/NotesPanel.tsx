@@ -108,10 +108,10 @@ export function NotesPanel() {
       {error && (
         <div className="flex items-center gap-2 px-4 py-2 bg-red-900/30 border-b border-red-400/30">
           <AlertTriangle size={12} strokeWidth={1.5} className="text-red-400 shrink-0" />
-          <span className="text-xs font-mono text-red-300 flex-1">{error}</span>
+          <span className="text-xs font-label text-red-300 flex-1">{error}</span>
           <button
             onClick={() => setError(null)}
-            className="text-xs font-mono text-red-400 hover:text-red-300"
+            className="text-xs font-label text-red-400 hover:text-red-300"
           >
             ✕
           </button>
@@ -119,9 +119,9 @@ export function NotesPanel() {
       )}
       <div className="flex flex-1 min-h-0">
       {/* Left panel: Folders + Note list */}
-      <div className="w-64 flex flex-col border-r border-obsidian-border/20 bg-obsidian-surface">
+      <div className="w-64 flex flex-col border-r border-outline-variant/20 bg-surface">
         {/* Folder tree */}
-        <div className="h-48 border-b border-obsidian-border/20 overflow-auto">
+        <div className="h-48 border-b border-outline-variant/20 overflow-auto">
           <FolderTree
             folders={folders ?? []}
             selectedPath={selectedPath}
@@ -131,13 +131,13 @@ export function NotesPanel() {
         </div>
 
         {/* Note list header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-obsidian-border/20">
-          <span className="text-xs font-mono text-ui-dim uppercase tracking-wider">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-outline-variant/20">
+          <span className="text-xs font-label text-on-surface-variant uppercase tracking-wider">
             Notes
           </span>
           <button
             onClick={handleCreateNote}
-            className="p-1 text-ui-dim hover:text-phosphor transition-colors"
+            className="p-1 text-on-surface-variant hover:text-primary transition-colors"
             title="New note"
             disabled={createNote.isPending}
           >
@@ -160,7 +160,7 @@ export function NotesPanel() {
       </div>
 
       {/* Right panel: Editor + Backlinks */}
-      <div className="flex-1 flex flex-col bg-obsidian-sunken">
+      <div className="flex-1 flex flex-col bg-surface-container">
         {selectedNote ? (
           <>
             <div className="flex-1 overflow-hidden">
@@ -182,17 +182,14 @@ export function NotesPanel() {
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center max-w-xs space-y-4">
-              <div
-                className="border border-phosphor/20 p-6 bg-obsidian-surface/50 mx-auto w-fit"
-                style={{ boxShadow: 'inset 0 0 40px rgba(171,214,0,0.03)' }}
-              >
-                <FileText size={28} className="text-phosphor/40" strokeWidth={1} />
+              <div className="border border-primary/20 p-6 bg-surface/50 mx-auto w-fit">
+                <FileText size={28} className="text-primary/40" strokeWidth={1} />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-display font-semibold text-ui-text">
+                <p className="text-sm font-headline font-semibold text-on-surface">
                   Select a note or create a new one
                 </p>
-                <p className="font-mono text-[9px] text-ui-dim uppercase tracking-wider">
+                <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider">
                   Ctrl+N to create quickly
                 </p>
               </div>

@@ -5,31 +5,72 @@ export default {
   theme: {
     extend: {
       colors: {
-        obsidian: {
-          base: 'var(--color-base)',
-          surface: 'var(--color-surface)',
-          sunken: 'var(--color-sunken)',
-          raised: 'var(--color-raised)',
-          border: 'var(--color-border)',
+        background: 'var(--color-background)',
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          'container-lowest': 'var(--color-surface-container-lowest)',
+          'container-low': 'var(--color-surface-container-low)',
+          container: 'var(--color-surface-container)',
+          'container-high': 'var(--color-surface-container-high)',
+          'container-highest': 'var(--color-surface-container-highest)',
+          dim: 'var(--color-surface-dim)',
+          bright: 'var(--color-surface-bright)',
+          variant: 'var(--color-surface-variant)',
         },
-        phosphor: {
-          DEFAULT: '#abd600',
-          dim: 'rgba(171, 214, 0, 0.3)',
-          glow: 'rgba(171, 214, 0, 0.15)',
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          container: 'var(--color-primary-container)',
+          fixed: 'var(--color-primary-fixed)',
+          'fixed-dim': 'var(--color-primary-fixed-dim)',
         },
-        ui: {
-          text: 'var(--color-text)',
-          muted: 'var(--color-muted)',
-          dim: 'var(--color-dim)',
+        secondary: {
+          DEFAULT: 'var(--color-secondary)',
+          container: 'var(--color-secondary-container)',
+        },
+        tertiary: {
+          DEFAULT: 'var(--color-tertiary)',
+          container: 'var(--color-tertiary-container)',
+        },
+        error: {
+          DEFAULT: 'var(--color-error)',
+          container: 'var(--color-error-container)',
+        },
+        'on-surface': {
+          DEFAULT: 'var(--color-on-surface)',
+          variant: 'var(--color-on-surface-variant)',
+        },
+        'on-primary': {
+          DEFAULT: 'var(--color-on-primary)',
+          container: 'var(--color-on-primary-container)',
+        },
+        'on-secondary': {
+          DEFAULT: 'var(--color-on-secondary)',
+        },
+        'on-error': {
+          DEFAULT: 'var(--color-on-error)',
+        },
+        outline: {
+          DEFAULT: 'var(--color-outline)',
+          variant: 'var(--color-outline-variant)',
+        },
+        inverse: {
+          surface: 'var(--color-inverse-surface)',
+          'on-surface': 'var(--color-inverse-on-surface)',
+          primary: 'var(--color-inverse-primary)',
         },
       },
       fontFamily: {
+        headline: ['Newsreader', 'serif'],
+        body: ['Work Sans', 'sans-serif'],
+        label: ['Work Sans', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
-        sans: ['Inter', 'sans-serif'],
-        display: ['Manrope', 'sans-serif'],
       },
       borderRadius: {
+        DEFAULT: '0px',
         none: '0px',
+        lg: '0px',
+        xl: '0px',
+        full: '9999px',
       },
       borderWidth: {
         3: '3px',
@@ -37,17 +78,16 @@ export default {
       typography: {
         DEFAULT: {
           css: {
-            '--tw-prose-headings': '#e2e8f0',
-            '--tw-prose-invert-headings': '#e2e8f0',
-            '--tw-prose-invert-body': '#94a3b8',
-            '--tw-prose-invert-td-borders': 'rgba(255,255,255,0.1)',
-            '--tw-prose-invert-th-borders': 'rgba(171,214,0,0.4)',
-            h1: { fontFamily: 'JetBrains Mono, monospace', fontSize: '1.75rem', fontWeight: '700', marginBottom: '0.5rem' },
-            h2: { fontFamily: 'JetBrains Mono, monospace', fontSize: '1.35rem', fontWeight: '600', marginBottom: '0.4rem' },
-            h3: { fontFamily: 'JetBrains Mono, monospace', fontSize: '1.1rem', fontWeight: '600', marginBottom: '0.3rem' },
+            '--tw-prose-headings': 'var(--color-on-surface)',
+            '--tw-prose-body': 'var(--color-on-surface-variant)',
+            '--tw-prose-td-borders': 'var(--color-outline-variant)',
+            '--tw-prose-th-borders': 'var(--color-primary)',
+            h1: { fontFamily: 'Newsreader, serif', fontSize: '1.75rem', fontWeight: '700', marginBottom: '0.5rem' },
+            h2: { fontFamily: 'Newsreader, serif', fontSize: '1.35rem', fontWeight: '600', marginBottom: '0.4rem' },
+            h3: { fontFamily: 'Newsreader, serif', fontSize: '1.1rem', fontWeight: '600', marginBottom: '0.3rem' },
             table: { width: '100%', borderCollapse: 'collapse' },
-            'thead th': { borderBottomColor: 'rgba(171,214,0,0.4)', paddingBottom: '0.4rem' },
-            'tbody td': { borderTopColor: 'rgba(255,255,255,0.06)', paddingTop: '0.35rem', paddingBottom: '0.35rem' },
+            'thead th': { borderBottomColor: 'var(--color-primary)', paddingBottom: '0.4rem' },
+            'tbody td': { borderTopColor: 'var(--color-outline-variant)', paddingTop: '0.35rem', paddingBottom: '0.35rem' },
           },
         },
       },

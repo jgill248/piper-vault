@@ -75,24 +75,23 @@ function ConversationItem({ conversation, isActive, onSelect, onDelete }: Conver
         border-l-2 transition-all duration-100
         ${
           isActive
-            ? 'border-l-phosphor bg-phosphor/5'
-            : 'border-l-transparent hover:border-l-obsidian-border hover:bg-obsidian-raised/20'
+            ? 'border-l-primary bg-primary/5'
+            : 'border-l-transparent hover:border-l-outline-variant hover:bg-surface-container-high/20'
         }
       `}
     >
       {/* Active indicator glow */}
       {isActive && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-0.5 bg-phosphor"
-          style={{ boxShadow: '0 0 8px rgba(171,214,0,0.6)' }}
+          className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary-container"
           aria-hidden="true"
         />
       )}
 
       <div className="flex items-start justify-between gap-2 pr-6">
         <span
-          className={`font-sans text-[11px] leading-snug truncate flex-1 ${
-            isActive ? 'text-ui-text' : 'text-ui-muted group-hover:text-ui-text'
+          className={`font-body text-[11px] leading-snug truncate flex-1 ${
+            isActive ? 'text-on-surface' : 'text-secondary group-hover:text-on-surface'
           }`}
           title={conversation.title}
         >
@@ -102,7 +101,7 @@ function ConversationItem({ conversation, isActive, onSelect, onDelete }: Conver
         </span>
       </div>
 
-      <span className="font-mono text-[9px] text-ui-dim tabular-nums">
+      <span className="font-label text-[9px] text-on-surface-variant tabular-nums">
         {formatDate(conversation.updatedAt)}
       </span>
 
@@ -112,20 +111,20 @@ function ConversationItem({ conversation, isActive, onSelect, onDelete }: Conver
         onClick={(e) => e.stopPropagation()}
       >
         {confirmDelete ? (
-          <div className="flex items-center gap-1 bg-obsidian-raised border border-obsidian-border/30 px-1.5 py-0.5">
+          <div className="flex items-center gap-1 bg-surface-container-high border border-outline-variant/30 px-1.5 py-0.5">
             <button
               onClick={handleDeleteClick}
               disabled={deleteConversation.isPending}
               aria-label="Confirm delete conversation"
-              className="font-mono text-[9px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors duration-100 disabled:cursor-not-allowed"
+              className="font-label text-[9px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors duration-100 disabled:cursor-not-allowed"
             >
               Y
             </button>
-            <span className="font-mono text-[9px] text-ui-dim">/</span>
+            <span className="font-label text-[9px] text-on-surface-variant">/</span>
             <button
               onClick={handleCancelDelete}
               aria-label="Cancel delete"
-              className="font-mono text-[9px] text-ui-muted hover:text-ui-text uppercase tracking-wider transition-colors duration-100"
+              className="font-label text-[9px] text-secondary hover:text-on-surface uppercase tracking-wider transition-colors duration-100"
             >
               N
             </button>
@@ -134,7 +133,7 @@ function ConversationItem({ conversation, isActive, onSelect, onDelete }: Conver
           <button
             onClick={handleDeleteClick}
             aria-label={`Delete conversation: ${conversation.title}`}
-            className="opacity-0 group-hover:opacity-100 text-ui-dim hover:text-red-400 transition-all duration-100 p-0.5"
+            className="opacity-0 group-hover:opacity-100 text-on-surface-variant hover:text-red-400 transition-all duration-100 p-0.5"
           >
             <Trash2 size={10} strokeWidth={1.5} />
           </button>
@@ -193,7 +192,7 @@ export function ConversationHistory({
     <>
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-obsidian-base/60 z-40"
+        className="fixed inset-0 bg-background/60 z-40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -201,25 +200,25 @@ export function ConversationHistory({
       {/* Slide-over panel */}
       <div
         ref={panelRef}
-        className="fixed left-52 top-0 bottom-0 w-64 z-50 flex flex-col bg-obsidian-surface border-r border-obsidian-border/20 shadow-2xl animate-slide-in-left"
+        className="fixed left-52 top-0 bottom-0 w-64 z-50 flex flex-col bg-surface border-r border-outline-variant/20 shadow-2xl animate-slide-in-left"
       >
         {/* Panel header */}
-        <div className="flex items-center justify-between px-3 py-2.5 border-b border-obsidian-border/20 shrink-0">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+        <div className="flex items-center justify-between px-3 py-2.5 border-b border-outline-variant/20 shrink-0">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             SESSIONS
           </span>
           <button
             onClick={onClose}
             aria-label="Close conversation history"
             title="Close conversation history"
-            className="text-ui-dim hover:text-ui-text transition-colors duration-100 p-0.5"
+            className="text-on-surface-variant hover:text-on-surface transition-colors duration-100 p-0.5"
           >
             <X size={12} strokeWidth={1.5} />
           </button>
         </div>
 
         {/* New session button */}
-        <div className="px-3 py-2 border-b border-obsidian-border/20 shrink-0">
+        <div className="px-3 py-2 border-b border-outline-variant/20 shrink-0">
           <button
             onClick={onNewSession}
             className="flex items-center gap-2 w-full btn-primary text-[10px] px-3 py-1.5 justify-center"
@@ -234,7 +233,7 @@ export function ConversationHistory({
         <div className="flex-1 overflow-y-auto">
           {isLoading && (
             <div className="flex items-center justify-center py-6">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
                 LOADING...
               </span>
             </div>
@@ -242,7 +241,7 @@ export function ConversationHistory({
 
           {!isLoading && (!conversations || conversations.length === 0) && (
             <div className="flex flex-col items-center justify-center py-8 gap-2 px-3">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider text-center">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider text-center">
                 NO SESSIONS YET
               </span>
             </div>
@@ -255,7 +254,7 @@ export function ConversationHistory({
                 .map((group) => (
                   <div key={group}>
                     <div className="px-3 pt-3 pb-1">
-                      <span className="font-mono text-[8px] text-ui-dim uppercase tracking-widest">
+                      <span className="font-label text-[8px] text-on-surface-variant uppercase tracking-widest">
                         {group}
                       </span>
                     </div>
