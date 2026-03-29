@@ -205,7 +205,7 @@ export function NoteEditor({
             )}
           </div>
         ) : (
-          <div className="p-4 prose prose-invert max-w-none">
+          <div className="p-4 prose dark:prose-invert max-w-none text-on-surface prose-headings:text-on-surface prose-p:text-on-surface-variant prose-li:text-on-surface-variant prose-td:text-on-surface-variant prose-th:text-on-surface prose-strong:text-on-surface prose-a:text-primary">
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkWikiLinks]}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any

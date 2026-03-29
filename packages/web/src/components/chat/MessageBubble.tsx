@@ -69,7 +69,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         {isUser ? (
           <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-sm max-w-none font-body leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+          <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
             <ReactMarkdown
               components={{
                 code({ children, className, ...props }) {

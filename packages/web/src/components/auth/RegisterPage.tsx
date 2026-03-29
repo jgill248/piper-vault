@@ -6,7 +6,9 @@ interface RegisterPageProps {
 }
 
 /**
- * Full-page registration form using Obsidian Protocol design language.
+ * Full-page registration form using Sovereign Press design language.
+ * Parchment background, crimson primary accent.
+ * No rounded corners, no drop shadows.
  */
 export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
   const { register } = useAuth();
@@ -43,74 +45,41 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    background: '#05070A',
-    border: '1px solid #1a2030',
-    color: '#c8d4e0',
-    borderRadius: 0,
-  };
-
   function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
-    e.currentTarget.style.borderColor = '#abd600';
+    e.currentTarget.style.borderColor = 'var(--color-primary)';
   }
 
   function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
-    e.currentTarget.style.borderColor = '#1a2030';
+    e.currentTarget.style.borderColor = 'var(--color-outline)';
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ background: '#05070A' }}
-    >
-      {/* Scanline overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(171,214,0,0.15) 1px, rgba(171,214,0,0.15) 2px)',
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 w-full max-w-sm px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-full max-w-sm px-4">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="font-mono text-[10px] text-[#abd600] uppercase tracking-[0.3em] mb-1">
+          <div className="font-label text-[10px] text-primary uppercase tracking-[0.3em] mb-1">
             Delve — Knowledge Base
           </div>
-          <h1
-            className="font-mono text-xl uppercase tracking-wider"
-            style={{ color: '#e8edf2' }}
-          >
+          <h1 className="font-headline text-xl text-on-surface uppercase tracking-wider">
             Create Account
           </h1>
-          <div
-            className="mt-2 font-mono text-[9px] uppercase tracking-widest"
-            style={{ color: '#4a5568' }}
-          >
+          <div className="mt-2 font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             Set up your personal knowledge base
           </div>
         </div>
 
         {/* Form card */}
-        <div
-          className="relative border p-6"
-          style={{ borderColor: '#1a2030', background: '#080b10' }}
-        >
+        <div className="relative border border-outline-variant bg-surface-container-low p-6">
           {/* Top accent bar */}
-          <div
-            className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: '#abd600', opacity: 0.6 }}
-          />
+          <div className="absolute top-0 left-0 right-0 h-px bg-primary opacity-60" />
 
           <form onSubmit={handleSubmit} noValidate>
             {/* Username */}
             <div className="mb-4">
               <label
                 htmlFor="reg-username"
-                className="block font-mono text-[9px] uppercase tracking-widest mb-1.5"
-                style={{ color: '#4a5568' }}
+                className="block font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-1.5"
               >
                 Username
               </label>
@@ -122,15 +91,11 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-mono text-xs outline-none disabled:opacity-50"
-                style={inputStyle}
+                className="input-cmd disabled:opacity-50"
                 onFocus={handleFocus}
                 onBlur={handleBlur}
               />
-              <p
-                className="mt-1 font-mono text-[8px] uppercase tracking-widest"
-                style={{ color: '#4a5568' }}
-              >
+              <p className="mt-1 font-label text-[8px] text-on-surface-variant uppercase tracking-widest">
                 Letters, numbers, underscores, hyphens only
               </p>
             </div>
@@ -139,11 +104,9 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
             <div className="mb-4">
               <label
                 htmlFor="reg-email"
-                className="block font-mono text-[9px] uppercase tracking-widest mb-1.5"
-                style={{ color: '#4a5568' }}
+                className="block font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-1.5"
               >
-                Email{' '}
-                <span style={{ color: '#2d3748' }}>(optional)</span>
+                Email <span className="opacity-50">(optional)</span>
               </label>
               <input
                 id="reg-email"
@@ -152,8 +115,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-mono text-xs outline-none disabled:opacity-50"
-                style={inputStyle}
+                className="input-cmd disabled:opacity-50"
                 onFocus={handleFocus}
                 onBlur={handleBlur}
               />
@@ -163,8 +125,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
             <div className="mb-4">
               <label
                 htmlFor="reg-password"
-                className="block font-mono text-[9px] uppercase tracking-widest mb-1.5"
-                style={{ color: '#4a5568' }}
+                className="block font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-1.5"
               >
                 Password
               </label>
@@ -176,15 +137,11 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-mono text-xs outline-none disabled:opacity-50"
-                style={inputStyle}
+                className="input-cmd disabled:opacity-50"
                 onFocus={handleFocus}
                 onBlur={handleBlur}
               />
-              <p
-                className="mt-1 font-mono text-[8px] uppercase tracking-widest"
-                style={{ color: '#4a5568' }}
-              >
+              <p className="mt-1 font-label text-[8px] text-on-surface-variant uppercase tracking-widest">
                 Minimum 8 characters
               </p>
             </div>
@@ -193,8 +150,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
             <div className="mb-5">
               <label
                 htmlFor="reg-confirm"
-                className="block font-mono text-[9px] uppercase tracking-widest mb-1.5"
-                style={{ color: '#4a5568' }}
+                className="block font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-1.5"
               >
                 Confirm Password
               </label>
@@ -206,8 +162,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-mono text-xs outline-none disabled:opacity-50"
-                style={inputStyle}
+                className="input-cmd disabled:opacity-50"
                 onFocus={handleFocus}
                 onBlur={handleBlur}
               />
@@ -216,12 +171,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
             {/* Error */}
             {error && (
               <div
-                className="mb-4 px-3 py-2 font-mono text-[10px] border"
-                style={{
-                  color: '#e85555',
-                  borderColor: '#e85555',
-                  background: 'rgba(232,85,85,0.05)',
-                }}
+                className="mb-4 px-3 py-2 font-label text-[10px] border text-error border-error bg-error-container/10"
                 role="alert"
               >
                 {error}
@@ -231,20 +181,8 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
             {/* Submit */}
             <button
               type="submit"
-              disabled={
-                isSubmitting ||
-                !username ||
-                !password ||
-                !confirmPassword
-              }
-              className="w-full py-2.5 font-mono text-[10px] uppercase tracking-widest transition-opacity disabled:opacity-40"
-              style={{
-                background: '#abd600',
-                color: '#05070A',
-                border: 'none',
-                cursor: isSubmitting ? 'wait' : 'pointer',
-                borderRadius: 0,
-              }}
+              disabled={isSubmitting || !username || !password || !confirmPassword}
+              className="btn-primary w-full py-2.5 disabled:opacity-40"
             >
               {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
@@ -253,23 +191,13 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
 
         {/* Login link */}
         <div className="mt-4 text-center">
-          <span
-            className="font-mono text-[9px] uppercase tracking-widest"
-            style={{ color: '#4a5568' }}
-          >
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             Already have an account?{' '}
           </span>
           <button
             type="button"
             onClick={onNavigateToLogin}
-            className="font-mono text-[9px] uppercase tracking-widest"
-            style={{
-              color: '#abd600',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-            }}
+            className="font-label text-[9px] text-primary uppercase tracking-widest bg-transparent border-none cursor-pointer p-0"
           >
             Sign In
           </button>

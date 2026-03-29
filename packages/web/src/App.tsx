@@ -57,14 +57,8 @@ function AppShell() {
   // While we're checking config or auth state, render nothing (avoids flash)
   if (authConfigLoading || authStateLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: '#05070A' }}
-      >
-        <span
-          className="font-mono text-[9px] uppercase tracking-widest animate-pulse"
-          style={{ color: '#4a5568' }}
-        >
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
           Initializing...
         </span>
       </div>

@@ -7,7 +7,7 @@ interface LoginPageProps {
 
 /**
  * Full-page login form using Sovereign Press design language.
- * Deep background, label typography, primary accent.
+ * Parchment background, crimson primary accent.
  * No rounded corners, no drop shadows.
  */
 export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
@@ -34,58 +34,32 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
   }
 
   return (
-    <div
-      className="min-h-screen bg-background flex items-center justify-center"
-      style={{ background: '#05070A' }}
-    >
-      {/* Scanline overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.1) 1px, rgba(255,255,255,0.1) 2px)',
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 w-full max-w-sm px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-full max-w-sm px-4">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="font-label text-[10px] text-primary uppercase tracking-[0.3em] mb-1">
             Delve — Knowledge Base
           </div>
-          <h1
-            className="font-label text-xl uppercase tracking-wider"
-            style={{ color: '#e8edf2' }}
-          >
+          <h1 className="font-headline text-xl text-on-surface uppercase tracking-wider">
             Sign In
           </h1>
-          <div
-            className="mt-2 font-label text-[9px] uppercase tracking-widest"
-            style={{ color: '#4a5568' }}
-          >
+          <div className="mt-2 font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             Enter your credentials to access your knowledge base
           </div>
         </div>
 
         {/* Form card */}
-        <div
-          className="border p-6"
-          style={{ borderColor: '#1a2030', background: '#080b10' }}
-        >
+        <div className="relative border border-outline-variant bg-surface-container-low p-6">
           {/* Top accent bar */}
-          <div
-            className="absolute top-0 left-0 right-0 h-px bg-primary"
-            style={{ opacity: 0.6 }}
-          />
+          <div className="absolute top-0 left-0 right-0 h-px bg-primary opacity-60" />
 
           <form onSubmit={handleSubmit} noValidate>
             {/* Username field */}
             <div className="mb-4">
               <label
                 htmlFor="login-username"
-                className="block font-label text-[9px] uppercase tracking-widest mb-1.5"
-                style={{ color: '#4a5568' }}
+                className="block font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-1.5"
               >
                 Username
               </label>
@@ -97,18 +71,12 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-label text-xs outline-none disabled:opacity-50"
-                style={{
-                  background: '#05070A',
-                  border: '1px solid #1a2030',
-                  color: '#c8d4e0',
-                  borderRadius: 0,
-                }}
+                className="input-cmd disabled:opacity-50"
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#abd600';
+                  e.currentTarget.style.borderColor = 'var(--color-primary)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#1a2030';
+                  e.currentTarget.style.borderColor = 'var(--color-outline)';
                 }}
               />
             </div>
@@ -117,8 +85,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <div className="mb-5">
               <label
                 htmlFor="login-password"
-                className="block font-label text-[9px] uppercase tracking-widest mb-1.5"
-                style={{ color: '#4a5568' }}
+                className="block font-label text-[9px] text-on-surface-variant uppercase tracking-widest mb-1.5"
               >
                 Password
               </label>
@@ -130,18 +97,12 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isSubmitting}
-                className="w-full px-3 py-2 font-label text-xs outline-none disabled:opacity-50"
-                style={{
-                  background: '#05070A',
-                  border: '1px solid #1a2030',
-                  color: '#c8d4e0',
-                  borderRadius: 0,
-                }}
+                className="input-cmd disabled:opacity-50"
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#abd600';
+                  e.currentTarget.style.borderColor = 'var(--color-primary)';
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#1a2030';
+                  e.currentTarget.style.borderColor = 'var(--color-outline)';
                 }}
               />
             </div>
@@ -149,12 +110,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             {/* Error message */}
             {error && (
               <div
-                className="mb-4 px-3 py-2 font-label text-[10px] border"
-                style={{
-                  color: '#e85555',
-                  borderColor: '#e85555',
-                  background: 'rgba(232,85,85,0.05)',
-                }}
+                className="mb-4 px-3 py-2 font-label text-[10px] border text-error border-error bg-error-container/10"
                 role="alert"
               >
                 {error}
@@ -165,14 +121,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
             <button
               type="submit"
               disabled={isSubmitting || !username || !password}
-              className="w-full py-2.5 font-label text-[10px] uppercase tracking-widest transition-opacity disabled:opacity-40"
-              style={{
-                background: '#abd600',
-                color: '#05070A',
-                border: 'none',
-                cursor: isSubmitting ? 'wait' : 'pointer',
-                borderRadius: 0,
-              }}
+              className="btn-primary w-full py-2.5 disabled:opacity-40"
             >
               {isSubmitting ? 'Authenticating...' : 'Sign In'}
             </button>
@@ -181,17 +130,13 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
 
         {/* Register link */}
         <div className="mt-4 text-center">
-          <span
-            className="font-label text-[9px] uppercase tracking-widest"
-            style={{ color: '#4a5568' }}
-          >
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             No account?{' '}
           </span>
           <button
             type="button"
             onClick={onNavigateToRegister}
-            className="font-label text-[9px] uppercase tracking-widest transition-colors text-primary"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            className="font-label text-[9px] text-primary uppercase tracking-widest bg-transparent border-none cursor-pointer p-0"
           >
             Register
           </button>
