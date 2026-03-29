@@ -23,6 +23,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-delve}
       POSTGRES_DB: ${POSTGRES_DB:-delve}
       # LLM providers — set the token/key for your chosen provider in .env
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-}
       ASK_SAGE_TOKEN: ${ASK_SAGE_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
