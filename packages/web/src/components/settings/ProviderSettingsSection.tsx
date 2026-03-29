@@ -50,6 +50,14 @@ export function ProviderSettingsSection({ activeProvider }: ProviderSettingsSect
     statusMap.set(p.provider, p);
   }
 
+  // Determine which provider + field had the last mutation error
+  const errorProvider = updateMutation.isError ? updateMutation.variables?.provider : undefined;
+  const errorField = updateMutation.isError && updateMutation.variables?.settings.baseUrl !== undefined
+    ? 'baseUrl' as const
+    : updateMutation.isError && updateMutation.variables?.settings.apiKey !== undefined
+      ? 'apiKey' as const
+      : undefined;
+
   return (
     <div className="mt-2 mb-1">
       <div className="flex items-center gap-2 mb-2">
@@ -76,6 +84,8 @@ export function ProviderSettingsSection({ activeProvider }: ProviderSettingsSect
               updateMutation.mutate({ provider, settings });
             }}
             isSaving={updateMutation.isPending}
+            urlError={errorProvider === provider && errorField === 'baseUrl'}
+            keyError={errorProvider === provider && errorField === 'apiKey'}
           />
         );
       })}
@@ -91,6 +101,8 @@ interface ProviderRowProps {
   onToggle: () => void;
   onSave: (settings: { baseUrl?: string; apiKey?: string }) => void;
   isSaving: boolean;
+  urlError: boolean;
+  keyError: boolean;
 }
 
 function ProviderRow({
@@ -101,6 +113,8 @@ function ProviderRow({
   onToggle,
   onSave,
   isSaving,
+  urlError,
+  keyError,
 }: ProviderRowProps) {
   const [urlDraft, setUrlDraft] = useState(status?.baseUrl ?? DEFAULT_PROVIDER_URLS[provider]);
   const [keyDraft, setKeyDraft] = useState('');
@@ -174,7 +188,11 @@ function ProviderRow({
                 type="text"
                 value={urlDraft}
                 onChange={(e) => setUrlDraft(e.target.value)}
-                className="flex-1 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none focus:border-phosphor transition-colors duration-100"
+                className={`flex-1 bg-obsidian-sunken border-b font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none transition-colors duration-100 ${
+                  urlError
+                    ? 'border-red-400/70 focus:border-red-400'
+                    : 'border-obsidian-border focus:border-phosphor'
+                }`}
               />
               <button
                 onClick={handleSaveUrl}
@@ -191,6 +209,11 @@ function ProviderRow({
                 DEFAULT
               </button>
             </div>
+            {urlError && (
+              <p className="font-mono text-[9px] text-red-400/80 mt-1">
+                INVALID_URL — must be a valid http/https address
+              </p>
+            )}
           </div>
 
           {/* API Key / Token (not shown for Ollama) */}

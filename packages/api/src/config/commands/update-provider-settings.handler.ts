@@ -1,5 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable, Logger, UnprocessableEntityException, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { z } from 'zod';
 import type { LlmProviderStatus } from '@delve/shared';
 import { DEFAULT_PROVIDER_URLS, LLM_PROVIDERS } from '@delve/shared';
@@ -11,6 +12,12 @@ const PROVIDER_SECRET_KEYS: Record<string, string> = {
   'ask-sage': 'llm.ask-sage.token',
   'anthropic': 'llm.anthropic.apiKey',
   'openai': 'llm.openai.apiKey',
+};
+
+const PROVIDER_ENV_VARS: Record<string, string> = {
+  'ask-sage': 'ASK_SAGE_TOKEN',
+  'anthropic': 'ANTHROPIC_API_KEY',
+  'openai': 'OPENAI_API_KEY',
 };
 
 const ProviderSettingsSchema = z.object({
@@ -28,6 +35,7 @@ export class UpdateProviderSettingsHandler
   constructor(
     @Inject(ConfigStore) private readonly configStore: ConfigStore,
     @Inject(SecretsStore) private readonly secretsStore: SecretsStore,
+    @Inject(ConfigService) private readonly configService: ConfigService,
   ) {}
 
   async execute(command: UpdateProviderSettingsCommand): Promise<LlmProviderStatus> {
@@ -83,13 +91,25 @@ export class UpdateProviderSettingsHandler
       }
     }
 
-    // Build and return the updated status
+    // Build and return the updated status — use same env-var fallback logic as GetProviderSettingsHandler
     const config = this.configStore.get();
     const effectiveUrl =
       config.providerSettings[provider]?.baseUrl ?? DEFAULT_PROVIDER_URLS[provider];
     const secretKey = PROVIDER_SECRET_KEYS[provider];
-    const hasCredential = secretKey ? this.secretsStore.hasSecret(secretKey) : true;
-    const credentialHint = secretKey ? this.secretsStore.getMasked(secretKey) : '';
+    const envVar = PROVIDER_ENV_VARS[provider];
+    const envValue = envVar ? this.configService.get<string>(envVar) : undefined;
+
+    let hasCredential = true;
+    let credentialHint = '';
+    if (secretKey) {
+      const hasStored = this.secretsStore.hasSecret(secretKey);
+      hasCredential = hasStored || Boolean(envValue);
+      if (hasStored) {
+        credentialHint = this.secretsStore.getMasked(secretKey);
+      } else if (envValue) {
+        credentialHint = envValue.length > 4 ? '••••' + envValue.slice(-4) : '••••';
+      }
+    }
 
     return { provider, baseUrl: effectiveUrl, hasCredential, credentialHint };
   }
