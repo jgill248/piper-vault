@@ -62,10 +62,10 @@ export function SourcesPanel() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-obsidian-border/20 bg-obsidian-surface shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/20 bg-surface shrink-0">
         <div>
-          <h1 className="font-display font-semibold text-ui-text text-sm">Knowledge Sources</h1>
-          <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mt-0.5">
+          <h1 className="font-headline font-semibold text-on-surface text-sm">Knowledge Sources</h1>
+          <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mt-0.5">
             {data ? `${data.total} SOURCES INDEXED` : 'LOADING...'}
           </p>
         </div>
@@ -86,23 +86,23 @@ export function SourcesPanel() {
 
       <div className="flex-1 overflow-y-auto">
         {/* Upload section */}
-        <div className="px-4 py-4 border-b border-obsidian-border/20">
+        <div className="px-4 py-4 border-b border-outline-variant/20">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+            <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
               INGEST_NEW_SOURCE
             </span>
-            <div className="flex-1 h-px bg-obsidian-border/20" />
+            <div className="flex-1 h-px bg-outline-variant/20" />
           </div>
           <UploadZone />
         </div>
 
         {/* Bulk import section */}
-        <div className="px-4 py-4 border-b border-obsidian-border/20">
+        <div className="px-4 py-4 border-b border-outline-variant/20">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+            <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
               BULK_IMPORT
             </span>
-            <div className="flex-1 h-px bg-obsidian-border/20" />
+            <div className="flex-1 h-px bg-outline-variant/20" />
           </div>
           <div className="flex gap-2">
             <input
@@ -126,14 +126,14 @@ export function SourcesPanel() {
             </button>
           </div>
           {bulkImport.isSuccess && (
-            <div className="mt-2 bg-phosphor/5 border border-phosphor/20 px-3 py-2">
-              <p className="font-mono text-[10px] text-phosphor uppercase tracking-wider">
+            <div className="mt-2 bg-primary/5 border border-primary/20 px-3 py-2">
+              <p className="font-label text-[10px] text-primary uppercase tracking-wider">
                 {bulkImport.data.filesIngested} FILES INGESTED / {bulkImport.data.filesSkipped} SKIPPED / {bulkImport.data.filesFound} FOUND
               </p>
               {bulkImport.data.errors.length > 0 && (
                 <div className="mt-1">
                   {bulkImport.data.errors.slice(0, 5).map((err, i) => (
-                    <p key={i} className="font-mono text-[9px] text-yellow-400">{err}</p>
+                    <p key={i} className="font-label text-[9px] text-yellow-400">{err}</p>
                   ))}
                 </div>
               )}
@@ -141,7 +141,7 @@ export function SourcesPanel() {
           )}
           {bulkImport.isError && (
             <div className="mt-2 bg-red-950/30 border border-red-500/20 px-3 py-2">
-              <p className="font-mono text-[10px] text-red-400 uppercase tracking-wider">
+              <p className="font-label text-[10px] text-red-400 uppercase tracking-wider">
                 ERROR: {bulkImport.error instanceof Error ? bulkImport.error.message : 'Import failed'}
               </p>
             </div>
@@ -151,16 +151,16 @@ export function SourcesPanel() {
         {/* Ledger section */}
         <div className="px-4 py-4">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+            <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
               SOURCE_LEDGER
             </span>
-            <div className="flex-1 h-px bg-obsidian-border/20" />
+            <div className="flex-1 h-px bg-outline-variant/20" />
           </div>
 
           {/* Filter bar */}
-          <div className="flex items-center gap-2 mb-3 bg-obsidian-sunken border border-obsidian-border/20 px-3 py-2">
+          <div className="flex items-center gap-2 mb-3 bg-surface-container border border-outline-variant/20 px-3 py-2">
             <div className="flex-1 relative">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 font-mono text-[10px] text-ui-dim pointer-events-none">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 font-label text-[10px] text-on-surface-variant pointer-events-none">
                 /
               </span>
               <input
@@ -169,31 +169,31 @@ export function SourcesPanel() {
                 onChange={handleSearchChange}
                 placeholder="FILTER BY FILENAME..."
                 aria-label="Filter sources by filename"
-                className="w-full bg-transparent font-mono text-[10px] text-ui-text placeholder:text-ui-dim outline-none pl-4 pr-2 py-0.5 uppercase tracking-wider"
+                className="w-full bg-transparent font-label text-[10px] text-on-surface placeholder:text-on-surface-variant outline-none pl-4 pr-2 py-0.5 uppercase tracking-wider"
               />
             </div>
-            <div className="w-px h-4 bg-obsidian-border/30 shrink-0" />
+            <div className="w-px h-4 bg-outline-variant/30 shrink-0" />
             <select
               value={filters.fileType}
               onChange={handleFileTypeChange}
               aria-label="Filter by file type"
-              className="bg-transparent font-mono text-[10px] text-ui-muted uppercase tracking-wider outline-none cursor-pointer border-0 appearance-none pr-1"
+              className="bg-transparent font-label text-[10px] text-secondary uppercase tracking-wider outline-none cursor-pointer border-0 appearance-none pr-1"
             >
               {FILE_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-obsidian-raised text-ui-text">
+                <option key={opt.value} value={opt.value} className="bg-surface-container-high text-on-surface">
                   {opt.label}
                 </option>
               ))}
             </select>
-            <div className="w-px h-4 bg-obsidian-border/30 shrink-0" />
+            <div className="w-px h-4 bg-outline-variant/30 shrink-0" />
             <select
               value={filters.status}
               onChange={handleStatusChange}
               aria-label="Filter by status"
-              className="bg-transparent font-mono text-[10px] text-ui-muted uppercase tracking-wider outline-none cursor-pointer border-0 appearance-none pr-1"
+              className="bg-transparent font-label text-[10px] text-secondary uppercase tracking-wider outline-none cursor-pointer border-0 appearance-none pr-1"
             >
               {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-obsidian-raised text-ui-text">
+                <option key={opt.value} value={opt.value} className="bg-surface-container-high text-on-surface">
                   {opt.label}
                 </option>
               ))}
@@ -202,7 +202,7 @@ export function SourcesPanel() {
 
           {isLoading && (
             <div className="flex items-center justify-center py-8">
-              <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest animate-pulse">
+              <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest animate-pulse">
                 LOADING...
               </span>
             </div>
@@ -210,22 +210,22 @@ export function SourcesPanel() {
 
           {isError && (
             <div className="px-3 py-2 bg-red-950/30 border border-red-500/20">
-              <p className="font-mono text-[10px] text-red-400 uppercase tracking-wider">
+              <p className="font-label text-[10px] text-red-400 uppercase tracking-wider">
                 ERROR: {error instanceof Error ? error.message : 'Failed to load sources'}
               </p>
             </div>
           )}
 
           {!isLoading && !isError && (
-            <div className="bg-obsidian-sunken border border-obsidian-border/20">
+            <div className="bg-surface-container border border-outline-variant/20">
               <SourceLedger sources={sources} filters={filters} />
             </div>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-obsidian-border/20">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider">
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/20">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider">
                 PAGE {page} OF {totalPages}
               </span>
               <div className="flex items-center gap-1">

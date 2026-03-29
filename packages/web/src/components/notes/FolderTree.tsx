@@ -74,10 +74,10 @@ function TreeItem({
     <div>
       <button
         onClick={() => onSelectPath(isSelected ? undefined : node.fullPath)}
-        className={`w-full flex items-center gap-1.5 px-2 py-1 text-xs font-mono transition-colors ${
+        className={`w-full flex items-center gap-1.5 px-2 py-1 text-xs font-label transition-colors ${
           isSelected
-            ? 'text-phosphor bg-obsidian-raised'
-            : 'text-ui-muted hover:text-ui-text hover:bg-obsidian-surface'
+            ? 'text-primary bg-surface-container-high'
+            : 'text-secondary hover:text-on-surface hover:bg-surface'
         }`}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
@@ -138,13 +138,13 @@ export function FolderTree({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-obsidian-border/20">
-        <span className="text-xs font-mono text-ui-dim uppercase tracking-wider">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-outline-variant/20">
+        <span className="text-xs font-label text-on-surface-variant uppercase tracking-wider">
           Folders
         </span>
         <button
           onClick={() => setShowNewFolder(!showNewFolder)}
-          className="p-1 text-ui-dim hover:text-phosphor transition-colors"
+          className="p-1 text-on-surface-variant hover:text-primary transition-colors"
           title="New folder"
         >
           <FolderPlus size={12} strokeWidth={1.5} />
@@ -152,7 +152,7 @@ export function FolderTree({
       </div>
 
       {showNewFolder && (
-        <div className="px-3 py-2 border-b border-obsidian-border/20">
+        <div className="px-3 py-2 border-b border-outline-variant/20">
           <input
             type="text"
             value={newFolderName}
@@ -171,10 +171,10 @@ export function FolderTree({
       {/* All Notes (root) */}
       <button
         onClick={() => onSelectPath(undefined)}
-        className={`w-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono transition-colors ${
+        className={`w-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-label transition-colors ${
           selectedPath === undefined
-            ? 'text-phosphor bg-obsidian-raised'
-            : 'text-ui-muted hover:text-ui-text hover:bg-obsidian-surface'
+            ? 'text-primary bg-surface-container-high'
+            : 'text-secondary hover:text-on-surface hover:bg-surface'
         }`}
       >
         <Folder size={12} strokeWidth={1.5} />

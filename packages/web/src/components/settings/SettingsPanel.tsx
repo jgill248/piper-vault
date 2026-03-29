@@ -19,12 +19,12 @@ function Section({ title, children }: SectionProps) {
   return (
     <div className="mb-6" id={`section-${sectionId}`}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+        <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
           {title}
         </span>
-        <div className="flex-1 h-px bg-obsidian-border/20" />
+        <div className="flex-1 h-px bg-outline-variant/20" />
       </div>
-      <div className="bg-obsidian-sunken border border-obsidian-border/20 px-3">
+      <div className="bg-surface-container border border-outline-variant/20 px-3">
         {children}
       </div>
     </div>
@@ -39,13 +39,13 @@ interface FieldRowProps {
 
 function FieldRow({ label, description, children }: FieldRowProps) {
   return (
-    <div className="flex items-start justify-between py-2.5 border-b border-obsidian-border/10 last:border-0 gap-4">
+    <div className="flex items-start justify-between py-2.5 border-b border-outline-variant/10 last:border-0 gap-4">
       <div className="flex-1 min-w-0">
-        <label className="font-mono text-[10px] text-ui-muted uppercase tracking-widest block">
+        <label className="font-label text-[10px] text-secondary uppercase tracking-widest block">
           {label}
         </label>
         {description && (
-          <p className="font-sans text-[10px] text-ui-dim mt-0.5 leading-relaxed">{description}</p>
+          <p className="font-body text-[10px] text-on-surface-variant mt-0.5 leading-relaxed">{description}</p>
         )}
       </div>
       <div className="shrink-0 flex items-center">{children}</div>
@@ -70,11 +70,11 @@ function NumberInput({ value, onChange, min, max, unit }: NumberInputProps) {
         min={min}
         max={max}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-24 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor text-right px-2 py-0.5 outline-none focus:border-phosphor transition-colors duration-100 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="w-24 bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary text-right px-2 py-0.5 outline-none focus:border-primary transition-colors duration-100 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         aria-label={unit ? `Value in ${unit}` : 'Value'}
       />
       {unit && (
-        <span className="font-mono text-[9px] text-ui-dim uppercase">{unit}</span>
+        <span className="font-label text-[9px] text-on-surface-variant uppercase">{unit}</span>
       )}
     </div>
   );
@@ -91,7 +91,7 @@ function TextInput({ value, onChange }: TextInputProps) {
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-48 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none focus:border-phosphor transition-colors duration-100"
+      className="w-48 bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-0.5 outline-none focus:border-primary transition-colors duration-100"
     />
   );
 }
@@ -107,10 +107,10 @@ function SelectInput({ value, onChange, options }: SelectInputProps) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-48 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-0.5 outline-none focus:border-phosphor transition-colors duration-100 appearance-none cursor-pointer"
+      className="w-48 bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-0.5 outline-none focus:border-primary transition-colors duration-100 appearance-none cursor-pointer"
     >
       {options.map((opt) => (
-        <option key={opt.value} value={opt.value} className="bg-obsidian-raised text-ui-text">
+        <option key={opt.value} value={opt.value} className="bg-surface-container-high text-on-surface">
           {opt.label}
         </option>
       ))}
@@ -130,15 +130,15 @@ function ToggleInput({ value, onChange, label }: ToggleInputProps) {
       onClick={() => onChange(!value)}
       aria-pressed={value}
       aria-label={label}
-      className={`flex items-center gap-2 border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all duration-150 ${
+      className={`flex items-center gap-2 border px-3 py-1.5 font-label text-[10px] uppercase tracking-wider transition-all duration-150 ${
         value
-          ? 'border-phosphor text-phosphor bg-phosphor/5'
-          : 'border-obsidian-border text-ui-muted hover:border-phosphor hover:text-phosphor'
+          ? 'border-primary text-primary bg-primary/5'
+          : 'border-outline-variant text-secondary hover:border-primary hover:text-primary'
       }`}
     >
       <span
         className={`inline-block w-3 h-3 border shrink-0 transition-all duration-150 ${
-          value ? 'bg-phosphor border-phosphor' : 'bg-transparent border-obsidian-border'
+          value ? 'bg-primary-container border-primary' : 'bg-transparent border-outline-variant'
         }`}
         aria-hidden="true"
       />
@@ -165,13 +165,13 @@ function SliderInput({ value, onChange, min, max, step }: SliderInputProps) {
         max={max}
         step={step}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-32 accent-phosphor cursor-pointer"
+        className="w-32 accent-primary cursor-pointer"
         aria-label="Similarity threshold"
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
       />
-      <span className="font-mono text-[11px] text-phosphor tabular-nums w-10 text-right">
+      <span className="font-label text-[11px] text-primary tabular-nums w-10 text-right">
         {value.toFixed(2)}
       </span>
     </div>
@@ -238,7 +238,7 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
           label="EMBEDDING_MODEL"
           description="Sentence transformer model for vector embedding generation (read-only)"
         >
-          <span className="font-mono text-[11px] text-ui-muted tabular-nums">
+          <span className="font-label text-[11px] text-secondary tabular-nums">
             {draft.embeddingModel}
           </span>
         </FieldRow>
@@ -403,10 +403,10 @@ export function SettingsPanel() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-obsidian-border/20 bg-obsidian-surface shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/20 bg-surface shrink-0">
         <div>
-          <h1 className="font-display font-semibold text-ui-text text-sm">System Configuration</h1>
-          <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mt-0.5">
+          <h1 className="font-headline font-semibold text-on-surface text-sm">System Configuration</h1>
+          <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mt-0.5">
             {isError ? 'DEFAULT_VALUES' : isLoading ? 'FETCHING...' : 'LIVE_VALUES'}
           </p>
         </div>
@@ -417,16 +417,16 @@ export function SettingsPanel() {
                 ? 'bg-yellow-400'
                 : isLoading
                   ? 'bg-blue-400 animate-pulse'
-                  : 'bg-phosphor'
+                  : 'bg-primary'
             }`}
           />
           {saveStatus === 'success' && (
-            <span className="font-mono text-[9px] text-phosphor uppercase tracking-widest animate-pulse">
+            <span className="font-label text-[9px] text-primary uppercase tracking-widest animate-pulse">
               SAVED
             </span>
           )}
           {saveStatus === 'error' && (
-            <span className="font-mono text-[9px] text-red-400 uppercase tracking-widest">
+            <span className="font-label text-[9px] text-red-400 uppercase tracking-widest">
               SAVE_FAILED
             </span>
           )}
@@ -435,7 +435,7 @@ export function SettingsPanel() {
 
       {/* Section jump nav */}
       {!isLoading && (
-        <div className="flex items-center gap-1 px-4 py-2 border-b border-obsidian-border/20 bg-obsidian-surface shrink-0 overflow-x-auto">
+        <div className="flex items-center gap-1 px-4 py-2 border-b border-outline-variant/20 bg-surface shrink-0 overflow-x-auto">
           {['LLM', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
             <button
               key={label}
@@ -454,7 +454,7 @@ export function SettingsPanel() {
                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="font-mono text-[8px] text-ui-dim hover:text-phosphor uppercase tracking-wider px-2 py-1 border border-obsidian-border/20 hover:border-phosphor/30 transition-all duration-100 whitespace-nowrap shrink-0"
+              className="font-label text-[8px] text-on-surface-variant hover:text-primary uppercase tracking-wider px-2 py-1 border border-outline-variant/20 hover:border-primary/30 transition-all duration-100 whitespace-nowrap shrink-0"
             >
               {label}
             </button>
@@ -465,7 +465,7 @@ export function SettingsPanel() {
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest animate-pulse">
+            <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest animate-pulse">
               LOADING...
             </span>
           </div>
@@ -483,12 +483,12 @@ export function SettingsPanel() {
               ].map(({ label, value }) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between py-2.5 border-b border-obsidian-border/10 last:border-0"
+                  className="flex items-center justify-between py-2.5 border-b border-outline-variant/10 last:border-0"
                 >
-                  <span className="font-mono text-[10px] text-ui-muted uppercase tracking-widest">
+                  <span className="font-label text-[10px] text-secondary uppercase tracking-widest">
                     {label}
                   </span>
-                  <span className="font-mono text-[11px] text-phosphor tabular-nums">{value}</span>
+                  <span className="font-label text-[11px] text-primary tabular-nums">{value}</span>
                 </div>
               ))}
             </Section>
@@ -497,27 +497,27 @@ export function SettingsPanel() {
             <Section index="07" title="INTERFACE">
               <div className="flex items-start justify-between py-2.5">
                 <div>
-                  <label className="font-mono text-[10px] text-ui-muted uppercase tracking-widest block">
+                  <label className="font-label text-[10px] text-secondary uppercase tracking-widest block">
                     THEME_MODE
                   </label>
-                  <p className="font-sans text-[10px] text-ui-dim mt-0.5">
+                  <p className="font-body text-[10px] text-on-surface-variant mt-0.5">
                     Display color scheme for the interface
                   </p>
                 </div>
                 <button
                   onClick={toggleTheme}
                   aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                  className={`flex items-center gap-2 border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all duration-150 ${
+                  className={`flex items-center gap-2 border px-3 py-1.5 font-label text-[10px] uppercase tracking-wider transition-all duration-150 ${
                     theme === 'dark'
-                      ? 'border-obsidian-border text-phosphor hover:border-phosphor hover:bg-phosphor/5'
-                      : 'border-obsidian-border text-ui-muted hover:border-phosphor hover:text-phosphor hover:bg-phosphor/5'
+                      ? 'border-outline-variant text-primary hover:border-primary hover:bg-primary/5'
+                      : 'border-outline-variant text-secondary hover:border-primary hover:text-primary hover:bg-primary/5'
                   }`}
                 >
                   <span
                     className={`inline-block w-3 h-3 border shrink-0 transition-all duration-150 ${
                       theme === 'dark'
-                        ? 'bg-phosphor border-phosphor'
-                        : 'bg-transparent border-obsidian-border'
+                        ? 'bg-primary-container border-primary'
+                        : 'bg-transparent border-outline-variant'
                     }`}
                     aria-hidden="true"
                   />

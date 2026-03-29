@@ -140,7 +140,7 @@ export function NoteEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Title bar */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-obsidian-border/20">
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant/20">
         <input
           type="text"
           value={title}
@@ -148,23 +148,23 @@ export function NoteEditor({
             setTitle(e.target.value);
             setIsDirty(true);
           }}
-          className="flex-1 bg-transparent font-display text-lg text-ui-text outline-none placeholder:text-ui-dim"
+          className="flex-1 bg-transparent font-headline text-lg text-on-surface outline-none placeholder:text-on-surface-variant"
           placeholder="Note title..."
         />
         <div className="flex items-center gap-1">
           {isDirty && (
-            <span className="text-xs font-mono text-ui-dim mr-2">unsaved</span>
+            <span className="text-xs font-label text-on-surface-variant mr-2">unsaved</span>
           )}
           <button
             onClick={handleManualSave}
-            className="p-1.5 text-ui-dim hover:text-phosphor transition-colors"
+            className="p-1.5 text-on-surface-variant hover:text-primary transition-colors"
             title="Save"
           >
             <Save size={14} strokeWidth={1.5} />
           </button>
           <button
             onClick={() => setMode(mode === 'edit' ? 'preview' : 'edit')}
-            className="p-1.5 text-ui-dim hover:text-phosphor transition-colors"
+            className="p-1.5 text-on-surface-variant hover:text-primary transition-colors"
             title={mode === 'edit' ? 'Preview' : 'Edit'}
           >
             {mode === 'edit' ? (
@@ -184,18 +184,18 @@ export function NoteEditor({
               ref={textareaRef}
               value={content}
               onChange={handleContentChange}
-              className="w-full h-full bg-transparent font-mono text-sm text-ui-text p-4 outline-none resize-none"
+              className="w-full h-full bg-transparent font-label text-sm text-on-surface p-4 outline-none resize-none"
               placeholder="Start writing... Use [[Note Name]] for wiki-links"
               spellCheck={false}
             />
             {/* Wiki-link autocomplete dropdown */}
             {showAutocomplete && filteredNames.length > 0 && (
-              <div className="absolute left-4 top-8 z-50 bg-obsidian-surface border border-obsidian-border/40 max-h-48 overflow-auto w-64">
+              <div className="absolute left-4 top-8 z-50 bg-surface border border-outline-variant/40 max-h-48 overflow-auto w-64">
                 {filteredNames.slice(0, 10).map((name) => (
                   <button
                     key={name}
                     onClick={() => handleAutocompleteSelect(name)}
-                    className="w-full text-left px-3 py-1.5 text-xs font-mono text-ui-text hover:bg-obsidian-raised hover:text-phosphor transition-colors flex items-center gap-2"
+                    className="w-full text-left px-3 py-1.5 text-xs font-label text-on-surface hover:bg-surface-container-high hover:text-primary transition-colors flex items-center gap-2"
                   >
                     <Link size={10} strokeWidth={1.5} />
                     {name}
@@ -205,7 +205,7 @@ export function NoteEditor({
             )}
           </div>
         ) : (
-          <div className="p-4 prose prose-invert max-w-none">
+          <div className="p-4 prose dark:prose-invert max-w-none text-on-surface prose-headings:text-on-surface prose-p:text-on-surface-variant prose-li:text-on-surface-variant prose-td:text-on-surface-variant prose-th:text-on-surface prose-strong:text-on-surface prose-a:text-primary">
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkWikiLinks]}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any

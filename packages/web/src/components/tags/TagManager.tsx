@@ -84,19 +84,19 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Tag size={12} strokeWidth={1.5} className="text-ui-dim" />
-            <span className="text-xs font-mono text-ui-dim uppercase tracking-wider">
+            <Tag size={12} strokeWidth={1.5} className="text-on-surface-variant" />
+            <span className="text-xs font-label text-on-surface-variant uppercase tracking-wider">
               Tags
             </span>
           </div>
           <button
             onClick={() => setBulkMode(true)}
-            className="text-[10px] font-mono text-ui-dim hover:text-phosphor transition-colors"
+            className="text-[10px] font-label text-on-surface-variant hover:text-primary transition-colors"
           >
             + Add
           </button>
         </div>
-        <div className="text-xs font-mono text-ui-dim">
+        <div className="text-xs font-label text-on-surface-variant">
           No tags found. Add tags to your notes to organize them.
         </div>
       </div>
@@ -107,8 +107,8 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
     <div className="p-3">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Tag size={12} strokeWidth={1.5} className="text-ui-dim" />
-          <span className="text-xs font-mono text-ui-dim uppercase tracking-wider">
+          <Tag size={12} strokeWidth={1.5} className="text-on-surface-variant" />
+          <span className="text-xs font-label text-on-surface-variant uppercase tracking-wider">
             Tags
           </span>
         </div>
@@ -117,8 +117,8 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
             setBulkMode(!bulkMode);
             setSelectedTags(new Set());
           }}
-          className={`text-[10px] font-mono transition-colors ${
-            bulkMode ? 'text-phosphor' : 'text-ui-dim hover:text-phosphor'
+          className={`text-[10px] font-label transition-colors ${
+            bulkMode ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
           }`}
         >
           {bulkMode ? 'Done' : 'Bulk Edit'}
@@ -136,12 +136,12 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
               if (e.key === 'Enter') void handleBulkAdd();
             }}
             placeholder="Add tag to all notes..."
-            className="flex-1 bg-obsidian-raised px-2 py-1 text-[10px] font-mono text-ui-text outline-none placeholder:text-ui-dim"
+            className="flex-1 bg-surface-container-high px-2 py-1 text-[10px] font-label text-on-surface outline-none placeholder:text-on-surface-variant"
           />
           <button
             onClick={() => void handleBulkAdd()}
             disabled={!newTag.trim()}
-            className="p-1 text-ui-dim hover:text-phosphor disabled:opacity-30 transition-colors"
+            className="p-1 text-on-surface-variant hover:text-primary disabled:opacity-30 transition-colors"
             title="Add tag to all notes"
           >
             <Plus size={12} strokeWidth={1.5} />
@@ -154,7 +154,7 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
         <div className="flex items-center gap-2 mb-2">
           <button
             onClick={() => void handleBulkRemove()}
-            className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-red-400 bg-obsidian-raised hover:bg-red-400/10 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-[10px] font-label text-red-400 bg-surface-container-high hover:bg-red-400/10 transition-colors"
           >
             <Minus size={10} strokeWidth={1.5} />
             Remove {selectedTags.size} tag{selectedTags.size > 1 ? 's' : ''} from all notes
@@ -173,12 +173,12 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
                 onFilterByTag(activeTag === tag ? '' : tag);
               }
             }}
-            className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-mono transition-colors ${
+            className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-label transition-colors ${
               bulkMode && selectedTags.has(tag)
                 ? 'text-red-300 bg-red-400/20 ring-1 ring-red-400/40'
                 : activeTag === tag
-                  ? 'text-obsidian-base bg-phosphor'
-                  : 'text-ui-muted bg-obsidian-raised hover:text-phosphor'
+                  ? 'text-background bg-primary'
+                  : 'text-secondary bg-surface-container-high hover:text-primary'
             }`}
           >
             {bulkMode && selectedTags.has(tag) && (

@@ -25,19 +25,19 @@ function WatchedFolderRow({
     : 'NEVER';
 
   return (
-    <div className="flex items-start justify-between py-2.5 border-b border-obsidian-border/10 last:border-0 gap-3">
+    <div className="flex items-start justify-between py-2.5 border-b border-outline-variant/10 last:border-0 gap-3">
       <div className="flex-1 min-w-0">
-        <p className="font-mono text-[11px] text-phosphor truncate" title={folder.folderPath}>
+        <p className="font-label text-[11px] text-primary truncate" title={folder.folderPath}>
           {folder.folderPath}
         </p>
         <div className="flex items-center gap-3 mt-0.5">
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             {collectionName}
           </span>
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             {folder.recursive ? 'RECURSIVE' : 'NON_RECURSIVE'}
           </span>
-          <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             LAST_SCAN: {lastScan}
           </span>
         </div>
@@ -47,7 +47,7 @@ function WatchedFolderRow({
           onClick={() => onScan(folder.id)}
           disabled={isScanning}
           aria-label={`Scan folder ${folder.folderPath}`}
-          className="font-mono text-[9px] text-ui-muted uppercase tracking-widest border border-obsidian-border/30 px-2 py-1 hover:border-phosphor hover:text-phosphor transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="font-label text-[9px] text-secondary uppercase tracking-widest border border-outline-variant/30 px-2 py-1 hover:border-primary hover:text-primary transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isScanning ? 'SCANNING...' : 'SCAN_NOW'}
         </button>
@@ -55,7 +55,7 @@ function WatchedFolderRow({
           onClick={() => onRemove(folder.id)}
           disabled={isRemoving}
           aria-label={`Remove watched folder ${folder.folderPath}`}
-          className="font-mono text-[9px] text-red-400 uppercase tracking-widest border border-red-400/30 px-2 py-1 hover:border-red-400 hover:bg-red-400/5 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="font-label text-[9px] text-red-400 uppercase tracking-widest border border-red-400/30 px-2 py-1 hover:border-red-400 hover:bg-red-400/5 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isRemoving ? 'REMOVING...' : 'REMOVE'}
         </button>
@@ -137,16 +137,16 @@ export function WatchedFoldersSection() {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3" id="section-folders">
-        <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">
+        <span className="font-label text-[10px] text-secondary uppercase tracking-wider">
           WATCHED_FOLDERS
         </span>
-        <div className="flex-1 h-px bg-obsidian-border/20" />
+        <div className="flex-1 h-px bg-outline-variant/20" />
       </div>
 
-      <div className="bg-obsidian-sunken border border-obsidian-border/20 px-3">
+      <div className="bg-surface-container border border-outline-variant/20 px-3">
         {/* Add new watched folder */}
-        <div className="py-3 border-b border-obsidian-border/10">
-          <label className="font-mono text-[10px] text-ui-muted uppercase tracking-widest block mb-2">
+        <div className="py-3 border-b border-outline-variant/10">
+          <label className="font-label text-[10px] text-secondary uppercase tracking-widest block mb-2">
             ADD_WATCHED_FOLDER
           </label>
           <div className="flex flex-col gap-2">
@@ -156,7 +156,7 @@ export function WatchedFoldersSection() {
               onChange={(e) => setFolderPath(e.target.value)}
               placeholder="/path/to/folder"
               aria-label="Folder path"
-              className="w-full bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-1 outline-none focus:border-phosphor transition-colors duration-100 placeholder:text-ui-dim"
+              className="w-full bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-1 outline-none focus:border-primary transition-colors duration-100 placeholder:text-on-surface-variant"
             />
             <div className="flex items-center gap-3">
               {collections.length > 0 && (
@@ -164,10 +164,10 @@ export function WatchedFoldersSection() {
                   value={selectedCollectionId}
                   onChange={(e) => setSelectedCollectionId(e.target.value)}
                   aria-label="Collection"
-                  className="flex-1 bg-obsidian-sunken border-b border-obsidian-border font-mono text-[11px] text-phosphor px-2 py-1 outline-none focus:border-phosphor transition-colors duration-100 appearance-none cursor-pointer"
+                  className="flex-1 bg-surface-container border-b border-outline-variant font-label text-[11px] text-primary px-2 py-1 outline-none focus:border-primary transition-colors duration-100 appearance-none cursor-pointer"
                 >
                   {collections.map((c) => (
-                    <option key={c.id} value={c.id} className="bg-obsidian-raised text-ui-text">
+                    <option key={c.id} value={c.id} className="bg-surface-container-high text-on-surface">
                       {c.name}
                     </option>
                   ))}
@@ -177,15 +177,15 @@ export function WatchedFoldersSection() {
                 onClick={() => setRecursive((v) => !v)}
                 aria-pressed={recursive}
                 aria-label="Toggle recursive watching"
-                className={`flex items-center gap-1.5 border px-2 py-1 font-mono text-[9px] uppercase tracking-wider transition-all duration-150 ${
+                className={`flex items-center gap-1.5 border px-2 py-1 font-label text-[9px] uppercase tracking-wider transition-all duration-150 ${
                   recursive
-                    ? 'border-phosphor text-phosphor bg-phosphor/5'
-                    : 'border-obsidian-border text-ui-muted hover:border-phosphor hover:text-phosphor'
+                    ? 'border-primary text-primary bg-primary/5'
+                    : 'border-outline-variant text-secondary hover:border-primary hover:text-primary'
                 }`}
               >
                 <span
                   className={`inline-block w-2.5 h-2.5 border shrink-0 transition-all duration-150 ${
-                    recursive ? 'bg-phosphor border-phosphor' : 'bg-transparent border-obsidian-border'
+                    recursive ? 'bg-primary border-primary' : 'bg-transparent border-outline-variant'
                   }`}
                   aria-hidden="true"
                 />
@@ -201,7 +201,7 @@ export function WatchedFoldersSection() {
               </button>
             </div>
             {addError && (
-              <p className="font-mono text-[9px] text-red-400 uppercase tracking-widest">
+              <p className="font-label text-[9px] text-red-400 uppercase tracking-widest">
                 {addError}
               </p>
             )}
@@ -211,13 +211,13 @@ export function WatchedFoldersSection() {
         {/* Folder list */}
         {isLoading ? (
           <div className="py-4 text-center">
-            <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest animate-pulse">
+            <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest animate-pulse">
               LOADING...
             </span>
           </div>
         ) : folders.length === 0 ? (
           <div className="py-4 text-center">
-            <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest">
+            <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
               NO_WATCHED_FOLDERS
             </span>
           </div>
@@ -234,7 +234,7 @@ export function WatchedFoldersSection() {
                   isScanning={scanFolder.isPending && scanFolder.variables === folder.id}
                 />
                 {scanResults[folder.id] !== undefined && (
-                  <p className="font-mono text-[9px] text-phosphor uppercase tracking-widest py-1">
+                  <p className="font-label text-[9px] text-primary uppercase tracking-widest py-1">
                     SCAN_RESULT: {scanResults[folder.id]}
                   </p>
                 )}

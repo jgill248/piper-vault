@@ -8,71 +8,96 @@
     box-sizing: border-box;
   }
 
-  /* Theme variables — dark (default) */
+  /* Theme variables — light / parchment (default) */
   :root {
-    --color-base: #05070A;
-    --color-surface: #111417;
-    --color-sunken: #0c0e12;
-    --color-raised: #282a2e;
-    --color-border: #45474a;
-    --color-text: #e1e2e7;
-    --color-muted: #8b8d93;
-    --color-dim: #5a5c62;
-    --scanline-color: rgba(255, 255, 255, 0.008);
-    --scrollbar-track: #0c0e12;
-    --scrollbar-thumb: #45474a;
-    --scrollbar-thumb-hover: #5a5c62;
+    --color-background: #fff9ee;
+    --color-surface: #fff9ee;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f9f3e8;
+    --color-surface-container: #f3ede2;
+    --color-surface-container-high: #ede8dd;
+    --color-surface-container-highest: #e7e2d7;
+    --color-surface-dim: #dfd9cf;
+    --color-surface-bright: #fff9ee;
+    --color-surface-variant: #e7e2d7;
+    --color-primary: #570013;
+    --color-primary-container: #570013;
+    --color-primary-fixed: #ffdada;
+    --color-primary-fixed-dim: #ffb3b5;
+    --color-secondary: #4f6073;
+    --color-secondary-container: #d2e4fb;
+    --color-tertiary: #362400;
+    --color-tertiary-container: #f5deb3;
+    --color-error: #ba1a1a;
+    --color-error-container: #ffdad6;
+    --color-on-surface: #1d1c15;
+    --color-on-surface-variant: #564242;
+    --color-on-primary: #ffffff;
+    --color-on-primary-container: #e06a72;
+    --color-on-secondary: #ffffff;
+    --color-on-error: #ffffff;
+    --color-outline: #897172;
+    --color-outline-variant: #dcc0c0;
+    --color-inverse-surface: #31302a;
+    --color-inverse-on-surface: #f3efe7;
+    --color-inverse-primary: #ffb3b5;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #dcc0c0;
+    --scrollbar-thumb-hover: #897172;
   }
 
-  /* Theme variables — light */
-  .light {
-    --color-base: #f0f1f3;
-    --color-surface: #ffffff;
-    --color-sunken: #e8e9eb;
-    --color-raised: #d5d7db;
-    --color-border: #c0c2c6;
-    --color-text: #1a1c20;
-    --color-muted: #5a5c62;
-    --color-dim: #8b8d93;
-    --scanline-color: rgba(0, 0, 0, 0.005);
-    --scrollbar-track: #e8e9eb;
-    --scrollbar-thumb: #c0c2c6;
-    --scrollbar-thumb-hover: #a0a2a6;
+  /* Theme variables — dark */
+  .dark {
+    --color-background: #1d1c15;
+    --color-surface: #1d1c15;
+    --color-surface-container-lowest: #151410;
+    --color-surface-container-low: #151410;
+    --color-surface-container: #2a2922;
+    --color-surface-container-high: #2d2c25;
+    --color-surface-container-highest: #35342d;
+    --color-surface-dim: #1d1c15;
+    --color-surface-bright: #35342d;
+    --color-surface-variant: #35342d;
+    --color-primary: #ffb4ab;
+    --color-primary-container: #570013;
+    --color-primary-fixed: #ffdada;
+    --color-primary-fixed-dim: #ffb3b5;
+    --color-secondary: #91a0b0;
+    --color-secondary-container: #37485a;
+    --color-tertiary: #a9caed;
+    --color-tertiary-container: #002a46;
+    --color-error: #ffb4ab;
+    --color-error-container: #93000a;
+    --color-on-surface: #f3ede2;
+    --color-on-surface-variant: #8d8c82;
+    --color-on-primary: #ffffff;
+    --color-on-primary-container: #ffb4ab;
+    --color-on-secondary: #ffffff;
+    --color-on-error: #690005;
+    --color-outline: #8d8c82;
+    --color-outline-variant: #564242;
+    --color-inverse-surface: #f3efe7;
+    --color-inverse-on-surface: #31302a;
+    --color-inverse-primary: #570013;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #564242;
+    --scrollbar-thumb-hover: #8d8c82;
   }
 
   body {
-    background-color: var(--color-base);
-    color: var(--color-text);
-    @apply font-sans;
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+    @apply font-body;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
   }
 
-  /* Scanline overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      var(--scanline-color) 2px,
-      var(--scanline-color) 4px
-    );
-  }
-
   /* Scrollbar styling */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
   ::-webkit-scrollbar-track {
     background: var(--scrollbar-track);
@@ -87,61 +112,101 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-phosphor text-obsidian-base font-mono text-xs uppercase tracking-widest px-4 py-2 transition-all duration-150;
-    box-shadow: 0 0 12px rgba(171, 214, 0, 0.25);
+    @apply bg-primary-container text-on-primary font-label text-xs uppercase tracking-widest px-4 py-2 transition-all duration-150;
   }
   .btn-primary:hover {
-    box-shadow: 0 0 20px rgba(171, 214, 0, 0.45);
-    @apply bg-phosphor;
+    @apply brightness-110;
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
   }
 
   .btn-secondary {
-    @apply border font-mono text-xs uppercase tracking-widest px-4 py-2 transition-all duration-150;
-    border-color: var(--color-border);
-    @apply text-phosphor;
+    @apply border font-label text-xs uppercase tracking-widest px-4 py-2 transition-all duration-150 text-primary;
+    border-color: var(--color-outline);
   }
   .btn-secondary:hover {
-    @apply border-phosphor bg-phosphor/5;
+    border-color: var(--color-primary);
+    background-color: var(--color-surface-container-low);
   }
 
   .input-cmd {
-    @apply font-mono text-sm px-3 py-2 w-full outline-none border-b transition-colors duration-150;
-    background-color: var(--color-sunken);
-    color: var(--color-text);
-    border-color: var(--color-border);
+    @apply font-body text-sm px-3 py-2 w-full outline-none border-b transition-colors duration-150;
+    background-color: transparent;
+    color: var(--color-on-surface);
+    border-color: var(--color-outline);
   }
   .input-cmd:focus {
-    @apply border-phosphor;
+    border-color: var(--color-primary);
   }
   .input-cmd::placeholder {
-    color: var(--color-dim);
+    color: var(--color-on-surface-variant);
   }
 
   .status-pending {
-    @apply text-yellow-400 bg-yellow-400/10 font-mono text-xs px-2 py-0.5 uppercase tracking-wider;
+    @apply text-yellow-700 bg-yellow-100 font-label text-xs px-2 py-0.5 uppercase tracking-wider;
+  }
+  .dark .status-pending {
+    @apply text-yellow-400 bg-yellow-400/10;
   }
   .status-processing {
-    @apply text-blue-400 bg-blue-400/10 font-mono text-xs px-2 py-0.5 uppercase tracking-wider;
+    @apply text-blue-700 bg-blue-100 font-label text-xs px-2 py-0.5 uppercase tracking-wider;
+  }
+  .dark .status-processing {
+    @apply text-blue-400 bg-blue-400/10;
   }
   .status-ready {
-    @apply text-phosphor bg-phosphor/10 font-mono text-xs px-2 py-0.5 uppercase tracking-wider;
+    @apply font-label text-xs px-2 py-0.5 uppercase tracking-wider;
+    color: #2e7d32;
+    background-color: rgba(46, 125, 50, 0.1);
+  }
+  .dark .status-ready {
+    color: #81c784;
+    background-color: rgba(129, 199, 132, 0.1);
   }
   .status-error {
-    @apply text-red-400 bg-red-400/10 font-mono text-xs px-2 py-0.5 uppercase tracking-wider;
+    @apply font-label text-xs px-2 py-0.5 uppercase tracking-wider;
+    color: var(--color-error);
+    background-color: var(--color-error-container);
   }
 
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-widest transition-all duration-150 cursor-pointer border-l-2 border-transparent;
-    color: var(--color-muted);
+    @apply flex items-center gap-3 px-4 py-3 font-label text-xs uppercase tracking-widest transition-all duration-150 cursor-pointer border-l-4 border-transparent;
+    color: var(--color-on-surface-variant);
   }
   .nav-item:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface);
-    border-left-color: var(--color-border);
+    color: var(--color-on-surface);
+    background-color: var(--color-surface-container-low);
+    border-left-color: var(--color-outline-variant);
   }
   .nav-item.active {
-    @apply text-phosphor border-l-phosphor;
-    background-color: var(--color-surface);
+    color: var(--color-primary);
+    border-left-color: var(--color-primary);
+    background-color: var(--color-surface-container-low);
+  }
+
+  /* Paper texture overlay */
+  .paper-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .stamp-shadow {
+    box-shadow: 0 20px 40px rgba(29, 28, 21, 0.06);
+  }
+
+  .paper-stack {
+    box-shadow: 0 4px 0 0 var(--color-surface-container), 0 8px 0 0 var(--color-surface-container-high);
+  }
+
+  .text-ink-stamped {
+    background: linear-gradient(to bottom right, #570013, #800020);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .ink-bleed {
+    filter: blur(0.4px);
   }
 
   /* Slide-in animation for overlay panels */

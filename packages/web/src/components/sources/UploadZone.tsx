@@ -138,15 +138,10 @@ export function UploadZone() {
           border-2 border-dashed transition-all duration-150
           ${
             isDragOver
-              ? 'border-phosphor bg-phosphor/5'
-              : 'border-obsidian-border/40 hover:border-obsidian-border hover:bg-obsidian-surface/50'
+              ? 'border-primary bg-primary/5'
+              : 'border-outline-variant/40 hover:border-outline-variant hover:bg-surface/50'
           }
         `}
-        style={
-          isDragOver
-            ? { boxShadow: 'inset 0 0 30px rgba(171,214,0,0.07)' }
-            : undefined
-        }
       >
         <input
           ref={fileInputRef}
@@ -161,13 +156,13 @@ export function UploadZone() {
         <Upload
           size={24}
           strokeWidth={1.5}
-          className={isDragOver ? 'text-phosphor' : 'text-ui-dim'}
+          className={isDragOver ? 'text-primary' : 'text-on-surface-variant'}
         />
         <div className="text-center space-y-1">
-          <p className="font-mono text-xs text-ui-muted uppercase tracking-wider">
+          <p className="font-label text-xs text-secondary uppercase tracking-wider">
             {isDragOver ? 'RELEASE TO UPLOAD' : 'DROP FILES / CLICK TO BROWSE'}
           </p>
-          <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest">
+          <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
             ACCEPTED: .MD · .TXT · .PDF · .DOCX · .CSV · .TSV · .JSON · .HTML
           </p>
         </div>
@@ -179,29 +174,29 @@ export function UploadZone() {
           {uploads.map((u) => (
             <div
               key={u.filename}
-              className="flex items-center gap-3 px-3 py-2 bg-obsidian-surface border border-obsidian-border/20"
+              className="flex items-center gap-3 px-3 py-2 bg-surface border border-outline-variant/20"
             >
-              <FileText size={12} className="text-ui-dim shrink-0" />
-              <span className="font-mono text-[10px] text-ui-muted flex-1 truncate">
+              <FileText size={12} className="text-on-surface-variant shrink-0" />
+              <span className="font-label text-[10px] text-secondary flex-1 truncate">
                 {u.filename}
               </span>
-              <span className="font-mono text-[9px] text-ui-dim tabular-nums shrink-0">
+              <span className="font-label text-[9px] text-on-surface-variant tabular-nums shrink-0">
                 {formatBytes(u.fileSize)}
               </span>
               {u.state === 'uploading' && (
-                <span className="flex items-center gap-1 font-mono text-[9px] text-blue-400 uppercase tracking-wider shrink-0">
+                <span className="flex items-center gap-1 font-label text-[9px] text-blue-400 uppercase tracking-wider shrink-0">
                   <Loader2 size={10} className="animate-spin" />
                   UPLOADING
                 </span>
               )}
               {u.state === 'done' && (
-                <span className="font-mono text-[9px] text-phosphor uppercase tracking-wider shrink-0">
+                <span className="font-label text-[9px] text-primary uppercase tracking-wider shrink-0">
                   INGESTED
                 </span>
               )}
               {u.state === 'error' && (
                 <span
-                  className="font-mono text-[9px] text-red-400 uppercase tracking-wider shrink-0"
+                  className="font-label text-[9px] text-red-400 uppercase tracking-wider shrink-0"
                   title={u.error}
                 >
                   ERROR

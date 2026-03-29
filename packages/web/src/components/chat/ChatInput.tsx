@@ -38,20 +38,20 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false }: ChatI
   }
 
   return (
-    <div className="border-t border-obsidian-border/30 bg-obsidian-surface px-4 py-3">
+    <div className="border-t border-outline-variant/30 bg-surface px-4 py-3">
       {/* Label */}
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="font-mono text-[10px] text-ui-dim uppercase tracking-widest">
+        <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
           INPUT
         </span>
-        <div className="flex-1 h-px bg-obsidian-border/20" />
-        <span className="font-mono text-[10px] text-ui-dim">SHIFT+ENTER = NEWLINE</span>
+        <div className="flex-1 h-px bg-outline-variant/20" />
+        <span className="font-label text-[10px] text-on-surface-variant">SHIFT+ENTER = NEWLINE</span>
       </div>
 
       {/* Input area */}
       <div className="flex items-end gap-3">
         <div className="flex-1 relative">
-          <span className="absolute left-3 top-2.5 font-mono text-phosphor text-sm select-none">
+          <span className="absolute left-3 top-2.5 font-label text-primary text-sm select-none">
             &gt;_
           </span>
           <textarea

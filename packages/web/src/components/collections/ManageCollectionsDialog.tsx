@@ -92,33 +92,33 @@ export function ManageCollectionsDialog({ onClose }: ManageCollectionsDialogProp
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-obsidian-base/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-lg bg-obsidian-surface border border-obsidian-border/30 flex flex-col max-h-[80vh]">
+      <div className="relative z-10 w-full max-w-lg bg-surface border border-outline-variant/30 flex flex-col max-h-[80vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-obsidian-border/20 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/20 shrink-0">
           <div>
-            <h2 className="font-display font-semibold text-ui-text text-sm">Manage Collections</h2>
-            <p className="font-mono text-[9px] text-ui-dim uppercase tracking-widest mt-0.5">
+            <h2 className="font-headline font-semibold text-on-surface text-sm">Manage Collections</h2>
+            <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mt-0.5">
               ORGANIZE · SEGMENT · ISOLATE
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close manage collections"
-            className="text-ui-dim hover:text-ui-text transition-colors duration-100 p-1"
+            className="text-on-surface-variant hover:text-on-surface transition-colors duration-100 p-1"
           >
             <X size={14} strokeWidth={1.5} />
           </button>
         </div>
 
         {/* Create new */}
-        <div className="px-4 py-3 border-b border-obsidian-border/20 shrink-0">
-          <p className="font-mono text-[9px] text-phosphor uppercase tracking-widest mb-2">
+        <div className="px-4 py-3 border-b border-outline-variant/20 shrink-0">
+          <p className="font-label text-[9px] text-primary uppercase tracking-widest mb-2">
             NEW_COLLECTION
           </p>
           <form onSubmit={handleCreateSubmit} className="space-y-2">
@@ -153,7 +153,7 @@ export function ManageCollectionsDialog({ onClose }: ManageCollectionsDialogProp
         <div className="flex-1 overflow-y-auto">
           {isLoading && (
             <div className="flex items-center justify-center py-8">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-widest animate-pulse">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
                 LOADING...
               </span>
             </div>
@@ -161,7 +161,7 @@ export function ManageCollectionsDialog({ onClose }: ManageCollectionsDialogProp
 
           {!isLoading && collections.length === 0 && (
             <div className="flex items-center justify-center py-8">
-              <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider">
+              <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider">
                 NO COLLECTIONS YET
               </span>
             </div>
@@ -206,19 +206,19 @@ export function ManageCollectionsDialog({ onClose }: ManageCollectionsDialogProp
 
 function DefaultCollectionRow() {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-obsidian-border/10 bg-obsidian-sunken/30">
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10 bg-surface-container/30">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-ui-text uppercase tracking-wider">Default</span>
-          <span className="font-mono text-[8px] text-phosphor uppercase tracking-wider bg-phosphor/10 border border-phosphor/20 px-1.5 py-0.5">
+          <span className="font-label text-[10px] text-on-surface uppercase tracking-wider">Default</span>
+          <span className="font-label text-[8px] text-primary uppercase tracking-wider bg-primary/10 border border-primary/20 px-1.5 py-0.5">
             DEFAULT
           </span>
         </div>
-        <p className="font-mono text-[9px] text-ui-dim uppercase tracking-wider mt-0.5">
+        <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider mt-0.5">
           CATCH-ALL COLLECTION
         </p>
       </div>
-      <span className="font-mono text-[9px] text-ui-dim uppercase tracking-wider">PROTECTED</span>
+      <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider">PROTECTED</span>
     </div>
   );
 }
@@ -263,9 +263,9 @@ function CollectionRow({
   isPendingDelete,
 }: CollectionRowProps) {
   return (
-    <div className="border-b border-obsidian-border/10 last:border-b-0">
+    <div className="border-b border-outline-variant/10 last:border-b-0">
       {isEditing ? (
-        <div className="px-4 py-3 space-y-2 bg-obsidian-sunken/20">
+        <div className="px-4 py-3 space-y-2 bg-surface-container/20">
           <input
             type="text"
             value={editName}
@@ -286,14 +286,14 @@ function CollectionRow({
             <button
               onClick={onEditSave}
               disabled={!editName.trim() || isPendingUpdate}
-              className="flex items-center gap-1.5 font-mono text-[9px] text-phosphor uppercase tracking-wider px-3 py-1.5 bg-phosphor/10 hover:bg-phosphor/20 transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 font-label text-[9px] text-primary uppercase tracking-wider px-3 py-1.5 bg-primary/10 hover:bg-primary/20 transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Check size={9} strokeWidth={2} />
               {isPendingUpdate ? 'SAVING...' : 'SAVE_'}
             </button>
             <button
               onClick={onEditCancel}
-              className="font-mono text-[9px] text-ui-dim uppercase tracking-wider px-3 py-1.5 hover:text-ui-muted transition-colors duration-100"
+              className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider px-3 py-1.5 hover:text-secondary transition-colors duration-100"
             >
               CANCEL
             </button>
@@ -301,17 +301,17 @@ function CollectionRow({
         </div>
       ) : isDeleting ? (
         <div className="px-4 py-3 bg-red-950/20 space-y-2">
-          <p className="font-mono text-[9px] text-red-400 uppercase tracking-wider">
+          <p className="font-label text-[9px] text-red-400 uppercase tracking-wider">
             DELETE &ldquo;{collection.name}&rdquo; — CHOOSE MODE:
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => onDeleteModeChange('reassign')}
               aria-pressed={deleteMode === 'reassign'}
-              className={`font-mono text-[9px] uppercase tracking-wider px-3 py-1.5 border transition-colors duration-100 ${
+              className={`font-label text-[9px] uppercase tracking-wider px-3 py-1.5 border transition-colors duration-100 ${
                 deleteMode === 'reassign'
-                  ? 'border-ui-muted text-ui-text bg-obsidian-raised/50'
-                  : 'border-obsidian-border/30 text-ui-dim hover:border-obsidian-border hover:text-ui-muted'
+                  ? 'border-secondary text-on-surface bg-surface-container-high/50'
+                  : 'border-outline-variant/30 text-on-surface-variant hover:border-outline-variant hover:text-secondary'
               }`}
             >
               REASSIGN_SOURCES
@@ -319,16 +319,16 @@ function CollectionRow({
             <button
               onClick={() => onDeleteModeChange('cascade')}
               aria-pressed={deleteMode === 'cascade'}
-              className={`font-mono text-[9px] uppercase tracking-wider px-3 py-1.5 border transition-colors duration-100 ${
+              className={`font-label text-[9px] uppercase tracking-wider px-3 py-1.5 border transition-colors duration-100 ${
                 deleteMode === 'cascade'
                   ? 'border-red-500/60 text-red-300 bg-red-950/30'
-                  : 'border-obsidian-border/30 text-ui-dim hover:border-red-500/40 hover:text-red-400'
+                  : 'border-outline-variant/30 text-on-surface-variant hover:border-red-500/40 hover:text-red-400'
               }`}
             >
               CASCADE_DELETE
             </button>
           </div>
-          <p className="font-mono text-[8px] text-ui-dim uppercase tracking-wider">
+          <p className="font-label text-[8px] text-on-surface-variant uppercase tracking-wider">
             {deleteMode === 'reassign'
               ? 'SOURCES WILL BE MOVED TO DEFAULT COLLECTION'
               : 'ALL SOURCES AND CHUNKS WILL BE PERMANENTLY DELETED'}
@@ -337,26 +337,26 @@ function CollectionRow({
             <button
               onClick={onDeleteConfirm}
               disabled={isPendingDelete}
-              className="font-mono text-[9px] text-red-400 uppercase tracking-wider px-3 py-1.5 bg-red-950/30 border border-red-500/30 hover:bg-red-950/50 transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="font-label text-[9px] text-red-400 uppercase tracking-wider px-3 py-1.5 bg-red-950/30 border border-red-500/30 hover:bg-red-950/50 transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isPendingDelete ? 'DELETING...' : 'CONFIRM_DELETE_'}
             </button>
             <button
               onClick={onDeleteCancel}
-              className="font-mono text-[9px] text-ui-dim uppercase tracking-wider px-3 py-1.5 hover:text-ui-muted transition-colors duration-100"
+              className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider px-3 py-1.5 hover:text-secondary transition-colors duration-100"
             >
               CANCEL
             </button>
           </div>
         </div>
       ) : (
-        <div className="group flex items-center gap-3 px-4 py-3 hover:bg-obsidian-sunken/20 transition-colors duration-100">
+        <div className="group flex items-center gap-3 px-4 py-3 hover:bg-surface-container/20 transition-colors duration-100">
           <div className="flex-1 min-w-0">
-            <span className="font-mono text-[10px] text-ui-text uppercase tracking-wider truncate block">
+            <span className="font-label text-[10px] text-on-surface uppercase tracking-wider truncate block">
               {collection.name}
             </span>
             {collection.description && (
-              <p className="font-mono text-[9px] text-ui-dim uppercase tracking-wider mt-0.5 truncate">
+              <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-wider mt-0.5 truncate">
                 {collection.description}
               </p>
             )}
@@ -365,14 +365,14 @@ function CollectionRow({
             <button
               onClick={onEditStart}
               aria-label={`Edit collection ${collection.name}`}
-              className="p-1.5 text-ui-dim hover:text-ui-text transition-colors duration-100"
+              className="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors duration-100"
             >
               <Pencil size={10} strokeWidth={1.5} />
             </button>
             <button
               onClick={onDeleteStart}
               aria-label={`Delete collection ${collection.name}`}
-              className="p-1.5 text-ui-dim hover:text-red-400 transition-colors duration-100"
+              className="p-1.5 text-on-surface-variant hover:text-red-400 transition-colors duration-100"
             >
               <Trash2 size={10} strokeWidth={1.5} />
             </button>
