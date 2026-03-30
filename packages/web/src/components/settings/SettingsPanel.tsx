@@ -7,6 +7,7 @@ import { PluginsPanel } from './PluginsPanel';
 import { ApiKeysSection } from './ApiKeysSection';
 import { WatchedFoldersSection } from './WatchedFoldersSection';
 import { ProviderSettingsSection } from './ProviderSettingsSection';
+import { PresetsSection } from './PresetsSection';
 
 interface SectionProps {
   title: string;
@@ -436,7 +437,7 @@ export function SettingsPanel() {
       {/* Section jump nav */}
       {!isLoading && (
         <div className="flex items-center gap-1 px-4 py-2 border-b border-outline-variant/20 bg-surface shrink-0 overflow-x-auto">
-          {['LLM', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
+          {['LLM', 'PRESETS', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
             <button
               key={label}
               onClick={() => {
@@ -472,6 +473,9 @@ export function SettingsPanel() {
         ) : (
           <>
             <ConfigEditor draft={draft} onChange={handleChange} />
+
+            {/* System Prompt Presets */}
+            <PresetsSection />
 
             {/* System information (read-only) */}
             <Section index="06" title="SYSTEM_INFORMATION">

@@ -167,6 +167,16 @@ export const watchedFolders = pgTable('watched_folders', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+export const systemPromptPresets = pgTable('system_prompt_presets', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  persona: text('persona').notNull().default(''),
+  model: varchar('model', { length: 100 }),
+  isDefault: boolean('is_default').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const apiKeys = pgTable('api_keys', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 200 }).notNull(),
@@ -199,3 +209,5 @@ export type SourceLinkRow = typeof sourceLinks.$inferSelect;
 export type NewSourceLinkRow = typeof sourceLinks.$inferInsert;
 export type NoteFolderRow = typeof noteFolders.$inferSelect;
 export type NewNoteFolderRow = typeof noteFolders.$inferInsert;
+export type SystemPromptPresetRow = typeof systemPromptPresets.$inferSelect;
+export type NewSystemPromptPresetRow = typeof systemPromptPresets.$inferInsert;

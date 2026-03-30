@@ -54,6 +54,7 @@ export function buildPrompt(
   history: readonly Message[],
   maxHistoryTurns: number,
   noteContext?: string,
+  persona?: string,
 ): { prompt: string; systemPrompt: string } {
   // --- Context block ---
   const contextSection =
@@ -109,9 +110,11 @@ export function buildPrompt(
   parts.push('');
   parts.push(`Question: ${query.trim()}`);
 
-  const systemPrompt = noteContext
+  const personaPrefix = persona?.trim() ? `${persona.trim()}\n\n` : '';
+  const corePrompt = noteContext
     ? SYSTEM_PROMPT + NOTE_CONTEXT_ADDENDUM
     : SYSTEM_PROMPT;
+  const systemPrompt = personaPrefix + corePrompt;
 
   return {
     systemPrompt,
