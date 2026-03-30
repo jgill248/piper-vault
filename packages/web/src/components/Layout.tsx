@@ -30,7 +30,7 @@ export function Layout({ activeView, onNavigate, children }: LayoutProps) {
         <div className="flex md:hidden items-center justify-between px-4 py-2 bg-surface-container shrink-0">
           <div className="flex items-baseline gap-1">
             <span className="font-headline font-bold text-sm tracking-tight text-primary">
-              DELVE
+              P.I.P.E.R. <span className="font-light italic lowercase opacity-80">Vault</span>
             </span>
           </div>
           <button

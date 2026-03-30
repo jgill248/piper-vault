@@ -59,7 +59,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="font-label text-[10px] text-primary uppercase tracking-[0.3em] mb-1">
-            Delve — Knowledge Base
+            P.I.P.E.R. Vault
           </div>
           <h1 className="font-headline text-xl text-on-surface uppercase tracking-wider">
             Create Account

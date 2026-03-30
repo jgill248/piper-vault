@@ -57,11 +57,11 @@ export function Sidebar({ activeView, onNavigate }: SidebarProps) {
       <div className="px-4 py-5 border-b-4 border-primary-container">
         <div className="flex items-baseline gap-1">
           <span className="font-headline font-bold text-lg tracking-tight text-primary">
-            DELVE
+            P.I.P.E.R. <span className="font-light italic lowercase opacity-80">Vault</span>
           </span>
         </div>
         <p className="font-label text-[10px] text-secondary tracking-wider mt-0.5 uppercase">
-          Knowledge Engine
+          Sovereign Intelligence Protocol
         </p>
       </div>
 
