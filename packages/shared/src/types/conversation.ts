@@ -12,6 +12,7 @@ export interface Message {
   readonly role: MessageRole;
   readonly content: string;
   readonly sources?: readonly string[];
+  readonly sourceNames?: readonly string[];
   readonly model?: string;
   readonly createdAt: Date;
 }

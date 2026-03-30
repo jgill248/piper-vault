@@ -6,7 +6,7 @@ import { GetConversationQuery } from './get-conversation.query';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { conversations, messages } from '../../database/schema';
-import { toConversationWithMessages } from '../dto/conversation-response.dto';
+import { toConversationWithMessages, enrichMessagesWithSourceNames } from '../dto/conversation-response.dto';
 
 @QueryHandler(GetConversationQuery)
 export class GetConversationHandler implements IQueryHandler<GetConversationQuery> {
@@ -30,6 +30,8 @@ export class GetConversationHandler implements IQueryHandler<GetConversationQuer
       .where(eq(messages.conversationId, query.conversationId))
       .orderBy(asc(messages.createdAt));
 
-    return toConversationWithMessages(conversation, messageRows);
+    const result = toConversationWithMessages(conversation, messageRows);
+    const enrichedMessages = await enrichMessagesWithSourceNames(result.messages, this.db);
+    return { ...result, messages: enrichedMessages };
   }
 }

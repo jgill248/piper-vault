@@ -173,5 +173,7 @@ describe('SendMessageHandler', () => {
 
     expect(result.suggestedFollowUps).toBeUndefined();
     expect(result.message.content).toBe('Answer text.');
+    expect(result.message.sources).toEqual(['src-1']);
+    expect(result.message.sourceNames).toEqual(['test.md']);
   });
 });

@@ -13,7 +13,7 @@ import { SendMessageCommand } from './send-message.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { conversations, messages, systemPromptPresets } from '../../database/schema';
-import { toMessageResponse } from '../dto/conversation-response.dto';
+import { toMessageResponse, enrichMessageFromContext } from '../dto/conversation-response.dto';
 import { RetrievalService } from '../../search/services/retrieval.service';
 import { ConfigStore } from '../../config/config.store';
 
@@ -117,6 +117,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
     let contextResults: import('@delve/shared').ChunkSearchResult[] = [];
     let noteContext: string | undefined;
     let noteSourceIds: string[] = [];
+    const noteFilenames = new Map<string, string>();
 
     if (intent.type === 'metadata' && intent.temporal) {
       // Pure metadata query — skip semantic search, do note listing
@@ -139,6 +140,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       }));
       noteContext = formatNoteContext(noteMeta, intent.dateLabel ?? 'the requested period');
       noteSourceIds = notes.map((n) => n.id);
+      for (const n of notes) noteFilenames.set(n.id, n.filename);
     } else if (intent.type === 'hybrid' && intent.temporal) {
       // Hybrid — do semantic search WITH date filter, PLUS note metadata
       const [chunks, notes] = await Promise.all([
@@ -174,6 +176,7 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
         }));
         noteContext = formatNoteContext(noteMeta, intent.dateLabel ?? 'the requested period');
         noteSourceIds = notes.map((n) => n.id);
+        for (const n of notes) noteFilenames.set(n.id, n.filename);
       }
     } else {
       // Standard semantic search (existing behavior, unchanged)
@@ -293,9 +296,10 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
     // TODO: Re-enable follow-ups via a background job or WebSocket push when
     // streaming support (Phase 6) is implemented.
 
+    const baseMessage = toMessageResponse(savedAssistantMsg);
     return {
       conversationId,
-      message: toMessageResponse(savedAssistantMsg),
+      message: enrichMessageFromContext(baseMessage, contextResults, noteFilenames),
     };
   }
 }
