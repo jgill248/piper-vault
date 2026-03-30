@@ -35,7 +35,7 @@ vi.mock('../../hooks/use-config', () => {
       isError: false,
     }),
     useUpdateConfig: () => ({
-      mutate: (...args: unknown[]) => (globalThis as Record<string, unknown>).__mockMutate?.(...args),
+      mutate: (...args: unknown[]) => ((globalThis as Record<string, unknown>).__mockMutate as ((...a: unknown[]) => unknown) | undefined)?.(...args),
       isPending: false,
     }),
   };

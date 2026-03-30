@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, Loader2 } from 'lucide-react';
-import { FILE_EXTENSIONS } from '@delve/shared';
+import { FILE_EXTENSIONS, MAX_FILE_SIZE } from '@delve/shared';
 import { useUploadSource } from '../../hooks/use-sources';
 import { useActiveCollection } from '../../context/CollectionContext';
 
@@ -70,6 +70,9 @@ export function UploadZone() {
       ]);
 
       try {
+        if (file.size > MAX_FILE_SIZE) {
+          throw new Error(`File exceeds ${formatBytes(MAX_FILE_SIZE)} limit`);
+        }
         const content = await readFileAsBase64(file);
         const ext = `.${file.name.split('.').pop()?.toLowerCase() ?? ''}`;
         const mimeType = FILE_EXTENSIONS[ext] ?? (file.type || 'text/plain');

@@ -81,7 +81,7 @@ describe('BulkImportHandler', () => {
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(statSync).mockReturnValue(mockStats(true));
     vi.mocked(walkDirectory).mockReturnValue(mockFiles(
-      { path: '/dir/huge.bin', filename: 'huge.bin', mimeType: 'application/octet-stream', fileSize: 100 * 1024 * 1024 },
+      { path: '/dir/huge.bin', filename: 'huge.bin', mimeType: 'application/octet-stream', fileSize: 600 * 1024 * 1024 },
     ));
 
     const handler = new BulkImportHandler(makeCommandBus());
