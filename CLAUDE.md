@@ -1,10 +1,12 @@
-# Delve — Personal Knowledge Base & Conversational Search
+# Piper Vault — Personal Knowledge Vault with AI-Powered Search
 
 ## Project Overview
 
-Delve is a local-first, RAG-powered knowledge base with a conversational chat interface. Users ingest notes, transcripts, documents, and unstructured data, then query it through natural language powered by an LLM API (Ask Sage). The system indexes content locally, performs semantic similarity search, and feeds context to a language model for grounded, citation-backed answers.
+Piper Vault is a self-hosted knowledge vault where users build, connect, and search their personal knowledge — entirely on their own machine. Users create notes with wiki-links, ingest documents, and build a graph of connected knowledge. AI-powered search (via pluggable LLM providers) lets users query their vault through natural language with citation-backed answers.
 
-**Status:** Phases 1–4 complete — entering Phase 5: Native Knowledge Management
+The vault is the product. Chat is a feature for querying the vault.
+
+**Status:** Phases 1–5 complete — entering Phase A: The Vault Experience
 
 ## Resolved Decisions
 
@@ -14,7 +16,7 @@ The following open questions from the spec (Section 11) have been resolved:
 |---|----------|----------|-----------|
 | 1 | Embedding model | **Local (ONNX + Ollama)** | Start with `all-MiniLM-L6-v2` via ONNX (384-dim). Ollama available as upgrade path for higher-quality local models. Zero external API dependency. |
 | 2 | Vector store | **pgvector (PostgreSQL)** | Leverages existing Postgres, SQL joins with metadata, mature ecosystem. Long-term extensibility over ChromaDB. |
-| 3 | Streaming | **Request/response first** | Ask Sage API used in request/response mode for v1. LLM adapter interface designed to support streaming later (method signature exists, not wired). |
+| 3 | Streaming | **SSE streaming implemented** | All providers stream via SSE. Anthropic/OpenAI/Ollama use native streaming; Ask Sage falls back to buffered. |
 | 4 | Ask Sage token refresh | **Not needed** | Ask Sage tokens do not expire. Store token once, reuse indefinitely. No refresh middleware required. |
 | 5 | Monorepo tooling | **pnpm + Nx** | pnpm workspaces for dependency management, Nx for task orchestration, caching, and dependency graph. |
 | 6 | Backend framework | **NestJS** | Provides built-in CQRS (`@nestjs/cqrs`), dependency injection, modules, guards, pipes, and interceptors. Better structure than raw Express/Fastify for this architecture. |
@@ -47,15 +49,18 @@ delve/
 ## Key References
 
 - **Specification:** `spec/spec.md` — Full project specification (v1.0)
-- **Design System:** `spec/stitch/obsidian_protocol/DESIGN.md` — "Obsidian Protocol" / "Sovereign Console" aesthetic
-- **UI Mockups:** `spec/stitch/` — HTML mockups for chat, sources, knowledge graph, and settings views
+- **Design System:** `spec/stitch/piper/app/sovereign_press/DESIGN.md` — "Sovereign Press" light mode
+- **Dark Mode:** `spec/stitch/piper/app/sovereign_press_nocturne/DESIGN.md` — "Sovereign Press Nocturne"
+- **UI Mockups:** `spec/stitch/piper/` — HTML mockups for chat, vault, archives, intelligence, and protocols views
 
-## Design System: Obsidian Protocol
+## Design System: Sovereign Press
 
-- Deep obsidian backgrounds (#05070A), no rounded corners (0px radius), no drop shadows
-- Monospace (JetBrains Mono) for data/tables/labels, sans-serif (Manrope/Inter) for UI text
-- Phosphor glow effects on CTAs (#abd600 primary), scanline overlay texture
-- High-density "Sovereign Console" aesthetic — precision instrument, not consumer app
+- **Light (Parchment):** warm off-white (#fff9ee) background, burgundy (#570013) primary, steel (#4f6073) secondary, brass (#362400) tertiary
+- **Dark (Nocturne):** charcoal/stained wood (#1d1c15) background, aged parchment (#fddbdb) primary, muted slate (#bdc7d6) secondary
+- **Typography:** Newsreader (slab-serif) for headlines/data, Work Sans (sans-serif) for body/labels, JetBrains Mono for code
+- **No rounded corners** (0px radius), no drop shadows — depth via tonal layering only
+- **No 1px border lines** for sectioning — use background color shifts (surface hierarchy)
+- 19th-century printing house aesthetic — "Sovereign Press" / curated ledger, not consumer SaaS
 
 ## Architecture Principles
 
@@ -205,22 +210,18 @@ Project management is tracked on GitHub Projects and Issues. Use the `gh` CLI fo
 
 ### Phase ↔ Spec Mapping
 
-| Phase | Spec Section | Focus |
-|-------|--------------|-------|
-| Phase 1: Foundation | Section 7, Phase 1 | Scaffolding, .md/.txt ingestion, vector storage, basic chat UI |
-| Phase 2: Expand Ingestion & Polish | Section 7, Phase 2 | All file formats, source browser, conversation history, settings |
-| Phase 3: Intelligence & Refinement | Section 7, Phase 3 | Hybrid search, re-ranking, follow-ups, export, provider adapters |
-| Phase 4: Scale & Ecosystem | Section 7, Phase 4 | Watched folders, webhooks, multi-collection, auth, plugins |
-| Phase 5: Native Knowledge Management | Section 7, Phase 5 | Wiki-link graph, frontmatter extraction, native markdown editor, note folders, tag management, graph-aware retrieval |
-| Phase 6: Agentic RAG | Section 7, Phase 6 | Streaming, query routing, corrective RAG, decomposition, research mode, orchestrator |
-| Phase 7: Multi-Modal Knowledge | Section 7, Phase 7 | Audio transcription (Whisper), image understanding (Ollama vision), ColPali, video indexing |
-| Phase 8: Knowledge Graph Intelligence | Section 7, Phase 8 | Entity extraction, relationship mapping, concept clustering, graph UI, temporal reasoning |
-| Phase 9: Desktop App & Plugin SDK | Section 7, Phase 9 | Tauri desktop app, plugin SDK, import ecosystem, webhooks, sharing, mobile PWA |
-| Phase 10: Personal Memory & Proactive Intelligence | Section 7, Phase 10 | Persistent memory, knowledge briefs, maintenance agents, preference learning, pattern detection |
-| Phase 11: Reasoning & Voice | Section 7, Phase 11 | Budget-aware reasoning (R1/o3), semantic versioning, voice-first interface (Whisper + Piper) |
-| Phase 12: Dev Tools & Cross-Modal Synthesis | Section 7, Phase 12 | Git/issue tracker indexing, cross-modal reasoning, MCP server mode |
-| Phase 13: Federated Knowledge & Personal Fine-Tuning | Section 7, Phase 13 | P2P CRDT sync, LoRA fine-tuning, privacy-preserving sharing |
-| Phase 14: Exploratory Horizons | Section 7, Phase 14 | 3D graph, embodied knowledge, .delve format, digital twin of knowledge |
+| Phase | Status | Focus |
+|-------|--------|-------|
+| Phase 1: Foundation | **Done** | Scaffolding, .md/.txt ingestion, vector storage, basic chat UI |
+| Phase 2: Expand Ingestion & Polish | **Done** | All file formats, source browser, conversation history, settings |
+| Phase 3: Intelligence & Refinement | **Done** | Hybrid search, re-ranking, export, provider adapters, streaming |
+| Phase 4: Scale & Ecosystem | **Done** | Watched folders, webhooks, multi-collection, auth, plugins |
+| Phase 5: Native Knowledge Management | **Done** | Wiki-link graph, frontmatter, markdown editor, note folders, tags, graph-aware retrieval |
+| Phase A: The Vault Experience | **Active** | Knowledge graph viz (#245), Obsidian/Notion import (#246), vault-first onboarding (#233), graph-aware search (#247), tag browser (#248), smart link suggestions (#249) |
+| Phase B: Distribution | Planned | License-key gated distribution (#236), CI/CD, landing page, payment |
+| Phase C: Polish | Backlog | Follow-up questions (#181), MCP server mode (#26) |
+
+Phases 6–14 from the original spec have been closed as not_planned. They were speculative features with no market pull.
 
 ### GitHub Project Board IDs
 
