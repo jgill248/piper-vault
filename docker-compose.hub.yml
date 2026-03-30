@@ -5,11 +5,11 @@
 #   3. Open http://localhost:8080
 #
 # Or run directly without compose:
-#   docker run -p 8080:8080 -v delve-data:/var/lib/postgresql/data creative-software/delve:latest
+#   docker run -p 8080:8080 -v delve-data:/var/lib/postgresql/data jgill248/piper.vault:latest
 
 services:
   delve:
-    image: creative-software/delve:latest
+    image: jgill248/piper.vault:latest
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
