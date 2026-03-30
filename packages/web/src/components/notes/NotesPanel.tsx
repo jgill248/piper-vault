@@ -96,8 +96,22 @@ export function NotesPanel() {
   );
 
   const handleCreateFolder = useCallback(
-    (path: string) => {
-      createFolder.mutate({ path, collectionId: activeCollectionId });
+    (path: string, onSuccess?: () => void) => {
+      setError(null);
+      createFolder.mutate(
+        { path, collectionId: activeCollectionId },
+        {
+          onSuccess,
+          onError: (err) => {
+            const msg = err instanceof Error ? err.message : String(err);
+            setError(
+              msg.toLowerCase().includes('already exists')
+                ? `Folder "${path}" already exists`
+                : `Failed to create folder: ${msg}`,
+            );
+          },
+        },
+      );
     },
     [createFolder, activeCollectionId],
   );
