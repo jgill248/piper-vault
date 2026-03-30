@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CreateNoteHandler } from './create-note.handler';
 import { CreateNoteCommand } from './create-note.command';
 import type { Database } from '../../database/connection';

@@ -114,7 +114,7 @@ function ProviderRow({
   onSave,
   isSaving,
   urlError,
-  keyError,
+  keyError: _keyError,
 }: ProviderRowProps) {
   const [urlDraft, setUrlDraft] = useState(status?.baseUrl ?? DEFAULT_PROVIDER_URLS[provider]);
   const [keyDraft, setKeyDraft] = useState('');

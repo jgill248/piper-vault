@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 
 // ---------------------------------------------------------------------------
 // Mock hooks — factories must not reference top-level variables (hoisted)
@@ -35,7 +35,7 @@ vi.mock('../../hooks/use-config', () => {
       isError: false,
     }),
     useUpdateConfig: () => ({
-      mutate: (...args: unknown[]) => (globalThis as any).__mockMutate?.(...args),
+      mutate: (...args: unknown[]) => (globalThis as Record<string, unknown>).__mockMutate?.(...args),
       isPending: false,
     }),
   };
@@ -95,7 +95,7 @@ vi.mock('../../hooks/use-presets', () => ({
 import { SettingsPanel } from './SettingsPanel';
 
 // Wire up mockMutate via globalThis to avoid hoisting issue
-(globalThis as any).__mockMutate = mockMutate;
+(globalThis as Record<string, unknown>).__mockMutate = mockMutate;
 
 describe('SettingsPanel', () => {
   afterEach(() => {

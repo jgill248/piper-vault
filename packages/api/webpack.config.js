@@ -5,7 +5,7 @@ const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 module.exports = function (options, webpack) {
   return {
     ...options,
-    entry: ['webpack/hot/poll?100', options.entry],
+    entry: options.watch ? ['webpack/hot/poll?100', options.entry] : options.entry,
     externals: [
       nodeExternals({
         // Bundle workspace packages so we avoid pnpm symlink / ESM resolution issues.
@@ -46,11 +46,15 @@ module.exports = function (options, webpack) {
     },
     plugins: [
       ...options.plugins,
-      new webpack.HotModuleReplacementPlugin(),
-      new RunScriptWebpackPlugin({
-        name: options.output.filename,
-        autoRestart: false,
-      }),
+      ...(options.watch
+        ? [
+            new webpack.HotModuleReplacementPlugin(),
+            new RunScriptWebpackPlugin({
+              name: options.output.filename,
+              autoRestart: false,
+            }),
+          ]
+        : []),
     ],
   };
 };
