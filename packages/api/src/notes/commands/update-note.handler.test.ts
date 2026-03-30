@@ -71,7 +71,7 @@ describe('UpdateNoteHandler', () => {
   });
 
   it('updates content, re-chunks, and re-embeds', async () => {
-    const { db, updateSet } = makeDb(NOTE);
+    const { db } = makeDb(NOTE);
     const pipeline = makePipeline();
     const embedder = makeEmbedder();
     const handler = new UpdateNoteHandler(db, pipeline, embedder);

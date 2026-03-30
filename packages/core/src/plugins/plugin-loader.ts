@@ -11,10 +11,8 @@ import type { DelvePlugin } from './plugin.js';
  */
 async function loadPluginFile(filePath: string): Promise<DelvePlugin | undefined> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const mod = await import(filePath);
+    const mod: unknown = await import(filePath);
     // Support both `export default` (ESM) and `module.exports = ...` (CJS).
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const exported: unknown = (mod as { default?: unknown }).default ?? mod;
 
     if (!isDelvePlugin(exported)) {

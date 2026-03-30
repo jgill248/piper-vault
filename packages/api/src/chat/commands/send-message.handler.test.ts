@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-import { InternalServerErrorException } from '@nestjs/common';
 import { SendMessageHandler } from './send-message.handler';
 import { SendMessageCommand } from './send-message.command';
 import type { LlmProvider } from '@delve/core';
@@ -38,33 +37,34 @@ function makeRetrievalService(results: ChunkSearchResult[] = []): RetrievalServi
 }
 
 function makeDb(): Database {
-  const insertReturning = vi.fn();
+  let insertCallCount = 0;
+  const valuesSpy = vi.fn();
 
-  // conversations insert
-  insertReturning
-    .mockResolvedValueOnce([{ id: 'conv-uuid' }]) // create conversation
-    .mockResolvedValueOnce([{                       // save user message
-      id: 'msg-user-uuid',
-      conversationId: 'conv-uuid',
-      role: 'user',
-      content: 'Hello?',
-      sources: null,
-      model: null,
-      createdAt: new Date(),
-    }])
-    .mockResolvedValueOnce([{                       // save assistant message
-      id: 'msg-asst-uuid',
-      conversationId: 'conv-uuid',
-      role: 'assistant',
-      content: 'Answer text.',
-      sources: null,
-      model: 'claude-3.5-sonnet',
+  // Capture inserted values and return them with an id
+  const insertReturning = vi.fn().mockImplementation(() => {
+    insertCallCount++;
+    const vals = valuesSpy.mock.lastCall?.[0] ?? {};
+    if (insertCallCount === 1) {
+      // conversations insert
+      return Promise.resolve([{ id: 'conv-uuid' }]);
+    }
+    // messages insert — echo back the inserted values with an id
+    return Promise.resolve([{
+      id: insertCallCount === 2 ? 'msg-user-uuid' : 'msg-asst-uuid',
+      conversationId: vals.conversationId ?? 'conv-uuid',
+      role: vals.role ?? 'user',
+      content: vals.content ?? '',
+      sources: vals.sources ?? null,
+      model: vals.model ?? null,
       createdAt: new Date(),
     }]);
+  });
+
+  valuesSpy.mockReturnValue({ returning: insertReturning });
 
   return {
     insert: vi.fn().mockReturnValue({
-      values: vi.fn().mockReturnValue({ returning: insertReturning }),
+      values: valuesSpy,
     }),
     select: vi.fn().mockReturnValue({
       from: vi.fn().mockReturnValue({
@@ -116,7 +116,7 @@ describe('SendMessageHandler', () => {
     expect(result.message.content).toBe('Answer text.');
   });
 
-  it('throws InternalServerErrorException when LLM fails', async () => {
+  it('returns a graceful error message when LLM fails (no throw)', async () => {
     const db = makeDb();
     const llm = makeLlm({
       query: vi.fn().mockResolvedValue({ ok: false, error: 'API error' }),
@@ -124,9 +124,11 @@ describe('SendMessageHandler', () => {
     const retrievalService = makeRetrievalService();
     const handler = new SendMessageHandler(db, llm, retrievalService, makeConfigStore());
 
-    await expect(handler.execute(new SendMessageCommand('Hello?'))).rejects.toThrow(
-      InternalServerErrorException,
-    );
+    const result = await handler.execute(new SendMessageCommand('Hello?'));
+
+    expect(result.conversationId).toBe('conv-uuid');
+    expect(result.message.role).toBe('assistant');
+    expect(result.message.content).toContain('LLM provider returned an error');
   });
 
   it('delegates retrieval options from the command to RetrievalService', async () => {

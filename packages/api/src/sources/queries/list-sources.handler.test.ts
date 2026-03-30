@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ListSourcesHandler } from './list-sources.handler';
 import { ListSourcesQuery } from './list-sources.query';
 import type { Database } from '../../database/connection';

@@ -35,9 +35,9 @@ export default [
     },
   },
 
-  // React / TSX config for packages/web
+  // React / TSX config for packages/web and packages/landing
   {
-    files: ['packages/web/src/**/*.{ts,tsx}'],
+    files: ['packages/web/src/**/*.{ts,tsx}', 'packages/landing/src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

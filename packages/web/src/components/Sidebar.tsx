@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Database, Settings, Activity, FileText } from 'lucide-react';
+import { MessageSquare, Database, Settings, FileText } from 'lucide-react';
 import { useHealth } from '../hooks/use-health';
 import { CollectionSelector } from './collections/CollectionSelector';
 

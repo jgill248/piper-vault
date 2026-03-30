@@ -1,8 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  HttpException,
   BadRequestException,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { GlobalExceptionFilter } from './http-exception.filter';
@@ -29,7 +27,7 @@ describe('GlobalExceptionFilter', () => {
     const { reply } = makeHost(send);
     const host = { switchToHttp: () => ({ getResponse: () => reply, getRequest: () => ({}) }) };
 
-    filter.catch(new NotFoundException('Source not found'), host as any);
+    filter.catch(new NotFoundException('Source not found'), host as unknown as import('@nestjs/common').ArgumentsHost);
 
     expect(reply.status).toHaveBeenCalledWith(404);
     // NestJS NotFoundException body is { error, message, statusCode } — our filter
@@ -47,7 +45,7 @@ describe('GlobalExceptionFilter', () => {
     const exception = new BadRequestException({
       error: { code: 'DIRECTORY_NOT_FOUND', message: 'Dir missing' },
     });
-    filter.catch(exception, host as any);
+    filter.catch(exception, host as unknown as import('@nestjs/common').ArgumentsHost);
 
     expect(reply.status).toHaveBeenCalledWith(400);
     expect(send).toHaveBeenCalledWith({
@@ -60,7 +58,7 @@ describe('GlobalExceptionFilter', () => {
     const { reply } = makeHost(send);
     const host = { switchToHttp: () => ({ getResponse: () => reply, getRequest: () => ({}) }) };
 
-    filter.catch(new Error('pg: connection refused'), host as any);
+    filter.catch(new Error('pg: connection refused'), host as unknown as import('@nestjs/common').ArgumentsHost);
 
     expect(reply.status).toHaveBeenCalledWith(500);
     expect(send).toHaveBeenCalledWith({
@@ -73,7 +71,7 @@ describe('GlobalExceptionFilter', () => {
     const { reply } = makeHost(send);
     const host = { switchToHttp: () => ({ getResponse: () => reply, getRequest: () => ({}) }) };
 
-    filter.catch('unexpected string throw', host as any);
+    filter.catch('unexpected string throw', host as unknown as import('@nestjs/common').ArgumentsHost);
 
     expect(reply.status).toHaveBeenCalledWith(500);
     expect(send).toHaveBeenCalledWith({

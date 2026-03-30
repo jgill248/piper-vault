@@ -41,7 +41,6 @@ function makeEmbedder(override?: Partial<Embedder>): Embedder {
 
 function makeDb(): Database {
   const returningMock = vi.fn().mockResolvedValue([{ id: 'source-uuid-1' }]);
-  const updateSet = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) });
   return {
     select: vi.fn().mockReturnValue({
       from: vi.fn().mockReturnValue({
