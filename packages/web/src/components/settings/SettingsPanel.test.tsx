@@ -80,6 +80,18 @@ vi.mock('../../hooks/use-collections', () => ({
   useCollections: () => ({ data: { data: [] }, isLoading: false }),
 }));
 
+vi.mock('../../hooks/use-provider-settings', () => ({
+  useProviderSettings: () => ({ data: [], isLoading: false }),
+  useUpdateProviderSettings: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock('../../hooks/use-presets', () => ({
+  usePresets: () => ({ data: [], isLoading: false }),
+  useCreatePreset: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdatePreset: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeletePreset: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
 import { SettingsPanel } from './SettingsPanel';
 
 // Wire up mockMutate via globalThis to avoid hoisting issue
@@ -100,9 +112,9 @@ describe('SettingsPanel', () => {
     render(<SettingsPanel />);
     // ASK_SAGE appears in both config editor and system info, so use getAllByText
     expect(screen.getAllByText('ASK_SAGE').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('ANTHROPIC')).toBeDefined();
-    expect(screen.getByText('OPENAI')).toBeDefined();
-    expect(screen.getByText('OLLAMA')).toBeDefined();
+    expect(screen.getAllByText('ANTHROPIC').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('OPENAI').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('OLLAMA').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders hybrid search toggle', () => {

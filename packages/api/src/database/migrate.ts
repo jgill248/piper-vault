@@ -308,6 +308,28 @@ export async function runMigrations(connectionString: string): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_note_folders_collection ON note_folders(collection_id)`;
   console.log('  table: note_folders');
 
+  // System prompt presets table
+  await sql`
+    CREATE TABLE IF NOT EXISTS system_prompt_presets (
+      id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+      name        VARCHAR(200) NOT NULL,
+      persona     TEXT         NOT NULL DEFAULT '',
+      model       VARCHAR(100),
+      is_default  BOOLEAN      NOT NULL DEFAULT false,
+      created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMP    NOT NULL DEFAULT NOW()
+    )
+  `;
+  console.log('  table: system_prompt_presets');
+
+  // Seed the default preset (empty persona = pure RAG behavior)
+  await sql`
+    INSERT INTO system_prompt_presets (id, name, persona, is_default)
+    VALUES ('00000000-0000-0000-0000-000000000001', 'Default', '', true)
+    ON CONFLICT (id) DO NOTHING
+  `;
+  console.log('  seed: default system prompt preset');
+
     console.log('Migrations complete.');
   } finally {
     await sql.end();
