@@ -33,8 +33,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === MESSAGE_ROLE.USER;
   const isAssistant = message.role === MESSAGE_ROLE.ASSISTANT;
 
-  // Try to get source filename from sourceNames if available, fall back to truncated ID
-  const sourceNames: string[] | undefined = (message as unknown as { sourceNames?: string[] }).sourceNames;
+  const sourceNames = message.sourceNames;
 
   return (
     <div className={`flex flex-col mb-4 ${isUser ? 'items-end' : 'items-start'}`}>
