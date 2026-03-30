@@ -39,7 +39,7 @@ async function bootstrap(): Promise<void> {
 
   const port = process.env['PORT'] ?? 3001;
   await app.listen(port, '0.0.0.0');
-  console.log(`Delve API running on http://localhost:${port}${API_PREFIX}`);
+  console.log(`PIPER Vault API running on http://localhost:${port}${API_PREFIX}`);
 }
 
 bootstrap().catch((err: unknown) => {
