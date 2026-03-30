@@ -1,12 +1,17 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable, Logger, UnprocessableEntityException, Inject } from '@nestjs/common';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import type { AppConfig } from '@delve/shared';
 import { UpdateConfigCommand } from './update-config.command';
 import { ConfigStore } from '../config.store';
+import { DATABASE } from '../../database/database.providers';
+import type { Database } from '../../database/connection';
+import { systemPromptPresets } from '../../database/schema';
 
 const ConfigUpdatesSchema = z
   .object({
+    activePresetId: z.string().uuid().optional(),
     llmModel: z.string().min(1).optional(),
     llmProvider: z.enum(['ask-sage', 'anthropic', 'openai', 'ollama']).optional(),
     embeddingModel: z.string().min(1).optional(),
@@ -44,7 +49,10 @@ const ConfigUpdatesSchema = z
 export class UpdateConfigHandler implements ICommandHandler<UpdateConfigCommand> {
   private readonly logger = new Logger(UpdateConfigHandler.name);
 
-  constructor(@Inject(ConfigStore) private readonly configStore: ConfigStore) {}
+  constructor(
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
+    @Inject(DATABASE) private readonly db: Database,
+  ) {}
 
   async execute(command: UpdateConfigCommand): Promise<AppConfig> {
     const parsed = ConfigUpdatesSchema.safeParse(command.updates);
@@ -59,6 +67,24 @@ export class UpdateConfigHandler implements ICommandHandler<UpdateConfigCommand>
     }
 
     const updates = parsed.data;
+
+    // Validate that activePresetId references an existing preset
+    if (updates.activePresetId !== undefined) {
+      const presetRows = await this.db
+        .select({ id: systemPromptPresets.id })
+        .from(systemPromptPresets)
+        .where(eq(systemPromptPresets.id, updates.activePresetId))
+        .limit(1);
+
+      if (presetRows.length === 0) {
+        throw new UnprocessableEntityException({
+          error: {
+            code: 'INVALID_PRESET_ID',
+            message: `Preset with id "${updates.activePresetId}" not found`,
+          },
+        });
+      }
+    }
 
     // Cross-field validation against the merged result so that supplying only
     // one of chunkSize / chunkOverlap is still correctly checked.

@@ -14,6 +14,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { AuthModule } from './auth/auth.module';
 import { NotesModule } from './notes/notes.module';
+import { PresetsModule } from './presets/presets.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { NotesModule } from './notes/notes.module';
     ApiKeysModule,
     WebhooksModule,
     NotesModule,
+    PresetsModule,
   ],
 })
 export class AppModule {}

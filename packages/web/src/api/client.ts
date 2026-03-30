@@ -25,6 +25,9 @@ import type {
   User,
   NoteFolder,
   SourceLink,
+  SystemPromptPreset,
+  CreatePresetInput,
+  UpdatePresetInput,
 } from '@delve/shared';
 
 export type { AppConfig };
@@ -377,4 +380,21 @@ export const api = {
 
   deleteFolder: (id: string, deleteContents?: boolean): Promise<void> =>
     request<void>(`/notes/folders/${id}?deleteContents=${deleteContents ?? false}`, { method: 'DELETE' }),
+
+  // --- Presets ---
+
+  listPresets: (): Promise<SystemPromptPreset[]> =>
+    request<SystemPromptPreset[]>('/presets'),
+
+  getPreset: (id: string): Promise<SystemPromptPreset> =>
+    request<SystemPromptPreset>(`/presets/${id}`),
+
+  createPreset: (body: CreatePresetInput): Promise<SystemPromptPreset> =>
+    request<SystemPromptPreset>('/presets', { method: 'POST', body: JSON.stringify(body) }),
+
+  updatePreset: (id: string, body: UpdatePresetInput): Promise<SystemPromptPreset> =>
+    request<SystemPromptPreset>(`/presets/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  deletePreset: (id: string): Promise<void> =>
+    request<void>(`/presets/${id}`, { method: 'DELETE' }),
 };

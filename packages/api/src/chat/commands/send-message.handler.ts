@@ -12,7 +12,7 @@ import {
 import { SendMessageCommand } from './send-message.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { conversations, messages } from '../../database/schema';
+import { conversations, messages, systemPromptPresets } from '../../database/schema';
 import { toMessageResponse } from '../dto/conversation-response.dto';
 import { RetrievalService } from '../../search/services/retrieval.service';
 import { ConfigStore } from '../../config/config.store';
@@ -190,21 +190,43 @@ export class SendMessageHandler implements ICommandHandler<SendMessageCommand> {
       });
     }
 
-    // --- Step 6: Build the prompt ---
+    // --- Step 6: Load active preset persona ---
     const appConfig = this.configStore.get();
+    let persona: string | undefined;
+    let presetModel: string | null = null;
+
+    if (appConfig.activePresetId) {
+      const presetRows = await this.db
+        .select()
+        .from(systemPromptPresets)
+        .where(eq(systemPromptPresets.id, appConfig.activePresetId))
+        .limit(1);
+
+      const activePreset = presetRows[0];
+      if (activePreset) {
+        persona = activePreset.persona || undefined;
+        presetModel = activePreset.model;
+      }
+    }
+
+    // --- Step 7: Build the prompt ---
     const { prompt, systemPrompt } = buildPrompt(
       userMessage,
       contextResults,
       history,
       appConfig.maxConversationTurns,
       noteContext,
+      persona,
     );
 
-    // --- Step 7: Call the LLM ---
+    // Model priority: explicit request > preset > app config
+    const effectiveModel = model ?? presetModel ?? appConfig.llmModel;
+
+    // --- Step 8: Call the LLM ---
     const llmResult = await this.llm.query({
       prompt,
       systemPrompt,
-      model: model ?? appConfig.llmModel,
+      model: effectiveModel,
     });
 
     let assistantContent: string;

@@ -1,3 +1,5 @@
+import { DEFAULT_PRESET_ID } from './preset.js';
+
 export const LLM_PROVIDERS = ['ask-sage', 'anthropic', 'openai', 'ollama'] as const;
 export type LlmProviderName = (typeof LLM_PROVIDERS)[number];
 
@@ -31,6 +33,7 @@ export interface LlmProviderStatus {
 }
 
 export interface AppConfig {
+  readonly activePresetId: string;
   readonly llmModel: string;
   readonly llmProvider: LlmProviderName;
   readonly embeddingModel: string;
@@ -57,6 +60,7 @@ export interface AppConfig {
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
+  activePresetId: DEFAULT_PRESET_ID,
   llmModel: 'claude-3.5-sonnet',
   llmProvider: 'ask-sage',
   embeddingModel: 'all-MiniLM-L6-v2',
