@@ -389,10 +389,15 @@ export function ChatPanel() {
               {/* Error state */}
               {sendMessage.isError && (
                 <div className="flex items-start mb-4">
-                  <div className="bg-red-950/30 border-l-2 border-l-red-500 px-4 py-2">
+                  <div className="bg-red-950/30 border-l-2 border-l-red-500 px-4 py-2 space-y-1">
                     <p className="font-label text-[10px] text-red-400 uppercase tracking-wider">
                       ERROR: {sendMessage.error.message}
                     </p>
+                    {/fetch|network|timeout|failed/i.test(sendMessage.error.message) && (
+                      <p className="font-label text-[9px] text-red-400/70 uppercase tracking-wider">
+                        If using Ollama, the model may still be loading — retry in a moment
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

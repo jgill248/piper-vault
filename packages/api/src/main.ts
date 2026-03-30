@@ -17,7 +17,7 @@ async function bootstrap(): Promise<void> {
     AppModule,
     new FastifyAdapter({
       logger: false,
-      requestTimeout: 60_000, // 60s — allow time for LLM round-trips
+      requestTimeout: 300_000, // 300s — allow time for LLM round-trips (cold Ollama model load can exceed 60s)
       bodyLimit: 700 * 1024 * 1024, // ~700MB to accommodate base64-encoded 500MB files
     }),
   );

@@ -6,7 +6,7 @@ interface FolderTreeProps {
   readonly folders: readonly NoteFolder[];
   readonly selectedPath: string | undefined;
   readonly onSelectPath: (path: string | undefined) => void;
-  readonly onCreateFolder: (path: string) => void;
+  readonly onCreateFolder: (path: string, onSuccess?: () => void) => void;
 }
 
 interface TreeNode {
@@ -130,9 +130,10 @@ export function FolderTree({
       const path = selectedPath
         ? `${selectedPath}/${newFolderName.trim()}`
         : newFolderName.trim();
-      onCreateFolder(path);
-      setNewFolderName('');
-      setShowNewFolder(false);
+      onCreateFolder(path, () => {
+        setNewFolderName('');
+        setShowNewFolder(false);
+      });
     }
   };
 
