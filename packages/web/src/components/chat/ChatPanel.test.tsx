@@ -45,8 +45,21 @@ vi.mock('../../api/client', () => ({
 }));
 
 vi.mock('../../hooks/use-sources', () => ({
-  useListSources: () => ({ data: { data: [] } }),
+  useListSources: () => ({ data: { data: [], total: 0 } }),
   useListTags: () => ({ data: [] }),
+}));
+
+vi.mock('../../hooks/use-vault-status', () => ({
+  useVaultStatus: () => ({ isEmpty: false, isLoading: false }),
+}));
+
+vi.mock('../../context/NavigationContext', () => ({
+  useNavigation: () => ({
+    navigate: vi.fn(),
+    navigateToNote: vi.fn(),
+    pendingNoteId: undefined,
+    clearPendingNote: vi.fn(),
+  }),
 }));
 
 function createWrapper() {

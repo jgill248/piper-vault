@@ -10,6 +10,8 @@ import type { SearchFilterState } from './SearchFilters';
 import { useConversations, useConversation, useExportConversation, useDeleteConversation } from '../../hooks/use-chat';
 import { useActiveCollection } from '../../context/CollectionContext';
 import { usePersistedConversationId } from '../../hooks/use-persisted-conversation';
+import { useVaultStatus } from '../../hooks/use-vault-status';
+import { useNavigation } from '../../context/NavigationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 
@@ -24,6 +26,33 @@ interface EmptyStateProps {
 }
 
 function EmptyState({ onQuerySelect }: EmptyStateProps) {
+  const { isEmpty } = useVaultStatus();
+  const nav = useNavigation();
+
+  if (isEmpty) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-6 select-none px-4">
+        <div className="border border-primary/20 p-6 bg-surface/50">
+          <MessageSquare size={32} className="text-primary/40" strokeWidth={1} />
+        </div>
+        <div className="text-center space-y-2">
+          <p className="font-headline font-semibold text-on-surface text-sm">Your vault is empty</p>
+          <p className="font-body text-[12px] text-on-surface-variant max-w-sm">
+            Import documents or create notes first, then search your knowledge here.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => nav.navigate('sources')} className="btn-primary text-[10px] px-4 py-2">
+            IMPORT SOURCES
+          </button>
+          <button onClick={() => nav.navigate('notes')} className="btn-secondary text-[10px] px-4 py-2">
+            CREATE NOTES
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 select-none px-4">
       <div className="border border-primary/20 p-6 bg-surface/50">

@@ -31,6 +31,15 @@ export function useBacklinks(id: string | undefined) {
   });
 }
 
+export function useSuggestions(id: string | undefined) {
+  return useQuery({
+    queryKey: ['suggestions', id],
+    queryFn: () => api.getSuggestions(id!),
+    enabled: id !== undefined,
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateNote() {
   const queryClient = useQueryClient();
   return useMutation({

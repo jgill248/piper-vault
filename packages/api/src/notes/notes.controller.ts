@@ -25,9 +25,13 @@ import { DeleteFolderCommand } from './commands/delete-folder.command';
 import { ListNotesQuery } from './queries/list-notes.query';
 import { GetNoteQuery } from './queries/get-note.query';
 import { GetBacklinksQuery } from './queries/get-backlinks.query';
+import { GetSuggestionsQuery } from './queries/get-suggestions.query';
+import { GetGraphQuery } from './queries/get-graph.query';
 import { ListFoldersQuery } from './queries/list-folders.query';
 import { CreateNoteSchema, UpdateNoteSchema, CreateFolderSchema, RenameFolderSchema } from './dto/create-note.dto';
 import type { CreateNoteResult } from './commands/create-note.handler';
+import type { SuggestionEntry } from './queries/get-suggestions.handler';
+import type { GraphData } from './queries/get-graph.handler';
 import type { BacklinkEntry } from './queries/get-backlinks.handler';
 import type { Result } from '@delve/shared';
 
@@ -165,6 +169,13 @@ export class NotesController {
     );
   }
 
+  @Get('graph')
+  async getGraph(
+    @Query('collectionId') collectionId?: string,
+  ): Promise<GraphData> {
+    return this.queryBus.execute(new GetGraphQuery(collectionId));
+  }
+
   // --- Note by ID endpoints (param routes AFTER static routes) ---
 
   @Get(':id')
@@ -175,6 +186,17 @@ export class NotesController {
   @Get(':id/backlinks')
   async getBacklinks(@Param('id') id: string): Promise<readonly BacklinkEntry[]> {
     return this.queryBus.execute(new GetBacklinksQuery(id));
+  }
+
+  @Get(':id/suggestions')
+  async getSuggestions(
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<readonly SuggestionEntry[]> {
+    const parsedLimit = limit ? parseInt(limit, 10) : 10;
+    return this.queryBus.execute(
+      new GetSuggestionsQuery(id, isNaN(parsedLimit) ? 10 : Math.min(parsedLimit, 30)),
+    );
   }
 
   @Patch(':id')

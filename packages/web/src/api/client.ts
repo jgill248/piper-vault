@@ -432,6 +432,24 @@ export const api = {
   }[]> =>
     request(`/notes/${id}/backlinks`),
 
+  getGraph: (collectionId?: string): Promise<{
+    nodes: readonly { id: string; title: string | null; filename: string; isNote: boolean; linkCount: number; backlinkCount: number }[];
+    edges: readonly { source: string; target: string; linkType: string }[];
+  }> => {
+    const qs = collectionId ? `?collectionId=${collectionId}` : '';
+    return request(`/notes/graph${qs}`);
+  },
+
+  getSuggestions: (id: string, limit?: number): Promise<readonly {
+    sourceId: string;
+    title: string | null;
+    filename: string;
+    score: number;
+  }[]> => {
+    const qs = limit ? `?limit=${limit}` : '';
+    return request(`/notes/${id}/suggestions${qs}`);
+  },
+
   // --- Note Folders ---
 
   createFolder: (body: { path: string; collectionId?: string }): Promise<NoteFolder> =>

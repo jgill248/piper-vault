@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, Upload, FolderOpen, FileText } from 'lucide-react';
 import { useListSources, useBulkImport } from '../../hooks/use-sources';
 import { useActiveCollection } from '../../context/CollectionContext';
+import { useNavigation } from '../../context/NavigationContext';
 import { UploadZone } from './UploadZone';
 import { SourceLedger } from './SourceLedger';
 import type { SourceFilters } from './SourceLedger';
@@ -26,12 +27,42 @@ const STATUS_OPTIONS = [
   { value: 'error', label: 'ERROR' },
 ];
 
+function VaultEmptyState({ onNavigateToNotes }: { onNavigateToNotes: () => void }) {
+  return (
+    <div className="px-4 py-8 border-b border-outline-variant/20">
+      <div className="max-w-lg mx-auto text-center space-y-4">
+        <h2 className="font-headline text-xl text-on-surface">Build Your Vault</h2>
+        <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+          Your vault is empty. Import documents, upload files, or create notes to start building your personal knowledge base.
+        </p>
+        <div className="flex flex-col gap-2 items-center">
+          <div className="flex items-center gap-6 text-on-surface-variant">
+            <div className="flex flex-col items-center gap-1">
+              <Upload size={20} strokeWidth={1.5} className="text-primary" />
+              <span className="font-label text-[9px] uppercase tracking-wider">Upload</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <FolderOpen size={20} strokeWidth={1.5} className="text-secondary" />
+              <span className="font-label text-[9px] uppercase tracking-wider">Import</span>
+            </div>
+            <button onClick={onNavigateToNotes} className="flex flex-col items-center gap-1 cursor-pointer hover:text-primary transition-colors duration-100">
+              <FileText size={20} strokeWidth={1.5} className="text-tertiary" />
+              <span className="font-label text-[9px] uppercase tracking-wider">Create Note</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SourcesPanel() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
   const [bulkImportPath, setBulkImportPath] = useState('');
   const bulkImport = useBulkImport();
   const { activeCollectionId } = useActiveCollection();
+  const nav = useNavigation();
 
   const [filters, setFilters] = useState<SourceFilters>({
     search: '',
@@ -85,6 +116,11 @@ export function SourcesPanel() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        {/* Vault-first onboarding when empty */}
+        {!isLoading && data?.total === 0 && (
+          <VaultEmptyState onNavigateToNotes={() => nav.navigate('notes')} />
+        )}
+
         {/* Upload section */}
         <div className="px-4 py-4 border-b border-outline-variant/20">
           <div className="flex items-center gap-2 mb-3">
