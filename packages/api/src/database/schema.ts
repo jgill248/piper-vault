@@ -73,7 +73,7 @@ export const collections = pgTable('collections', {
 export const sources = pgTable('sources', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   filename: varchar('filename', { length: 500 }).notNull(),
-  fileType: varchar('file_type', { length: 50 }).notNull(),
+  fileType: varchar('file_type', { length: 255 }).notNull(),
   fileSize: integer('file_size').notNull(),
   contentHash: varchar('content_hash', { length: 64 }).notNull(),
   collectionId: uuid('collection_id')

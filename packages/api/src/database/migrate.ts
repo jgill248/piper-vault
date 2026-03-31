@@ -28,7 +28,7 @@ export async function runMigrations(connectionString: string): Promise<void> {
     CREATE TABLE IF NOT EXISTS sources (
       id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       filename      VARCHAR(500) NOT NULL,
-      file_type     VARCHAR(50)  NOT NULL,
+      file_type     VARCHAR(255) NOT NULL,
       file_size     INTEGER      NOT NULL,
       content_hash  VARCHAR(64)  NOT NULL UNIQUE,
       status        VARCHAR(20)  NOT NULL DEFAULT 'pending',
@@ -276,6 +276,10 @@ export async function runMigrations(connectionString: string): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS sources_is_note_idx ON sources(is_note)`;
   await sql`CREATE INDEX IF NOT EXISTS sources_parent_path_idx ON sources(parent_path)`;
   console.log('  migration: sources note columns (is_note, content, parent_path, title, frontmatter)');
+
+  // Widen file_type column for long MIME types (e.g. Office documents)
+  await sql`ALTER TABLE sources ALTER COLUMN file_type TYPE VARCHAR(255)`;
+  console.log('  migration: sources.file_type widened to varchar(255)');
 
   // Phase 5: source_links table for wiki-link graph relationships
   await sql`
