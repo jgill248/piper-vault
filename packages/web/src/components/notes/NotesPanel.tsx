@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Plus, AlertTriangle, FileText } from 'lucide-react';
-import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
+import { useNotes, useNote, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
 import { useFolders, useCreateFolder } from '../../hooks/use-folders';
 import { useActiveCollection } from '../../context/CollectionContext';
 import { useNavigation } from '../../context/NavigationContext';
@@ -39,7 +39,18 @@ export function NotesPanel() {
   const createFolder = useCreateFolder();
 
   const notes = notesData?.data ?? [];
-  const selectedNote = notes.find((n) => n.id === selectedNoteId);
+  // Fetch selected note independently for cross-folder navigation
+  const { data: selectedNoteData } = useNote(
+    selectedNoteId && !notes.find((n) => n.id === selectedNoteId) ? selectedNoteId : undefined,
+  );
+  const selectedNote = notes.find((n) => n.id === selectedNoteId) ?? selectedNoteData ?? undefined;
+
+  // Auto-switch folder when navigating to a note in a different path
+  useEffect(() => {
+    if (selectedNoteData && selectedNoteData.parentPath !== (selectedPath ?? '')) {
+      setSelectedPath(selectedNoteData.parentPath ?? undefined);
+    }
+  }, [selectedNoteData, selectedPath]);
 
   // Get all note names for autocomplete
   const allNotesQuery = useNotes({ collectionId: activeCollectionId, pageSize: 100 });

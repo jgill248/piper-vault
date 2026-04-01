@@ -243,6 +243,8 @@ export function ChatPanel() {
     const trimmed = inputValue.trim();
     if (!trimmed || isStreaming) return;
 
+    let resolvedConvId: string | undefined = activeConversationId;
+
     setFollowUps([]);
     setStreamError(null);
     setStreamingContent('');
@@ -277,6 +279,7 @@ export function ChatPanel() {
         switch (event.type) {
           case 'meta':
             isNewSessionRef.current = false;
+            resolvedConvId = event.conversationId;
             setActiveConversationId(event.conversationId);
             break;
           case 'delta':
@@ -289,7 +292,7 @@ export function ChatPanel() {
             // Stream complete — invalidate queries to load persisted messages
             void queryClient.invalidateQueries({ queryKey: ['conversations'] });
             void queryClient.invalidateQueries({
-              queryKey: ['conversation', activeConversationId],
+              queryKey: ['conversation', resolvedConvId],
             });
             break;
         }
@@ -306,9 +309,9 @@ export function ChatPanel() {
       setLocalMessages([]);
       // Re-invalidate to pick up the final persisted conversation
       void queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      if (activeConversationId) {
+      if (resolvedConvId) {
         void queryClient.invalidateQueries({
-          queryKey: ['conversation', activeConversationId],
+          queryKey: ['conversation', resolvedConvId],
         });
       }
     }

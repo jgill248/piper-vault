@@ -31,7 +31,7 @@ export class GetSuggestionsHandler implements IQueryHandler<GetSuggestionsQuery>
           FROM (
             SELECT ordinality, avg(val) AS e
             FROM chunks c,
-                 unnest(c.embedding::float8[]) WITH ORDINALITY AS t(val, ordinality)
+                 unnest(string_to_array(trim(c.embedding::text, '[]'), ',')::float8[]) WITH ORDINALITY AS t(val, ordinality)
             WHERE c.source_id = ${noteId}::uuid
               AND c.embedding IS NOT NULL
             GROUP BY ordinality
