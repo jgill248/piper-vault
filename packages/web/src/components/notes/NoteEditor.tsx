@@ -1,9 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Save, Eye, Edit3, Link } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { remarkWikiLinks } from './remark-wiki-links';
 import { WikiLink } from './WikiLink';
+
+export interface NoteEditorHandle {
+  insertLink: (title: string) => void;
+}
 
 interface NoteEditorProps {
   readonly noteId?: string;
@@ -15,7 +19,7 @@ interface NoteEditorProps {
   readonly onNavigateToNote?: (noteId: string) => void;
 }
 
-export function NoteEditor({
+export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function NoteEditor({
   noteId,
   initialContent,
   initialTitle,
@@ -23,7 +27,7 @@ export function NoteEditor({
   noteNames = [],
   noteMap,
   onNavigateToNote,
-}: NoteEditorProps) {
+}, ref) {
   // Reset state when note identity changes using React's recommended
   // "adjusting state during rendering" pattern (no useEffect needed).
   const [prevNoteId, setPrevNoteId] = useState(noteId);
@@ -43,6 +47,27 @@ export function NoteEditor({
   const [autocompleteFilter, setAutocompleteFilter] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    insertLink(linkTitle: string) {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const wikiLink = `[[${linkTitle}]]`;
+      const pos = ta.selectionStart ?? content.length;
+      const before = content.slice(0, pos);
+      const after = content.slice(pos);
+      const sep = before.length > 0 && !before.endsWith('\n') && !before.endsWith(' ') ? ' ' : '';
+      const newContent = before + sep + wikiLink + after;
+      setContent(newContent);
+      setIsDirty(true);
+      // Restore cursor after the inserted link
+      requestAnimationFrame(() => {
+        const newPos = pos + sep.length + wikiLink.length;
+        ta.focus();
+        ta.setSelectionRange(newPos, newPos);
+      });
+    },
+  }), [content]);
 
   // Auto-save with debounce
   useEffect(() => {
@@ -218,4 +243,4 @@ export function NoteEditor({
       </div>
     </div>
   );
-}
+});

@@ -10,6 +10,8 @@ import { DeleteFolderHandler } from './commands/delete-folder.handler';
 import { ListNotesHandler } from './queries/list-notes.handler';
 import { GetNoteHandler } from './queries/get-note.handler';
 import { GetBacklinksHandler } from './queries/get-backlinks.handler';
+import { GetSuggestionsHandler } from './queries/get-suggestions.handler';
+import { GetGraphHandler } from './queries/get-graph.handler';
 import { ListFoldersHandler } from './queries/list-folders.handler';
 
 const CommandHandlers = [
@@ -20,7 +22,7 @@ const CommandHandlers = [
   RenameFolderHandler,
   DeleteFolderHandler,
 ];
-const QueryHandlers = [ListNotesHandler, GetNoteHandler, GetBacklinksHandler, ListFoldersHandler];
+const QueryHandlers = [ListNotesHandler, GetNoteHandler, GetBacklinksHandler, GetSuggestionsHandler, GetGraphHandler, ListFoldersHandler];
 
 @Module({
   imports: [CqrsModule],

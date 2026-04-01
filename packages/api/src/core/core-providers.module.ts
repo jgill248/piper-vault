@@ -2,7 +2,7 @@ import { Module, Global, Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Provider } from '@nestjs/common';
 import { OnnxEmbedder, DefaultIngestionPipeline, createLlmProvider, LlmReranker } from '@delve/core';
-import type { LlmProvider, LlmQuery, LlmResponse, PluginRegistry } from '@delve/core';
+import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk, PluginRegistry } from '@delve/core';
 import type { Result } from '@delve/shared';
 import { ConfigStore } from '../config/config.store.js';
 import { SecretsStore } from '../config/secrets.store.js';
@@ -41,6 +41,11 @@ export class LlmProviderProxy implements LlmProvider {
   async getModels(): Promise<Result<readonly string[], string>> {
     this.refreshIfNeeded();
     return this.provider.getModels();
+  }
+
+  async *streamQuery(input: LlmQuery): AsyncIterable<LlmStreamChunk> {
+    this.refreshIfNeeded();
+    yield* this.provider.streamQuery(input);
   }
 
   /**

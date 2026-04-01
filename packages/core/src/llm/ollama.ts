@@ -1,6 +1,6 @@
 import { ok, err } from '@delve/shared';
 import type { Result } from '@delve/shared';
-import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
+import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
 
 /**
  * A single message in the Ollama Chat API format.
@@ -120,6 +120,82 @@ export class OllamaProvider implements LlmProvider {
       model: json.model ?? input.model ?? this.defaultModel,
       tokensUsed: json.eval_count,
     });
+  }
+
+  /**
+   * Streams a response from Ollama via NDJSON.
+   */
+  async *streamQuery(input: LlmQuery): AsyncIterable<LlmStreamChunk> {
+    const ollamaMessages: OllamaMessage[] = [];
+    if (input.systemPrompt !== undefined) {
+      ollamaMessages.push({ role: 'system', content: input.systemPrompt });
+    }
+    ollamaMessages.push({ role: 'user', content: input.prompt });
+
+    const body = {
+      model: input.model ?? this.defaultModel,
+      messages: ollamaMessages,
+      stream: true,
+    };
+
+    let rawResponse: Response;
+    try {
+      rawResponse = await fetch(`${this.baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120_000),
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      yield { delta: `[Error: ${message}]`, done: true };
+      return;
+    }
+
+    if (!rawResponse.ok) {
+      const text = await rawResponse.text().catch(() => rawResponse.statusText);
+      yield { delta: `[Error: HTTP ${rawResponse.status} — ${text}]`, done: true };
+      return;
+    }
+
+    const reader = rawResponse.body?.getReader();
+    if (!reader) {
+      yield { delta: '[Error: no response body]', done: true };
+      return;
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let model = input.model ?? this.defaultModel;
+    let tokensUsed: number | undefined;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const chunk = JSON.parse(line) as OllamaChatResponse;
+            const content = chunk.message?.content;
+            if (content) yield { delta: content, done: false };
+            if (chunk.model) model = chunk.model;
+            if (chunk.done && chunk.eval_count) tokensUsed = chunk.eval_count;
+          } catch {
+            // Skip malformed lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    yield { delta: '', done: true, model, tokensUsed };
   }
 
   /**

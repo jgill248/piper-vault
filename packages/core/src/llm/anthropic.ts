@@ -1,6 +1,6 @@
 import { ok, err } from '@delve/shared';
 import type { Result } from '@delve/shared';
-import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
+import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
 
 const ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -106,6 +106,94 @@ export class AnthropicProvider implements LlmProvider {
       model: json.model ?? input.model ?? this.defaultModel,
       tokensUsed: json.usage?.output_tokens,
     });
+  }
+
+  /**
+   * Streams a response from the Anthropic Messages API via SSE.
+   */
+  async *streamQuery(input: LlmQuery): AsyncIterable<LlmStreamChunk> {
+    const body = {
+      model: input.model ?? this.defaultModel,
+      max_tokens: input.maxTokens ?? 4096,
+      stream: true,
+      ...(input.systemPrompt !== undefined ? { system: input.systemPrompt } : {}),
+      messages: [{ role: 'user' as const, content: input.prompt }],
+    };
+
+    let rawResponse: Response;
+    try {
+      rawResponse = await fetch(`${this.baseUrl}/messages`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': ANTHROPIC_VERSION,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120_000),
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      yield { delta: `[Error: ${message}]`, done: true };
+      return;
+    }
+
+    if (!rawResponse.ok) {
+      const text = await rawResponse.text().catch(() => rawResponse.statusText);
+      yield { delta: `[Error: HTTP ${rawResponse.status} — ${text}]`, done: true };
+      return;
+    }
+
+    const reader = rawResponse.body?.getReader();
+    if (!reader) {
+      yield { delta: '[Error: no response body]', done: true };
+      return;
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let model = input.model ?? this.defaultModel;
+    let tokensUsed: number | undefined;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+
+          try {
+            const event = JSON.parse(data) as Record<string, unknown>;
+            const type = event['type'] as string | undefined;
+
+            if (type === 'message_start') {
+              const msg = event['message'] as Record<string, unknown> | undefined;
+              if (msg?.['model']) model = msg['model'] as string;
+            } else if (type === 'content_block_delta') {
+              const delta = event['delta'] as Record<string, unknown> | undefined;
+              const text = delta?.['text'] as string | undefined;
+              if (text) yield { delta: text, done: false };
+            } else if (type === 'message_delta') {
+              const usage = event['usage'] as Record<string, unknown> | undefined;
+              tokensUsed = usage?.['output_tokens'] as number | undefined;
+            }
+          } catch {
+            // Skip malformed JSON lines
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    yield { delta: '', done: true, model, tokensUsed };
   }
 
   /**

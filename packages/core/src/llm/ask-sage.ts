@@ -1,6 +1,6 @@
 import { ok, err } from '@delve/shared';
 import type { Result } from '@delve/shared';
-import type { LlmProvider, LlmQuery, LlmResponse } from './provider.js';
+import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
 
 const ASK_SAGE_BASE_URL = 'https://api.asksage.ai/server';
 const LLM_FETCH_TIMEOUT_MS = 30_000;
@@ -115,6 +115,20 @@ export class AskSageProvider implements LlmProvider {
       model: json.model ?? input.model ?? this.defaultModel,
       tokensUsed: json.tokens_used,
     });
+  }
+
+  /**
+   * Ask Sage does not support streaming — fall back to buffered response
+   * emitted as a single chunk.
+   */
+  async *streamQuery(input: LlmQuery): AsyncIterable<LlmStreamChunk> {
+    const result = await this.query(input);
+    if (!result.ok) {
+      yield { delta: `[Error: ${result.error}]`, done: true };
+      return;
+    }
+    yield { delta: result.value.content, done: false };
+    yield { delta: '', done: true, model: result.value.model, tokensUsed: result.value.tokensUsed };
   }
 
   /**
