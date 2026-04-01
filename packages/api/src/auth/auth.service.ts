@@ -1,37 +1,57 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
+import { randomBytes } from 'node:crypto';
 import * as bcryptjs from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import type { Database } from '../database/connection';
 import { users } from '../database/schema';
 import type { UserRow } from '../database/schema';
 import { DATABASE } from '../database/database.providers';
+import { SecretsStore } from '../config/secrets.store';
 import type { LoginInput, RegisterInput } from '@delve/shared';
 
 const SALT_ROUNDS = 12;
 const JWT_EXPIRY = '7d';
+const JWT_SECRET_KEY = 'auth.jwtSecret';
 
 /**
  * Service that handles user registration, login, and token validation.
  *
- * JWT secret is read from JWT_SECRET env var. If not set in production a
- * warning is emitted, but the service still works using a fallback secret
- * suitable for development.
+ * JWT secret resolution order:
+ * 1. SecretsStore (persisted, encrypted)
+ * 2. JWT_SECRET env var (migrated to SecretsStore on first read)
+ * 3. Auto-generated secure random secret (persisted to SecretsStore)
  */
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   private readonly jwtSecret: string;
 
-  constructor(@Inject(DATABASE) private readonly db: Database) {
-    const secret = process.env['JWT_SECRET'];
-    if (!secret) {
-      this.logger.warn(
-        'JWT_SECRET env var is not set. Using insecure default secret. ' +
-          'Set JWT_SECRET in production.',
-      );
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    @Inject(SecretsStore) private readonly secretsStore: SecretsStore,
+  ) {
+    this.jwtSecret = this.resolveJwtSecret();
+  }
+
+  private resolveJwtSecret(): string {
+    // 1. Check SecretsStore first (persisted from a previous boot)
+    const stored = this.secretsStore.getSecret(JWT_SECRET_KEY);
+    if (stored) return stored;
+
+    // 2. Check env var — migrate to SecretsStore if it's a real secret
+    const envSecret = process.env['JWT_SECRET'];
+    if (envSecret && envSecret !== 'change-me-in-production') {
+      this.secretsStore.setSecret(JWT_SECRET_KEY, envSecret);
+      this.logger.log('Migrated JWT_SECRET from env to SecretsStore');
+      return envSecret;
     }
-    this.jwtSecret = secret ?? 'delve-dev-secret-change-me-in-production';
+
+    // 3. Auto-generate a secure secret and persist it
+    const generated = randomBytes(32).toString('hex');
+    this.secretsStore.setSecret(JWT_SECRET_KEY, generated);
+    this.logger.log('Auto-generated JWT secret and persisted to SecretsStore');
+    return generated;
   }
 
   async register(

@@ -9,36 +9,35 @@ import { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
 import { AuthService } from './auth.service';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
+import { ConfigStore } from '../config/config.store';
 import type { UserRow } from '../database/schema';
 
 /**
  * Global JWT authentication guard.
  *
  * Behaviour:
- * - When AUTH_ENABLED env var is falsy (the default), ALL requests pass through
- *   with no authentication required. This is the backward-compatible default.
- * - When AUTH_ENABLED is truthy:
+ * - When authEnabled is false in ConfigStore (the default), ALL requests pass
+ *   through with no authentication required.
+ * - When authEnabled is true:
  *   - Routes decorated with @Public() pass through without auth.
  *   - All other routes require a valid JWT in the Authorization: Bearer header.
  *   - On success, the authenticated UserRow is attached to request.user.
  *   - On failure, a 401 is returned.
+ *
+ * The guard reads ConfigStore on every request so that toggling auth via the
+ * Settings UI takes effect immediately without a server restart.
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  private readonly authEnabled: boolean;
-
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AuthService) private readonly authService: AuthService,
-  ) {
-    const raw = process.env['AUTH_ENABLED'];
-    this.authEnabled =
-      raw === 'true' || raw === '1' || raw === 'yes';
-  }
+    @Inject(ConfigStore) private readonly configStore: ConfigStore,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Auth is globally disabled — let all requests through
-    if (!this.authEnabled) {
+    if (!this.configStore.get().authEnabled) {
       return true;
     }
 

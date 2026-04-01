@@ -35,10 +35,7 @@ export class ConfigAppController {
    */
   @Get()
   getConfig(): AppConfig {
-    const config = this.configStore.get();
-    const raw = process.env['AUTH_ENABLED'];
-    const authEnabled = raw === 'true' || raw === '1' || raw === 'yes';
-    return { ...config, authEnabled };
+    return this.configStore.get();
   }
 
   /**

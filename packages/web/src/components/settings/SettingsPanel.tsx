@@ -437,7 +437,7 @@ export function SettingsPanel() {
       {/* Section jump nav */}
       {!isLoading && (
         <div className="flex items-center gap-1 px-4 py-2 border-b border-outline-variant/20 bg-surface shrink-0 overflow-x-auto">
-          {['LLM', 'PRESETS', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
+          {['LLM', 'PRESETS', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'AUTH', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
             <button
               key={label}
               onClick={() => {
@@ -530,8 +530,22 @@ export function SettingsPanel() {
               </div>
             </Section>
 
+            {/* Authentication */}
+            <Section index="08" title="AUTHENTICATION">
+              <FieldRow
+                label="AUTH_ENABLED"
+                description="Require username and password login. Create a user account before enabling or you will be locked out."
+              >
+                <ToggleInput
+                  value={draft.authEnabled}
+                  onChange={(v) => handleChange({ authEnabled: v })}
+                  label="Toggle authentication"
+                />
+              </FieldRow>
+            </Section>
+
             {/* API Keys & Webhook docs */}
-            <ApiKeysSection sectionIndex="08" />
+            <ApiKeysSection sectionIndex="09" />
 
             {/* Watched Folders */}
             <WatchedFoldersSection />

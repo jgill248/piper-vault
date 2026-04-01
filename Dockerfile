@@ -140,6 +140,9 @@ RUN mkdir -p /app/plugins /app/watched
 ENV PGDATA=/var/lib/postgresql/data
 RUN mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA"
 
+# Prepare Delve config directory (persists config.json + secrets.json)
+RUN mkdir -p /root/.delve
+
 # Copy configuration files
 COPY nginx.standalone.conf /etc/nginx/conf.d/default.conf
 RUN rm -f /etc/nginx/sites-enabled/default
@@ -149,7 +152,7 @@ RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoin
 
 EXPOSE 8080
 
-VOLUME ["/var/lib/postgresql/data"]
+VOLUME ["/var/lib/postgresql/data", "/root/.delve"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -sf http://localhost:8080/api/v1/health || exit 1

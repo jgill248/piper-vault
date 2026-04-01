@@ -21,6 +21,7 @@ const ConfigUpdatesSchema = z
     similarityThreshold: z.number().min(0).max(1).optional(),
     maxContextTokens: z.number().int().min(500).max(32000).optional(),
     maxConversationTurns: z.number().int().min(1).max(50).optional(),
+    authEnabled: z.boolean().optional(),
     providerSettings: z
       .record(
         z.enum(['ask-sage', 'anthropic', 'openai', 'ollama']),

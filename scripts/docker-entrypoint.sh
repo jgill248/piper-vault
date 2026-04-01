@@ -4,11 +4,11 @@ set -euo pipefail
 PG_BIN="/usr/lib/postgresql/16/bin"
 
 PGDATA="${PGDATA:-/var/lib/postgresql/data}"
-DB_NAME="${POSTGRES_DB:-delve}"
-DB_USER="${POSTGRES_USER:-delve}"
-DB_PASS="${POSTGRES_PASSWORD:-delve}"
+DB_NAME="delve"
+DB_USER="delve"
+DB_PASS="delve"
 
-export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:5432/${DB_NAME}"
+export DATABASE_URL="postgresql://delve:delve@localhost:5432/delve"
 
 # ── 1. Initialize PostgreSQL data directory if empty ──────────────
 if [ ! -s "$PGDATA/PG_VERSION" ]; then
@@ -49,17 +49,10 @@ DATABASE_URL="$DATABASE_URL" node /app/packages/api/migrate.cjs
 echo "[entrypoint] Stopping temporary PostgreSQL..."
 su - postgres -c "$PG_BIN/pg_ctl -D '$PGDATA' stop -m fast -w"
 
-# ── 6. Pass through environment variables to supervisord ─────────
-# Update the API environment line in supervisord.conf with runtime env vars
+# ── 6. Pass through optional environment variables to supervisord ──
+# Only advanced overrides — all user-facing config is managed via the UI.
 EXTRA_ENV=""
-[ -n "${ANTHROPIC_API_KEY:-}" ] && EXTRA_ENV="${EXTRA_ENV},ANTHROPIC_API_KEY=\"${ANTHROPIC_API_KEY}\""
-[ -n "${OPENAI_API_KEY:-}" ] && EXTRA_ENV="${EXTRA_ENV},OPENAI_API_KEY=\"${OPENAI_API_KEY}\""
-[ -n "${ASK_SAGE_TOKEN:-}" ] && EXTRA_ENV="${EXTRA_ENV},ASK_SAGE_TOKEN=\"${ASK_SAGE_TOKEN}\""
 [ -n "${OLLAMA_BASE_URL:-}" ] && EXTRA_ENV="${EXTRA_ENV},OLLAMA_BASE_URL=\"${OLLAMA_BASE_URL}\""
-[ -n "${AUTH_ENABLED:-}" ] && EXTRA_ENV="${EXTRA_ENV},AUTH_ENABLED=\"${AUTH_ENABLED}\""
-[ -n "${JWT_SECRET:-}" ] && EXTRA_ENV="${EXTRA_ENV},JWT_SECRET=\"${JWT_SECRET}\""
-[ -n "${CORS_ORIGIN:-}" ] && EXTRA_ENV="${EXTRA_ENV},CORS_ORIGIN=\"${CORS_ORIGIN}\""
-[ -n "${WEBHOOK_RATE_LIMIT:-}" ] && EXTRA_ENV="${EXTRA_ENV},WEBHOOK_RATE_LIMIT=\"${WEBHOOK_RATE_LIMIT}\""
 [ -n "${NODE_TLS_REJECT_UNAUTHORIZED:-}" ] && EXTRA_ENV="${EXTRA_ENV},NODE_TLS_REJECT_UNAUTHORIZED=\"${NODE_TLS_REJECT_UNAUTHORIZED}\""
 
 if [ -n "$EXTRA_ENV" ]; then
