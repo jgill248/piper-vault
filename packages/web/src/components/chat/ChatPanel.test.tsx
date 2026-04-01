@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
@@ -11,7 +13,6 @@ import { CollectionProvider } from '../../context/CollectionContext';
 // Mock hooks
 // ---------------------------------------------------------------------------
 
-const mockMutate = vi.fn();
 const mockExportMutate = vi.fn();
 const mockDeleteMutate = vi.fn();
 
@@ -25,12 +26,6 @@ vi.mock('../../hooks/use-persisted-conversation', () => ({
 }));
 
 vi.mock('../../hooks/use-chat', () => ({
-  useSendMessage: () => ({
-    mutate: mockMutate,
-    isPending: false,
-    isError: false,
-    error: null,
-  }),
   useConversations: () => ({ data: [] }),
   useConversation: () => ({ data: undefined, isError: false }),
   useExportConversation: () => ({
@@ -43,10 +38,40 @@ vi.mock('../../hooks/use-chat', () => ({
   }),
 }));
 
+vi.mock('../../api/client', () => ({
+  api: {
+    sendMessageStream: vi.fn(),
+  },
+}));
+
 vi.mock('../../hooks/use-sources', () => ({
-  useListSources: () => ({ data: { data: [] } }),
+  useListSources: () => ({ data: { data: [], total: 0 } }),
   useListTags: () => ({ data: [] }),
 }));
+
+vi.mock('../../hooks/use-vault-status', () => ({
+  useVaultStatus: () => ({ isEmpty: false, isLoading: false }),
+}));
+
+vi.mock('../../context/NavigationContext', () => ({
+  useNavigation: () => ({
+    navigate: vi.fn(),
+    navigateToNote: vi.fn(),
+    pendingNoteId: undefined,
+    clearPendingNote: vi.fn(),
+  }),
+}));
+
+function createWrapper() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      React.createElement(CollectionProvider, null, children),
+    );
+  };
+}
 
 describe('ChatPanel', () => {
   afterEach(() => {
@@ -60,34 +85,34 @@ describe('ChatPanel', () => {
   });
 
   it('renders empty state when no messages exist', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.getByText('No active session')).toBeDefined();
   });
 
   it('renders history toggle button', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     const btn = screen.getByLabelText('Toggle conversation history');
     expect(btn).toBeDefined();
     expect(btn.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('shows search filters section', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.getByLabelText('Toggle search filters')).toBeDefined();
   });
 
   it('renders ChatInput for message entry', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.getByPlaceholderText('Enter query...')).toBeDefined();
   });
 
   it('does not show delete button when no conversation is active', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.queryByLabelText('Delete conversation')).toBeNull();
   });
 
   it('does not show export button when no conversation is active', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.queryByLabelText('Export conversation as markdown')).toBeNull();
   });
 });
@@ -104,17 +129,17 @@ describe('ChatPanel with active conversation', () => {
   });
 
   it('shows delete button when conversation is active', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.getByLabelText('Delete conversation')).toBeDefined();
   });
 
   it('shows export button when conversation is active', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.getByLabelText('Export conversation as markdown')).toBeDefined();
   });
 
   it('shows Y/N confirmation on delete click', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     const deleteBtn = screen.getByLabelText('Delete conversation');
     fireEvent.click(deleteBtn);
 
@@ -124,7 +149,7 @@ describe('ChatPanel with active conversation', () => {
   });
 
   it('cancels delete confirmation on N click', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     fireEvent.click(screen.getByLabelText('Delete conversation'));
 
     // Confirmation is shown
@@ -139,7 +164,7 @@ describe('ChatPanel with active conversation', () => {
   });
 
   it('calls deleteConversation.mutate on Y confirm', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
 
     // First click shows confirmation
     fireEvent.click(screen.getByLabelText('Delete conversation'));
@@ -153,7 +178,7 @@ describe('ChatPanel with active conversation', () => {
   });
 
   it('shows session ID in header', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+    render(<ChatPanel />, { wrapper: createWrapper() });
     expect(screen.getByText('SESSION: abc12345')).toBeDefined();
   });
 });
@@ -169,13 +194,20 @@ describe('ChatPanel follow-up suggestions', () => {
     mockPersistedId = undefined;
   });
 
-  it('calls sendMessage.mutate on submit', () => {
-    render(<CollectionProvider><ChatPanel /></CollectionProvider>);
+  it('adds optimistic user message on submit', async () => {
+    const { api } = await import('../../api/client');
+    // Mock the stream to yield nothing (just resolve)
+    (api.sendMessageStream as ReturnType<typeof vi.fn>).mockImplementation(async function* () {
+      yield { type: 'meta', conversationId: 'test-conv', messageId: 'test-msg' };
+      yield { type: 'done' };
+    });
+
+    render(<ChatPanel />, { wrapper: createWrapper() });
 
     const textarea = screen.getByPlaceholderText('Enter query...');
     fireEvent.change(textarea, { target: { value: 'test query' } });
     fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
 
-    expect(mockMutate).toHaveBeenCalled();
+    expect(api.sendMessageStream).toHaveBeenCalled();
   });
 });

@@ -19,6 +19,7 @@ function makeLlm(override?: Partial<LlmProvider>): LlmProvider {
       value: { content: 'Answer text.', model: 'claude-3.5-sonnet', tokensUsed: 42 },
     }),
     getModels: vi.fn().mockResolvedValue({ ok: true, value: ['claude-3.5-sonnet'] }),
+    async *streamQuery() { yield { delta: 'Answer text.', done: false }; yield { delta: '', done: true, model: 'claude-3.5-sonnet' }; },
     ...override,
   };
 }

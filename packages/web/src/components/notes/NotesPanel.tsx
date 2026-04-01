@@ -1,18 +1,31 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Plus, AlertTriangle, FileText } from 'lucide-react';
-import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
+import { useNotes, useNote, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/use-notes';
 import { useFolders, useCreateFolder } from '../../hooks/use-folders';
 import { useActiveCollection } from '../../context/CollectionContext';
+import { useNavigation } from '../../context/NavigationContext';
 import { FolderTree } from './FolderTree';
 import { NoteList } from './NoteList';
 import { NoteEditor } from './NoteEditor';
+import type { NoteEditorHandle } from './NoteEditor';
 import { BacklinksPanel } from './BacklinksPanel';
+import { SuggestionsPanel } from './SuggestionsPanel';
 
 export function NotesPanel() {
   const { activeCollectionId } = useActiveCollection();
+  const { pendingNoteId, clearPendingNote } = useNavigation();
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
   const [selectedNoteId, setSelectedNoteId] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const editorRef = useRef<NoteEditorHandle>(null);
+
+  // Handle navigation from other panels (e.g., graph → note)
+  useEffect(() => {
+    if (pendingNoteId) {
+      setSelectedNoteId(pendingNoteId);
+      clearPendingNote();
+    }
+  }, [pendingNoteId, clearPendingNote]);
 
   const { data: notesData, isLoading: notesLoading } = useNotes({
     collectionId: activeCollectionId,
@@ -26,7 +39,18 @@ export function NotesPanel() {
   const createFolder = useCreateFolder();
 
   const notes = notesData?.data ?? [];
-  const selectedNote = notes.find((n) => n.id === selectedNoteId);
+  // Fetch selected note independently for cross-folder navigation
+  const { data: selectedNoteData } = useNote(
+    selectedNoteId && !notes.find((n) => n.id === selectedNoteId) ? selectedNoteId : undefined,
+  );
+  const selectedNote = notes.find((n) => n.id === selectedNoteId) ?? selectedNoteData ?? undefined;
+
+  // Auto-switch folder when navigating to a note in a different path
+  useEffect(() => {
+    if (selectedNoteData && selectedNoteData.parentPath !== (selectedPath ?? '')) {
+      setSelectedPath(selectedNoteData.parentPath ?? undefined);
+    }
+  }, [selectedNoteData, selectedPath]);
 
   // Get all note names for autocomplete
   const allNotesQuery = useNotes({ collectionId: activeCollectionId, pageSize: 100 });
@@ -179,6 +203,7 @@ export function NotesPanel() {
           <>
             <div className="flex-1 overflow-hidden">
               <NoteEditor
+                ref={editorRef}
                 noteId={selectedNote.id}
                 initialContent={selectedNote.content ?? ''}
                 initialTitle={selectedNote.title ?? selectedNote.filename}
@@ -188,10 +213,17 @@ export function NotesPanel() {
                 onNavigateToNote={setSelectedNoteId}
               />
             </div>
-            <BacklinksPanel
-              noteId={selectedNote.id}
-              onNavigateToNote={setSelectedNoteId}
-            />
+            <div className="max-h-64 overflow-auto">
+              <BacklinksPanel
+                noteId={selectedNote.id}
+                onNavigateToNote={setSelectedNoteId}
+              />
+              <SuggestionsPanel
+                noteId={selectedNote.id}
+                onNavigateToNote={setSelectedNoteId}
+                onInsertLink={(title) => editorRef.current?.insertLink(title)}
+              />
+            </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">

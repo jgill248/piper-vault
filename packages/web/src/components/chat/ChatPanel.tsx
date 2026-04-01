@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Loader2, MessageSquare, History, Trash2, Search, BookOpen, Lightbulb, ArrowRight } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
@@ -7,9 +7,13 @@ import { MessageBubble } from './MessageBubble';
 import { ConversationHistory } from './ConversationHistory';
 import { SearchFilters, EMPTY_FILTERS } from './SearchFilters';
 import type { SearchFilterState } from './SearchFilters';
-import { useConversations, useSendMessage, useConversation, useExportConversation, useDeleteConversation } from '../../hooks/use-chat';
+import { useConversations, useConversation, useExportConversation, useDeleteConversation } from '../../hooks/use-chat';
 import { useActiveCollection } from '../../context/CollectionContext';
 import { usePersistedConversationId } from '../../hooks/use-persisted-conversation';
+import { useVaultStatus } from '../../hooks/use-vault-status';
+import { useNavigation } from '../../context/NavigationContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { api } from '../../api/client';
 
 const STARTER_QUERIES = [
   { icon: <Search size={12} strokeWidth={1.5} />, text: 'What topics are covered in my knowledge base?' },
@@ -22,6 +26,33 @@ interface EmptyStateProps {
 }
 
 function EmptyState({ onQuerySelect }: EmptyStateProps) {
+  const { isEmpty } = useVaultStatus();
+  const nav = useNavigation();
+
+  if (isEmpty) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-6 select-none px-4">
+        <div className="border border-primary/20 p-6 bg-surface/50">
+          <MessageSquare size={32} className="text-primary/40" strokeWidth={1} />
+        </div>
+        <div className="text-center space-y-2">
+          <p className="font-headline font-semibold text-on-surface text-sm">Your vault is empty</p>
+          <p className="font-body text-[12px] text-on-surface-variant max-w-sm">
+            Import documents or create notes first, then search your knowledge here.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => nav.navigate('sources')} className="btn-primary text-[10px] px-4 py-2">
+            IMPORT SOURCES
+          </button>
+          <button onClick={() => nav.navigate('notes')} className="btn-secondary text-[10px] px-4 py-2">
+            CREATE NOTES
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 select-none px-4">
       <div className="border border-primary/20 p-6 bg-surface/50">
@@ -69,20 +100,37 @@ export function ChatPanel() {
   const isNewSessionRef = useRef(false);
 
   const { activeCollectionId } = useActiveCollection();
-  const sendMessage = useSendMessage();
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const exportConversation = useExportConversation();
   const deleteConversation = useDeleteConversation();
   const { data: conversation, isError: conversationError } = useConversation(activeConversationId);
   const { data: conversations } = useConversations(activeCollectionId);
 
-  // Merge server messages with local optimistic messages.
+  // Merge server messages with local optimistic messages + streaming content.
   const serverMessages: readonly Message[] = conversation?.messages ?? [];
   const serverIds = new Set(serverMessages.map((m) => m.id));
   const pendingLocal = localMessages.filter((m) => !serverIds.has(m.id));
-  const messages: readonly Message[] =
-    serverMessages.length > 0
-      ? [...serverMessages, ...pendingLocal]
-      : localMessages;
+
+  // Build the streaming assistant message if we're actively streaming
+  const streamingMsg: Message | null =
+    isStreaming && streamingContent
+      ? {
+          id: 'streaming',
+          conversationId: activeConversationId ?? '',
+          role: MESSAGE_ROLE.ASSISTANT,
+          content: streamingContent,
+          createdAt: new Date(),
+        }
+      : null;
+
+  const allMessages: readonly Message[] = [
+    ...(serverMessages.length > 0 ? serverMessages : []),
+    ...pendingLocal,
+    ...(streamingMsg ? [streamingMsg] : []),
+  ];
 
   const activeConversationTitle = conversations?.find(
     (c) => c.id === activeConversationId,
@@ -90,7 +138,7 @@ export function ChatPanel() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length, sendMessage.isPending]);
+  }, [allMessages.length, isStreaming, streamingContent]);
 
   // Auto-load most recent conversation when mounting with no stored ID
   useEffect(() => {
@@ -191,11 +239,15 @@ export function ChatPanel() {
     });
   }
 
-  function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     const trimmed = inputValue.trim();
-    if (!trimmed || sendMessage.isPending) return;
+    if (!trimmed || isStreaming) return;
+
+    let resolvedConvId: string | undefined = activeConversationId;
 
     setFollowUps([]);
+    setStreamError(null);
+    setStreamingContent('');
 
     const optimisticUserMsg: Message = {
       id: `optimistic-${Date.now()}`,
@@ -215,23 +267,55 @@ export function ChatPanel() {
     if (searchFilters.dateFrom) filters.dateFrom = new Date(searchFilters.dateFrom).toISOString();
     if (searchFilters.dateTo) filters.dateTo = new Date(searchFilters.dateTo).toISOString();
 
-    sendMessage.mutate(
-      { message: trimmed, conversationId: activeConversationId, collectionId: activeCollectionId, ...filters },
-      {
-        onSuccess: (data) => {
-          isNewSessionRef.current = false;
-          setActiveConversationId(data.conversationId);
-          setLocalMessages([]);
-          setFollowUps(data.suggestedFollowUps ? [...data.suggestedFollowUps] : []);
-        },
-        onError: () => {
-          setLocalMessages((prev) =>
-            prev.filter((m) => m.id !== optimisticUserMsg.id),
-          );
-        },
-      },
-    );
-  }
+    setIsStreaming(true);
+
+    try {
+      for await (const event of api.sendMessageStream({
+        message: trimmed,
+        conversationId: activeConversationId,
+        collectionId: activeCollectionId,
+        ...filters,
+      })) {
+        switch (event.type) {
+          case 'meta':
+            isNewSessionRef.current = false;
+            resolvedConvId = event.conversationId;
+            setActiveConversationId(event.conversationId);
+            break;
+          case 'delta':
+            setStreamingContent((prev) => prev + event.content);
+            break;
+          case 'error':
+            setStreamError(event.message);
+            break;
+          case 'done':
+            // Stream complete — invalidate queries to load persisted messages
+            void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            void queryClient.invalidateQueries({
+              queryKey: ['conversation', resolvedConvId],
+            });
+            break;
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setStreamError(msg);
+      setLocalMessages((prev) =>
+        prev.filter((m) => m.id !== optimisticUserMsg.id),
+      );
+    } finally {
+      setIsStreaming(false);
+      setStreamingContent('');
+      setLocalMessages([]);
+      // Re-invalidate to pick up the final persisted conversation
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      if (resolvedConvId) {
+        void queryClient.invalidateQueries({
+          queryKey: ['conversation', resolvedConvId],
+        });
+      }
+    }
+  }, [inputValue, isStreaming, activeConversationId, activeCollectionId, searchFilters, queryClient, setActiveConversationId]);
 
   return (
     <div className="flex h-full overflow-hidden relative">
@@ -344,16 +428,16 @@ export function ChatPanel() {
           aria-live="polite"
           aria-label="Conversation messages"
         >
-          {messages.length === 0 && !sendMessage.isPending ? (
+          {allMessages.length === 0 && !isStreaming ? (
             <EmptyState onQuerySelect={handleStarterQuery} />
           ) : (
             <>
-              {messages.map((message) => (
+              {allMessages.map((message) => (
                 <MessageBubble key={message.id} message={message} />
               ))}
 
               {/* Suggested follow-ups */}
-              {followUps.length > 0 && !sendMessage.isPending && (
+              {followUps.length > 0 && !isStreaming && (
                 <div className="flex flex-col gap-1.5 mb-4 max-w-[80%]">
                   <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
                     SUGGESTED FOLLOW-UPS
@@ -370,8 +454,8 @@ export function ChatPanel() {
                 </div>
               )}
 
-              {/* Pending indicator */}
-              {sendMessage.isPending && (
+              {/* Streaming indicator (before content starts) */}
+              {isStreaming && !streamingContent && (
                 <div className="flex items-start gap-3 mb-4">
                   <div className="bg-surface border-l-2 border-l-primary/40 px-4 py-3 flex items-center gap-2">
                     <Loader2
@@ -380,20 +464,20 @@ export function ChatPanel() {
                       aria-hidden="true"
                     />
                     <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
-                      PROCESSING...
+                      THINKING...
                     </span>
                   </div>
                 </div>
               )}
 
               {/* Error state */}
-              {sendMessage.isError && (
+              {streamError && (
                 <div className="flex items-start mb-4">
                   <div className="bg-red-950/30 border-l-2 border-l-red-500 px-4 py-2 space-y-1">
                     <p className="font-label text-[10px] text-red-400 uppercase tracking-wider">
-                      ERROR: {sendMessage.error.message}
+                      ERROR: {streamError}
                     </p>
-                    {/fetch|network|timeout|failed/i.test(sendMessage.error.message) && (
+                    {/fetch|network|timeout|failed/i.test(streamError) && (
                       <p className="font-label text-[9px] text-red-400/70 uppercase tracking-wider">
                         If using Ollama, the model may still be loading — retry in a moment
                       </p>
@@ -413,7 +497,7 @@ export function ChatPanel() {
             value={inputValue}
             onChange={setInputValue}
             onSubmit={handleSubmit}
-            disabled={sendMessage.isPending}
+            disabled={isStreaming}
           />
         </div>
       </div>
