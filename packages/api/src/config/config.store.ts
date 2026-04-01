@@ -51,11 +51,15 @@ export class ConfigStore {
   private buildEnvOverrides(): Partial<AppConfig> {
     const provider = process.env['LLM_PROVIDER'];
     const model = process.env['LLM_MODEL'];
+    const authRaw = process.env['AUTH_ENABLED'];
     return {
       ...((LLM_PROVIDERS as readonly string[]).includes(provider ?? '')
         ? { llmProvider: provider as LlmProviderName }
         : {}),
       ...(model !== undefined && model !== '' ? { llmModel: model } : {}),
+      ...(authRaw === 'true' || authRaw === '1' || authRaw === 'yes'
+        ? { authEnabled: true }
+        : {}),
     };
   }
 
