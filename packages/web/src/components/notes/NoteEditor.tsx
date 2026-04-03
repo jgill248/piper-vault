@@ -42,7 +42,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
     setIsDirty(false);
   }
 
-  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const [mode, setMode] = useState<'edit' | 'preview'>('preview');
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [autocompleteFilter, setAutocompleteFilter] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
