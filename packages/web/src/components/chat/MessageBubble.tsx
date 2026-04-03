@@ -5,6 +5,7 @@ import { MESSAGE_ROLE } from '@delve/shared';
 
 interface MessageBubbleProps {
   message: Message;
+  onSourceClick?: (sourceId: string) => void;
 }
 
 function formatTime(date: Date | string): string {
@@ -29,7 +30,7 @@ function formatTimestamp(date: Date | string): string {
     : `${d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })} ${formatTime(d)}`;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
   const isUser = message.role === MESSAGE_ROLE.USER;
   const isAssistant = message.role === MESSAGE_ROLE.ASSISTANT;
 
@@ -181,13 +182,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               : sourceId.slice(0, 8);
             const fullName = sourceNames?.[i] ?? sourceId;
             return (
-              <span
+              <button
                 key={sourceId}
-                className="font-label text-[9px] text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 uppercase tracking-wider cursor-default"
-                title={fullName}
+                onClick={() => onSourceClick?.(sourceId)}
+                className="font-label text-[9px] text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 uppercase tracking-wider cursor-pointer hover:bg-primary/20 transition-colors"
+                title={`View source: ${fullName}`}
               >
                 [{String(i + 1).padStart(2, '0')}] {displayName}
-              </span>
+              </button>
             );
           })}
         </div>

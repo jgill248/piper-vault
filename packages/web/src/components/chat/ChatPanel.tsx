@@ -92,6 +92,7 @@ export function ChatPanel() {
   const [activeConversationId, setActiveConversationId] = usePersistedConversationId();
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const nav = useNavigation();
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(EMPTY_FILTERS);
   const [followUps, setFollowUps] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -135,6 +136,13 @@ export function ChatPanel() {
   const activeConversationTitle = conversations?.find(
     (c) => c.id === activeConversationId,
   )?.title;
+
+  const handleSourceClick = useCallback(
+    (_sourceId: string) => {
+      nav.navigate('sources');
+    },
+    [nav],
+  );
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -433,7 +441,7 @@ export function ChatPanel() {
           ) : (
             <>
               {allMessages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
+                <MessageBubble key={message.id} message={message} onSourceClick={handleSourceClick} />
               ))}
 
               {/* Suggested follow-ups */}

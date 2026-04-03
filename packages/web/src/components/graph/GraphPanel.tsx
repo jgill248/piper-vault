@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { ForceGraphMethods } from 'react-force-graph-2d';
 import { Maximize2, Network } from 'lucide-react';
@@ -15,6 +15,9 @@ interface GraphNode {
   backlinkCount: number;
   x?: number;
   y?: number;
+  // Pre-computed for hover highlight lookups
+  neighbors?: Set<GraphNode>;
+  links?: Set<GraphLink>;
 }
 
 interface GraphLink {
@@ -30,6 +33,9 @@ export function GraphPanel() {
   const graphRef = useRef<ForceGraphMethods<GraphNode, GraphLink>>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
+  const [highlightNodes, setHighlightNodes] = useState<Set<GraphNode>>(new Set());
+  const [highlightLinks, setHighlightLinks] = useState<Set<GraphLink>>(new Set());
 
   // Track container size
   useEffect(() => {
@@ -67,41 +73,122 @@ export function GraphPanel() {
     return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || fallback;
   }, []);
 
+  // Build graph data with neighbor/link lookup maps for hover highlighting
+  const graphData = useMemo(() => {
+    if (!data) return { nodes: [] as GraphNode[], links: [] as GraphLink[] };
+
+    const nodes = data.nodes.map((n) => ({
+      ...n,
+      neighbors: new Set<GraphNode>(),
+      links: new Set<GraphLink>(),
+    })) as GraphNode[];
+
+    const nodeById = new Map(nodes.map((n) => [n.id, n]));
+
+    const links = data.edges.map((e) => ({
+      ...e,
+      source: e.source,
+      target: e.target,
+    })) as GraphLink[];
+
+    // Pre-compute neighbor sets for hover highlighting
+    for (const link of links) {
+      const srcId = typeof link.source === 'string' ? link.source : link.source.id;
+      const tgtId = typeof link.target === 'string' ? link.target : link.target.id;
+      const srcNode = nodeById.get(srcId);
+      const tgtNode = nodeById.get(tgtId);
+      if (srcNode && tgtNode) {
+        srcNode.neighbors!.add(tgtNode);
+        tgtNode.neighbors!.add(srcNode);
+        srcNode.links!.add(link);
+        tgtNode.links!.add(link);
+      }
+    }
+
+    return { nodes, links };
+  }, [data]);
+
+  // Handle node hover — update highlight sets
+  const handleNodeHover = useCallback(
+    (node: GraphNode | null) => {
+      const newHighlightNodes = new Set<GraphNode>();
+      const newHighlightLinks = new Set<GraphLink>();
+      if (node) {
+        newHighlightNodes.add(node);
+        node.neighbors?.forEach((neighbor) => newHighlightNodes.add(neighbor));
+        node.links?.forEach((link) => newHighlightLinks.add(link));
+      }
+      setHoverNode(node);
+      setHighlightNodes(newHighlightNodes);
+      setHighlightLinks(newHighlightLinks);
+    },
+    [],
+  );
+
   const nodeCanvasObject = useCallback(
     (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
       const x = node.x ?? 0;
       const y = node.y ?? 0;
       const connections = node.linkCount + node.backlinkCount;
-      const radius = Math.max(3, Math.min(12, 3 + connections * 1.5));
+      const isIsolated = connections === 0;
+      const isHighlighted = highlightNodes.has(node);
+      const isHovered = node === hoverNode;
+      const hasHover = hoverNode !== null;
+
+      // Scale node size: isolated nodes are smaller, hovered nodes slightly larger
+      let radius = Math.max(3, Math.min(12, 3 + connections * 1.5));
+      if (isIsolated) radius = 2.5;
+      if (isHovered) radius *= 1.3;
+
+      // Determine node opacity — dim non-highlighted nodes when hovering
+      const dimmed = hasHover && !isHighlighted;
+      const alpha = dimmed ? 0.15 : isIsolated ? 0.4 : 1;
 
       // Node circle
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-      ctx.fillStyle = node.isNote
-        ? getColor('--color-primary', '#570013')
-        : getColor('--color-secondary', '#4f6073');
-      ctx.fill();
+      ctx.globalAlpha = alpha;
 
-      // Label (show only when zoomed in enough)
-      if (globalScale > 1.2) {
-        const label = node.title || node.filename.replace(/\.md$/, '');
-        const fontSize = Math.max(10, 12 / globalScale);
-        ctx.font = `${fontSize}px "Newsreader", serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillStyle = getColor('--color-on-surface', '#1d1c15');
-        ctx.fillText(label, x, y + radius + 2);
+      if (isIsolated) {
+        // Isolated nodes: dashed outline, no fill
+        ctx.strokeStyle = getColor('--color-on-surface-variant', '#897172');
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else {
+        ctx.fillStyle = node.isNote
+          ? getColor('--color-primary', '#570013')
+          : getColor('--color-secondary', '#4f6073');
+        ctx.fill();
       }
+
+      // Hover ring
+      if (isHovered) {
+        ctx.beginPath();
+        ctx.arc(x, y, radius + 3, 0, 2 * Math.PI, false);
+        ctx.strokeStyle = getColor('--color-primary', '#570013');
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.6;
+        ctx.stroke();
+      }
+
+      // Label — always visible, scales with zoom
+      const label = node.title || node.filename.replace(/\.md$/, '');
+      const baseFontSize = isHovered ? 14 : 12;
+      const fontSize = Math.max(9, baseFontSize / globalScale);
+      ctx.font = `${fontSize}px "Newsreader", serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.globalAlpha = dimmed ? 0.15 : isIsolated ? 0.35 : 0.9;
+      ctx.fillStyle = getColor('--color-on-surface', '#1d1c15');
+      ctx.fillText(label, x, y + radius + 2);
+
+      // Reset alpha
+      ctx.globalAlpha = 1;
     },
-    [getColor],
+    [getColor, hoverNode, highlightNodes],
   );
-
-  const graphData = data
-    ? {
-        nodes: data.nodes.map((n) => ({ ...n })) as GraphNode[],
-        links: data.edges.map((e) => ({ ...e, source: e.source, target: e.target })) as GraphLink[],
-      }
-    : { nodes: [] as GraphNode[], links: [] as GraphLink[] };
 
   // Empty state
   if (!isLoading && graphData.nodes.length === 0) {
@@ -162,13 +249,23 @@ export function GraphPanel() {
             const connections = node.linkCount + node.backlinkCount;
             const radius = Math.max(3, Math.min(12, 3 + connections * 1.5));
             ctx.beginPath();
-            ctx.arc(node.x ?? 0, node.y ?? 0, radius + 2, 0, 2 * Math.PI, false);
+            ctx.arc(node.x ?? 0, node.y ?? 0, radius + 4, 0, 2 * Math.PI, false);
             ctx.fillStyle = color;
             ctx.fill();
           }}
-          linkColor={() => getColor('--color-outline-variant', '#897172') + '60'}
-          linkWidth={0.5}
+          linkColor={(link: GraphLink) => {
+            if (hoverNode && !highlightLinks.has(link)) {
+              return getColor('--color-secondary', '#4f6073') + '15';
+            }
+            if (highlightLinks.has(link)) {
+              return getColor('--color-primary', '#570013');
+            }
+            return getColor('--color-secondary', '#4f6073');
+          }}
+          linkWidth={(link: GraphLink) => (highlightLinks.has(link) ? 3 : 1.5)}
           onNodeClick={handleNodeClick}
+          onNodeHover={handleNodeHover}
+          autoPauseRedraw={false}
           cooldownTicks={100}
           warmupTicks={50}
           enableNodeDrag={true}
