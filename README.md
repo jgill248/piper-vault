@@ -1,10 +1,12 @@
 # Delve
 
-**Personal Knowledge Base & Conversational Search**
+**Personal Knowledge Vault with AI-Powered Search**
 
-Delve is a local-first, RAG-powered knowledge base with a conversational chat interface. Ingest notes, transcripts, documents, and unstructured data, then query it through natural language powered by LLM APIs. The system indexes content locally using PostgreSQL with pgvector, performs semantic similarity search, and feeds context to a language model for grounded, citation-backed answers.
+Delve is a local-first knowledge vault where you build, connect, and search your personal knowledge — entirely on your own machine. Ingest notes, documents, transcripts, and other content, then query it through natural language powered by your choice of LLM. The system indexes content locally using PostgreSQL with pgvector, performs semantic similarity search, and generates grounded, citation-backed answers.
 
-Everything runs in a **single Docker container** -- PostgreSQL, API server, and web UI bundled together. One command to start, zero external dependencies (besides your LLM API key).
+The vault is the product. Chat is a feature for querying the vault.
+
+Everything runs in a **single Docker container** — PostgreSQL, API server, React UI, and embedding model bundled together. One command to start, zero external dependencies beyond your LLM API key (which you can configure through the UI after first boot).
 
 ---
 
@@ -14,6 +16,7 @@ Everything runs in a **single Docker container** -- PostgreSQL, API server, and 
 - [Single-Container Architecture](#single-container-architecture)
 - [Deployment Options](#deployment-options)
 - [Configuration](#configuration)
+- [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Packages](#packages)
@@ -29,22 +32,26 @@ Everything runs in a **single Docker container** -- PostgreSQL, API server, and 
 ## Quick Start
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/jgill248/delve.git
-cd delve
+# Pull and run — no configuration needed to start
+docker run -d \
+  --name delve \
+  -p 8080:8080 \
+  -v delve-data:/var/lib/postgresql/data \
+  pipervault/piper-vault:latest
 
-# 2. Copy the environment file and add your LLM API key
-cp .env.example .env
-# Edit .env — set at least one of: ANTHROPIC_API_KEY, OPENAI_API_KEY, ASK_SAGE_TOKEN, or OLLAMA_BASE_URL
-
-# 3. Start the single-container deployment
-docker compose -f docker-compose.hub.yml up -d
-
-# 4. Open in your browser
+# Open in your browser
 open http://localhost:8080
 ```
 
-That's it. PostgreSQL, the API server, and the web UI are all running inside a single container.
+Or with Docker Compose:
+
+```bash
+# Using the Docker Hub compose file
+docker compose -f docker-compose.hub.yml up -d
+open http://localhost:8080
+```
+
+PostgreSQL, the API server, the embedding model, and the web UI all start inside a single container. Configure your LLM provider (Anthropic, OpenAI, Ollama, or Ask Sage) through the Settings panel in the UI after first boot.
 
 ---
 
@@ -69,7 +76,7 @@ The standout feature of Delve's deployment model is the **all-in-one standalone 
 │                                                   │
 │  ┌─────────────────────────────────────────────┐  │
 │  │  NestJS API Server              priority: 20│  │
-│  │  - CQRS architecture                       │  │
+│  │  - CQRS architecture                        │  │
 │  │  - Embedding via ONNX (baked into image)    │  │
 │  │  - All REST endpoints on port 3001          │  │
 │  └─────────────────────────────────────────────┘  │
@@ -83,7 +90,7 @@ The standout feature of Delve's deployment model is the **all-in-one standalone 
 │                                                   │
 │  ┌─────────────────────────────────────────────┐  │
 │  │  ONNX Embedding Model (pre-baked)           │  │
-│  │  - all-MiniLM-L6-v2 (384 dimensions)       │  │
+│  │  - all-MiniLM-L6-v2 (384 dimensions)        │  │
 │  │  - Downloaded at build time, cached in image│  │
 │  │  - No network call needed at runtime        │  │
 │  └─────────────────────────────────────────────┘  │
@@ -94,22 +101,20 @@ The standout feature of Delve's deployment model is the **all-in-one standalone 
 
 When the container starts, the entrypoint script (`scripts/docker-entrypoint.sh`) runs through a carefully sequenced boot process:
 
-1. **Initialize PostgreSQL** -- If the data directory is empty (first run), `initdb` creates a new database cluster with UTF-8 encoding. MD5 password authentication is configured for local TCP connections.
+1. **Initialize PostgreSQL** — If the data directory is empty (first run), `initdb` creates a new database cluster with UTF-8 encoding. MD5 password authentication is configured for local TCP connections.
 
-2. **Start PostgreSQL temporarily** -- The database starts via `pg_ctl` so setup queries can execute.
+2. **Start PostgreSQL temporarily** — The database starts via `pg_ctl` so setup queries can execute.
 
-3. **Create database and user** -- Idempotent SQL creates the `delve` role and database, enables the `pgvector` extension, and grants privileges. Safe to re-run on every boot.
+3. **Create database and user** — Idempotent SQL creates the `delve` role and database, enables the `pgvector` extension, and grants privileges. Safe to re-run on every boot.
 
-4. **Run migrations** -- The compiled migration script (`migrate.cjs`) applies any pending schema changes. This means upgrading the image automatically migrates your data.
+4. **Run migrations** — The compiled migration script (`migrate.cjs`) applies any pending schema changes. Upgrading the image automatically migrates your data.
 
-5. **Stop PostgreSQL** -- A clean shutdown so supervisord can take over process management.
+5. **Stop PostgreSQL** — A clean shutdown so supervisord can take over process management.
 
-6. **Inject environment variables** -- Runtime env vars (API keys, auth settings, etc.) are injected into the supervisord configuration via `sed`.
-
-7. **Launch supervisord** -- All three services start in priority order:
-   - **PostgreSQL** (priority 10) -- Database daemon
-   - **API server** (priority 20) -- NestJS on port 3001 (internal only)
-   - **Nginx** (priority 30) -- Reverse proxy on port 8080 (exposed)
+6. **Launch supervisord** — All three services start in priority order:
+   - **PostgreSQL** (priority 10) — Database daemon
+   - **API server** (priority 20) — NestJS on port 3001 (internal only)
+   - **Nginx** (priority 30) — Reverse proxy on port 8080 (exposed)
 
 All processes have `autorestart=true`, so if any service crashes, supervisord brings it back automatically.
 
@@ -118,6 +123,7 @@ All processes have `autorestart=true`, so if any service crashes, supervisord br
 | Volume Path | Purpose |
 |---|---|
 | `/var/lib/postgresql/data` | PostgreSQL data directory (persisted) |
+| `/root/.delve` | Application settings and configuration |
 | `/app/plugins` | Custom plugin `.js` files (optional) |
 | `/app/watched` | Watched folders for auto-ingestion (optional) |
 
@@ -133,11 +139,12 @@ Interval: 30s, Timeout: 10s, Start period: 30s, Retries: 3.
 
 ### Why a Single Container?
 
-- **Zero orchestration** -- No Docker Compose, no Kubernetes, no service mesh. One `docker run` command.
-- **Self-contained** -- PostgreSQL, vector search, embeddings, API, and UI in one image. The only external dependency is your LLM API key.
-- **Pre-baked model** -- The ONNX embedding model is downloaded at build time and cached inside the image. No network calls to Hugging Face at runtime.
-- **Auto-migration** -- Schema migrations run on every boot, so pulling a new image version upgrades your database automatically.
-- **Persistent data** -- All state lives in a single Docker volume (`/var/lib/postgresql/data`). Back up one volume, restore anywhere.
+- **Zero orchestration** — No Docker Compose, no Kubernetes, no service mesh. One `docker run` command.
+- **Zero config to start** — LLM providers are configured through the UI. No `.env` file required.
+- **Self-contained** — PostgreSQL, vector search, embeddings, API, and UI in one image.
+- **Pre-baked model** — The ONNX embedding model is downloaded at build time and cached inside the image. No network calls to Hugging Face at runtime.
+- **Auto-migration** — Schema migrations run on every boot, so pulling a new image version upgrades your database automatically.
+- **Persistent data** — All state lives in a single Docker volume. Back up one volume, restore anywhere.
 
 ---
 
@@ -145,7 +152,7 @@ Interval: 30s, Timeout: 10s, Start period: 30s, Retries: 3.
 
 ### Option 1: Single Container (Recommended)
 
-The simplest deployment. Everything in one container.
+The simplest deployment. Everything in one container, no configuration required to start.
 
 ```bash
 # Using Docker Compose
@@ -156,8 +163,19 @@ docker run -d \
   --name delve \
   -p 8080:8080 \
   -v delve-data:/var/lib/postgresql/data \
+  -v delve-config:/root/.delve \
+  pipervault/piper-vault:latest
+```
+
+You can optionally pass LLM API keys as environment variables to pre-configure providers:
+
+```bash
+docker run -d \
+  --name delve \
+  -p 8080:8080 \
+  -v delve-data:/var/lib/postgresql/data \
   -e ANTHROPIC_API_KEY=sk-ant-... \
-  creative-software/delve:latest
+  pipervault/piper-vault:latest
 ```
 
 ### Option 2: Multi-Service Production
@@ -173,14 +191,14 @@ docker compose -f docker-compose.prod.yml exec api node packages/api/dist/databa
 ```
 
 Services:
-- **postgres** -- pgvector image, persisted volume, 1GB memory limit
-- **api** -- Compiled NestJS server, depends on postgres health check
-- **web** -- Nginx reverse proxy, exposes port 8080
+- **postgres** — pgvector image, persisted volume, 1GB memory limit
+- **api** — Compiled NestJS server, depends on postgres health check
+- **web** — Nginx reverse proxy, exposes port 8080
 
 ### Option 3: Build from Source
 
 ```bash
-# Build the standalone image locally
+# Build the standalone (all-in-one) image locally
 docker build --target standalone -t delve:local .
 
 # Run it
@@ -188,9 +206,10 @@ docker run -d -p 8080:8080 -v delve-data:/var/lib/postgresql/data delve:local
 ```
 
 The multi-stage Dockerfile has four build targets:
+
 | Target | Description |
 |---|---|
-| `builder` | Installs all deps, compiles all packages (shared -> core -> api + web) |
+| `builder` | Installs all deps, compiles all packages (shared → core → api + web) |
 | `api` | Minimal Node.js image with compiled API + production deps |
 | `web` | Nginx Alpine with compiled React frontend |
 | `standalone` | All-in-one: PostgreSQL 16 + pgvector + API + Nginx + supervisord |
@@ -210,7 +229,7 @@ node packages/api/dist/main.js
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
+The standalone container requires no configuration to start — providers are configured through the Settings panel in the UI. For multi-service deployments, copy `.env.example` to `.env` and configure:
 
 ### Database
 
@@ -223,14 +242,23 @@ Copy `.env.example` to `.env` and configure:
 
 ### LLM Providers
 
-Set at least one. Configure the active provider in the UI settings.
+Configure at least one. The active provider is selected in the UI Settings panel.
 
 | Variable | Description |
 |---|---|
-| `ANTHROPIC_API_KEY` | Anthropic API key (Claude models) |
-| `OPENAI_API_KEY` | OpenAI API key (GPT models) |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude models |
+| `OPENAI_API_KEY` | OpenAI API key for GPT models |
 | `ASK_SAGE_TOKEN` | Ask Sage token (does not expire) |
 | `OLLAMA_BASE_URL` | Ollama endpoint (default: `http://localhost:11434`) |
+
+**Supported models per provider:**
+
+| Provider | Models |
+|---|---|
+| Anthropic | claude-sonnet-4-20250514, claude-haiku-4-5-20251001, claude-opus-4-20250514 |
+| OpenAI | gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-3.5-turbo |
+| Ollama | Any locally installed model (fetched dynamically from `/api/tags`) |
+| Ask Sage | claude-3.5-sonnet and other configured models |
 
 ### Authentication
 
@@ -251,6 +279,39 @@ Set at least one. Configure the active provider in the UI settings.
 
 ---
 
+## Features
+
+### Knowledge Management
+- **Multi-format ingestion** — PDF, DOCX, CSV, JSON, HTML, YAML, Markdown, plain text
+- **Native note editor** — Write in Markdown with a built-in editor; notes live alongside ingested documents
+- **Wiki-links** — Link notes together with `[[title]]` syntax; backlinks tracked automatically
+- **Hierarchical folders** — Organize notes into nested folder structures
+- **YAML frontmatter** — Extract metadata from note headers
+- **Knowledge graph** — Force-directed visualization of connections between notes and sources
+- **Multi-collection support** — Organize all content into named workspace collections
+- **Tags** — Tag sources and notes for topic-based organization
+
+### Search & Chat
+- **Semantic search** — 384-dimensional vector embeddings via ONNX (all-MiniLM-L6-v2, fully local)
+- **Hybrid retrieval** — Combines vector similarity with keyword search and re-ranking
+- **Conversational chat** — RAG-powered Q&A with source citations in every answer
+- **Streaming responses** — Real-time LLM response streaming via SSE
+- **Conversation history** — All chat sessions persisted and browsable
+- **Export** — Export conversations to Markdown
+
+### Automation & Extensibility
+- **Watched folders** — Auto-ingest files from monitored directories
+- **Webhook ingestion** — API key-based file upload endpoint with rate limiting
+- **Plugin system** — Custom JavaScript plugins for extending extraction and processing
+- **System prompt presets** — Save and switch between per-model prompt configurations
+
+### Infrastructure
+- **Local embeddings** — Embedding model runs fully offline, pre-baked into Docker image
+- **Authentication** — Optional username/password login with JWT tokens
+- **Auto-migration** — Database schema upgrades automatically on container boot
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -259,9 +320,9 @@ Set at least one. Configure the active provider in the UI settings.
 | **Frontend** | React 18, Vite 5, TailwindCSS 3.4, TanStack Query 5 |
 | **Database** | PostgreSQL 16 with pgvector extension |
 | **ORM** | Drizzle ORM |
-| **Embeddings** | `all-MiniLM-L6-v2` via ONNX Runtime (384 dimensions) |
-| **LLM** | Anthropic, OpenAI, Ask Sage, Ollama (pluggable adapters) |
-| **File Parsing** | pdf-parse, mammoth (DOCX), cheerio (HTML), papaparse (CSV) |
+| **Embeddings** | `all-MiniLM-L6-v2` via ONNX Runtime (384 dimensions, fully local) |
+| **LLM** | Anthropic, OpenAI, Ask Sage, Ollama — pluggable adapter pattern |
+| **File Parsing** | pdf-parse, mammoth (DOCX), cheerio (HTML), papaparse (CSV), yaml |
 | **Build System** | pnpm workspaces + Nx |
 | **Linting** | ESLint 10, Prettier 3.8 |
 | **Testing** | Vitest |
@@ -292,14 +353,14 @@ delve/
 │   │       └── app.module.ts   Root NestJS module
 │   ├── web/                    React frontend
 │   │   └── src/
-│   │       ├── components/     UI components (chat, sources, notes, settings)
+│   │       ├── components/     UI components (chat, sources, notes, graph, settings)
 │   │       ├── context/        React context providers (auth, collections, toast)
 │   │       ├── hooks/          Custom hooks
 │   │       └── api/            API client & React Query hooks
 │   ├── core/                   Framework-agnostic business logic
 │   │   └── src/
 │   │       ├── ingestion/      File parsing, chunking, embedding pipeline
-│   │       ├── retrieval/      Vector search, context assembly
+│   │       ├── retrieval/      Vector search, re-ranking, context assembly
 │   │       ├── llm/            LLM adapter interfaces & implementations
 │   │       └── export/         Markdown export
 │   └── shared/                 Shared types, constants, utilities
@@ -326,35 +387,40 @@ delve/
 
 ## Packages
 
-### `packages/api` -- Backend API Server
+### `packages/api` — Backend API Server
 
 NestJS application using CQRS (Command Query Responsibility Segregation). All operations are either a **command** (write) or a **query** (read), dispatched through NestJS `CommandBus` and `QueryBus`.
 
 **Request flow:**
 ```
-HTTP Request -> Controller (Zod validation) -> CommandBus / QueryBus -> Handler (business logic via core) -> Response DTO
+HTTP Request → Controller (Zod validation) → CommandBus / QueryBus → Handler (business logic via core) → Response DTO
 ```
 
 **Modules:** sources, chat, search, notes, collections, auth, api-keys, watched-folders, webhooks, plugins, config, health, database.
 
-### `packages/core` -- Business Logic
+### `packages/core` — Business Logic
 
 Framework-agnostic library containing all domain logic. Decoupled from NestJS so it can be reused in CLI tools, Electron apps, or other runtimes.
 
-- **Ingestion pipeline:** Parse files (PDF, DOCX, CSV, JSON, HTML, YAML, Markdown, plain text) -> chunk text -> generate embeddings -> store in pgvector
+- **Ingestion pipeline:** Parse files (PDF, DOCX, CSV, JSON, HTML, YAML, Markdown, plain text) → chunk text → generate embeddings → store in pgvector
 - **Retrieval:** Cosine similarity search, metadata filtering, re-ranking
-- **LLM adapters:** Ask Sage, Anthropic, OpenAI, Ollama -- all behind a common interface
+- **LLM adapters:** Anthropic, OpenAI, Ask Sage, Ollama — all behind a common `LlmProvider` interface
 - **Export:** Markdown export for conversations and notes
 
-### `packages/web` -- Frontend
+### `packages/web` — Frontend
 
-React 18 SPA built with Vite. Uses the "Obsidian Protocol" design system (dark, monospace, cyberpunk-industrial aesthetic).
+React 18 SPA built with Vite. Uses the **Sovereign Press** design system — a warm 19th-century printing house aesthetic.
 
-**Views:** Chat, Sources, Notes, Settings
-**State management:** React Context for auth/collections, TanStack Query for server state
-**Components:** ChatPanel, SourcesPanel, NotesPanel (with FolderTree, NoteEditor, WikiLink, BacklinksPanel), SettingsPanel, UploadZone
+**Views:**
+- **Chat** — Conversational interface, RAG-backed answers with source citations, streaming responses
+- **Sources** — File browser, drag-and-drop upload zone, search filters, bulk import
+- **Notes** — Hierarchical folder tree, Markdown editor, wiki-link parsing, backlink panel
+- **Graph** — Force-directed knowledge graph visualization of note and source connections
+- **Settings** — LLM provider configuration, API key management, system prompt presets, auth settings
 
-### `packages/shared` -- Shared Types
+**State management:** React Context for auth/collections, TanStack Query v5 for all server state.
+
+### `packages/shared` — Shared Types
 
 TypeScript types, constants, and utilities shared across all packages. No runtime dependencies.
 
@@ -441,10 +507,11 @@ PostgreSQL 16 with pgvector. All schema changes are applied via versioned migrat
 | `chunks` | Text segments with 384-dim embeddings for vector search |
 | `conversations` | Chat sessions linked to collections |
 | `messages` | Chat messages (role, content, cited sources, model used) |
-| `watched_folders` | Directories monitored for auto-ingestion |
-| `api_keys` | Hashed API keys for webhook authentication |
 | `note_folders` | Hierarchical note folder organization |
 | `source_links` | Wiki-link relationships between sources |
+| `watched_folders` | Directories monitored for auto-ingestion |
+| `api_keys` | Hashed API keys for webhook authentication |
+| `system_prompt_presets` | Saved system prompt configurations per model |
 
 ---
 
@@ -526,27 +593,46 @@ pnpm --filter @delve/web test
 ```
 
 **Testing approach:**
-- **`packages/core/`** -- Unit tests with mocked external dependencies
-- **`packages/api/`** -- Integration tests against a test database
-- **`packages/web/`** -- Component tests with React Testing Library (behavior, not implementation)
+- **`packages/core/`** — Unit tests with mocked external dependencies
+- **`packages/api/`** — Integration tests against a test database
+- **`packages/web/`** — Component tests with React Testing Library (behavior, not implementation)
 
 ---
 
 ## Design System
 
-Delve uses the **Obsidian Protocol** design system -- a dark, high-density "Sovereign Console" aesthetic inspired by military-grade command interfaces.
+Delve uses the **Sovereign Press** design system — a 19th-century printing house aesthetic, like a curated ledger or library catalogue.
+
+**Light mode (Parchment):**
 
 | Property | Value |
 |---|---|
-| **Background** | Deep obsidian `#05070A` |
-| **Primary accent** | Phosphor glow `#abd600` |
-| **Border radius** | `0px` everywhere -- no rounded corners |
-| **Shadows** | None -- no drop shadows |
-| **Monospace font** | JetBrains Mono (data, tables, labels, code) |
-| **Sans-serif font** | Manrope / Inter (UI text, headings) |
-| **Effects** | Scanline overlay texture, glow on CTAs |
+| **Background** | Warm off-white `#fff9ee` |
+| **Primary** | Burgundy `#570013` |
+| **Secondary** | Steel `#4f6073` |
+| **Tertiary** | Brass `#362400` |
 
-Design mockups are in `spec/stitch/`. The full design system reference is at `spec/stitch/obsidian_protocol/DESIGN.md`.
+**Dark mode (Nocturne):**
+
+| Property | Value |
+|---|---|
+| **Background** | Charcoal / stained wood `#1d1c15` |
+| **Primary** | Aged parchment `#fddbdb` |
+| **Secondary** | Muted slate `#bdc7d6` |
+
+**Typography:**
+- **Newsreader** (slab-serif) — headlines and data display
+- **Work Sans** (sans-serif) — body text and labels
+- **JetBrains Mono** — code blocks
+
+**Rules:**
+- `0px` border radius everywhere — no rounded corners
+- No drop shadows — depth via tonal layering only
+- No 1px rule lines for sectioning — use background color shifts (surface hierarchy)
+
+Design mockups are in `spec/stitch/`. Full design system references:
+- Light mode: `spec/stitch/piper/app/sovereign_press/DESIGN.md`
+- Dark mode: `spec/stitch/piper/app/sovereign_press_nocturne/DESIGN.md`
 
 ---
 
@@ -556,18 +642,12 @@ Design mockups are in `spec/stitch/`. The full design system reference is at `sp
 |---|---|---|
 | **1. Foundation** | Done | Scaffolding, .md/.txt ingestion, vector storage, basic chat |
 | **2. Expand Ingestion & Polish** | Done | All file formats, source browser, conversation history, settings |
-| **3. Intelligence & Refinement** | Done | Hybrid search, re-ranking, follow-ups, export, provider adapters |
+| **3. Intelligence & Refinement** | Done | Hybrid search, re-ranking, follow-ups, export, provider adapters, streaming |
 | **4. Scale & Ecosystem** | Done | Watched folders, webhooks, multi-collection, auth, plugins |
-| **5. Native Knowledge Management** | Active | Wiki-links, note folders, frontmatter extraction, native editor |
-| **6. Agentic RAG** | Planned | Streaming, query routing, corrective RAG, research mode |
-| **7. Multi-Modal Knowledge** | Planned | Audio transcription, image understanding, video indexing |
-| **8. Knowledge Graph Intelligence** | Planned | Entity extraction, relationship mapping, graph visualization |
-| **9. Desktop App & Plugin SDK** | Planned | Tauri desktop app, plugin SDK, mobile PWA |
-| **10. Personal Memory** | Planned | Persistent memory, knowledge briefs, pattern detection |
-| **11. Reasoning & Voice** | Planned | Budget-aware reasoning, voice-first interface |
-| **12. Dev Tools** | Planned | Git/issue tracker indexing, MCP server mode |
-| **13. Federated Knowledge** | Planned | P2P CRDT sync, LoRA fine-tuning |
-| **14. Exploratory Horizons** | Planned | 3D graph, embodied knowledge, digital twin |
+| **5. Native Knowledge Management** | Done | Wiki-link graph, frontmatter, markdown editor, note folders, tags, graph-aware retrieval |
+| **A. The Vault Experience** | Active | Knowledge graph viz, Obsidian/Notion import, vault-first onboarding, tag browser, smart link suggestions |
+| **B. Distribution** | Planned | License-key gated distribution, CI/CD pipeline, landing page, payment |
+| **C. Polish** | Backlog | Follow-up questions, MCP server mode |
 
 Full specification: [spec/spec.md](spec/spec.md)
 
