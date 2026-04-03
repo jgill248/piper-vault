@@ -26,11 +26,16 @@ interface AskSageQueryResponse {
 }
 
 /**
+ * A single model entry — the API may return plain strings or objects.
+ */
+type AskSageModelEntry = string | { readonly id: string; readonly name?: string };
+
+/**
  * Minimal shape of the /server/get-models response.
  */
 interface AskSageModelsResponse {
-  readonly models?: readonly string[];
-  readonly data?: readonly string[];
+  readonly models?: readonly AskSageModelEntry[];
+  readonly data?: readonly AskSageModelEntry[];
 }
 
 /**
@@ -163,10 +168,13 @@ export class AskSageProvider implements LlmProvider {
     }
 
     // The API may return models under `models` or `data`.
-    const models = json.models ?? json.data;
-    if (models === undefined) {
+    const raw = json.models ?? json.data;
+    if (raw === undefined) {
       return err('AskSageProvider: models response contained no model list');
     }
+
+    // Normalize: the API may return plain strings or model objects.
+    const models = raw.map((m) => (typeof m === 'string' ? m : m.id));
 
     return ok(models);
   }
