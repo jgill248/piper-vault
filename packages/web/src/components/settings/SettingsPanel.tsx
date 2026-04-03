@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DEFAULT_CONFIG, LLM_PROVIDERS } from '@delve/shared';
 import type { AppConfig } from '@delve/shared';
-import { useConfig, useUpdateConfig } from '../../hooks/use-config';
+import { useConfig, useUpdateConfig, useModels } from '../../hooks/use-config';
 import { useTheme } from '../../hooks/use-theme';
 import { PluginsPanel } from './PluginsPanel';
 import { ApiKeysSection } from './ApiKeysSection';
@@ -185,6 +185,15 @@ interface ConfigEditorProps {
 }
 
 function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
+  const { data: modelsData } = useModels();
+
+  const modelOptions = (() => {
+    const fetched = modelsData?.models ?? [];
+    const current = draft.llmModel;
+    const all = fetched.includes(current) ? fetched : [current, ...fetched];
+    return all.map((m) => ({ value: m, label: m }));
+  })();
+
   return (
     <>
       <Section index="01" title="LLM_CONFIGURATION">
@@ -200,11 +209,12 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
         </FieldRow>
         <FieldRow
           label="LLM_MODEL"
-          description="Language model used for answer generation via Ask Sage"
+          description="Language model used for answer generation"
         >
-          <TextInput
+          <SelectInput
             value={draft.llmModel}
             onChange={(v) => onChange({ llmModel: v })}
+            options={modelOptions}
           />
         </FieldRow>
         <FieldRow

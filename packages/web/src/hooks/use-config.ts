@@ -9,12 +9,20 @@ export function useConfig() {
   });
 }
 
+export function useModels() {
+  return useQuery({
+    queryKey: ['models'],
+    queryFn: () => api.getModels(),
+  });
+}
+
 export function useUpdateConfig() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: Partial<AppConfig>) => api.updateConfig(body),
     onSuccess: (updated) => {
       queryClient.setQueryData(['config'], updated);
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 }

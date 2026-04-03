@@ -226,12 +226,13 @@ export class StreamChatService {
         systemPrompt,
         model: effectiveModel,
       })) {
+        if (chunk.delta) {
+          fullContent += chunk.delta;
+          yield { type: 'delta', content: chunk.delta };
+        }
         if (chunk.done) {
           usedModel = chunk.model;
           tokensUsed = chunk.tokensUsed;
-        } else if (chunk.delta) {
-          fullContent += chunk.delta;
-          yield { type: 'delta', content: chunk.delta };
         }
       }
     } catch (e) {
