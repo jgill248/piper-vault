@@ -7,11 +7,11 @@
 # No .env file required.
 #
 # Or run directly without compose:
-#   docker run -p 8080:8080 jgill248/piper.vault:latest
+#   docker run -p 8080:8080 pipervault/piper-vault:latest
 
 services:
   delve:
-    image: jgill248/piper.vault:latest
+    image: pipervault/piper-vault:latest
     restart: unless-stopped
     ports:
       - "8080:8080"
