@@ -11,6 +11,7 @@ import {
   Logger,
   Inject,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -46,6 +47,7 @@ export class AuthController {
    * Creates a new user account and returns a JWT token.
    * Always public — no auth required.
    */
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -85,6 +87,7 @@ export class AuthController {
    * Validates credentials and returns a JWT token.
    * Always public — no auth required.
    */
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)

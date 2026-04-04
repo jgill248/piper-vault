@@ -21,6 +21,7 @@ import {
   WebhookIngestUrlSchema,
   detectMimeType,
 } from './dto/webhook-ingest.dto';
+import { validatePublicUrl } from '../common/url-validator';
 
 // Webhook endpoints use API key auth (ApiKeyGuard), not JWT auth.
 // @Public() prevents the global JwtAuthGuard from blocking these routes.
@@ -92,6 +93,9 @@ export class WebhooksController {
     }
 
     const { url, filename: providedFilename, tags } = parsed.data;
+
+    // SSRF protection: block private/reserved IPs and non-http(s) protocols
+    await validatePublicUrl(url);
 
     // Derive filename from URL path if not provided
     let filename = providedFilename;

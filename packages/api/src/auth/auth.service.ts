@@ -98,7 +98,11 @@ export class AuthService {
 
   async validateToken(token: string): Promise<UserRow | null> {
     try {
-      const payload = jwt.verify(token, this.jwtSecret) as { sub?: string };
+      const payload = jwt.verify(token, this.jwtSecret, {
+        algorithms: ['HS256'],
+        issuer: 'delve',
+        audience: 'delve-api',
+      }) as { sub?: string };
       if (!payload.sub) return null;
       return this.getUserById(payload.sub);
     } catch {
@@ -119,7 +123,7 @@ export class AuthService {
     return jwt.sign(
       { sub: user.id, username: user.username, role: user.role },
       this.jwtSecret,
-      { expiresIn: JWT_EXPIRY },
+      { expiresIn: JWT_EXPIRY, algorithm: 'HS256', issuer: 'delve', audience: 'delve-api' },
     );
   }
 

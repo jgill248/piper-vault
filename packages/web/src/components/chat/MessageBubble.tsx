@@ -98,9 +98,12 @@ export function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
                   );
                 },
                 a({ children, href, ...props }) {
-                  return (
+                  // Block javascript: and other dangerous URI schemes (CWE-79)
+                  const safeHref =
+                    href && /^(https?:|mailto:|#)/i.test(href) ? href : undefined;
+                  return safeHref ? (
                     <a
-                      href={href}
+                      href={safeHref}
                       className="text-primary underline underline-offset-2"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -108,6 +111,8 @@ export function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
                     >
                       {children}
                     </a>
+                  ) : (
+                    <span {...props}>{children}</span>
                   );
                 },
                 p({ children, ...props }) {

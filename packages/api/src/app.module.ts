@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './database/database.module';
 import { CoreProvidersModule } from './core/core-providers.module';
 import { CollectionsModule } from './collections/collections.module';
@@ -25,6 +27,9 @@ import { PresetsModule } from './presets/presets.module';
       envFilePath: ['.env', '../../.env'],
     }),
 
+    // Rate limiting — 30 requests per minute global default (CWE-770)
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 30 }]),
+
     // Infrastructure
     DatabaseModule,
 
@@ -48,6 +53,9 @@ import { PresetsModule } from './presets/presets.module';
     WebhooksModule,
     NotesModule,
     PresetsModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}

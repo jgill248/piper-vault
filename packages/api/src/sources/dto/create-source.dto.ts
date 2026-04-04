@@ -9,7 +9,10 @@ import { MAX_FILE_SIZE } from '@delve/shared';
  * to keep the upload path simple. Multipart support will be added in Phase 2.
  */
 export const CreateSourceSchema = z.object({
-  filename: z.string().min(1).max(500),
+  filename: z.string().min(1).max(500).refine(
+    (f) => !f.includes('..') && !f.includes('/') && !f.includes('\\'),
+    'Filename must not contain path separators or traversal sequences',
+  ),
   content: z.string().min(1), // base64-encoded file bytes
   mimeType: z.string().refine(
     (v): v is (typeof SUPPORTED_FILE_TYPES)[number] =>

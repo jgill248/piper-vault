@@ -8,6 +8,7 @@ import { IngestSourceCommand } from './ingest-source.command';
 import { UpdateSourceTagsCommand } from './update-source-tags.command';
 import type { IngestSourceResult } from './ingest-source.handler';
 import type { Result } from '@delve/shared';
+import { sanitizePath } from '../../common/path-validator';
 
 export interface BulkImportResult {
   readonly directoryPath: string;
@@ -24,6 +25,10 @@ export class BulkImportHandler implements ICommandHandler<BulkImportCommand> {
   constructor(@Inject(CommandBus) private readonly commandBus: CommandBus) {}
 
   async execute(command: BulkImportCommand): Promise<BulkImportResult> {
+    // Sanitize path to prevent traversal attacks (CWE-22)
+    const directoryPath = sanitizePath(command.directoryPath);
+    command = { ...command, directoryPath };
+
     // Validate directory exists
     if (!existsSync(command.directoryPath)) {
       throw new BadRequestException({
