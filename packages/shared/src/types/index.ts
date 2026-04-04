@@ -10,3 +10,4 @@ export * from './user.js';
 export * from './source-link.js';
 export * from './note-folder.js';
 export * from './preset.js';
+export * from './license.js';
