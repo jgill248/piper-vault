@@ -185,7 +185,7 @@ interface ConfigEditorProps {
 }
 
 function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
-  const { data: modelsData } = useModels();
+  const { data: modelsData } = useModels(draft.llmProvider);
 
   const modelOptions = (() => {
     const fetched = modelsData?.models ?? [];

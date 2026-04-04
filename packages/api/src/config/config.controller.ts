@@ -1,9 +1,11 @@
-import { Controller, Get, Patch, Body, Param, Inject, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Param, Query, Inject, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import type { AppConfig, LlmProviderName, LlmProviderStatus } from '@delve/shared';
 import { DEFAULT_CONFIG, LLM_PROVIDERS } from '@delve/shared';
 import type { LlmProvider } from '@delve/core';
+import { createLlmProvider } from '@delve/core';
 import { ConfigStore } from './config.store';
+import { SecretsStore } from './secrets.store';
 import { UpdateConfigCommand } from './commands/update-config.command';
 import { UpdateProviderSettingsCommand } from './commands/update-provider-settings.command';
 import { GetProviderSettingsQuery } from './queries/get-provider-settings.query';
@@ -24,6 +26,7 @@ export class ConfigAppController {
   constructor(
     @Inject('LLM_PROVIDER') private readonly llm: LlmProvider,
     @Inject(ConfigStore) private readonly configStore: ConfigStore,
+    @Inject(SecretsStore) private readonly secretsStore: SecretsStore,
     @Inject(CommandBus) private readonly commandBus: CommandBus,
     @Inject(QueryBus) private readonly queryBus: QueryBus,
   ) {}
@@ -57,12 +60,44 @@ export class ConfigAppController {
   }
 
   /**
-   * GET /api/v1/config/models
-   * Proxies the list of available LLM models from the configured provider.
+   * GET /api/v1/config/models?provider=<name>
+   * Proxies the list of available LLM models.
+   *
+   * If `provider` is supplied and is a valid LlmProviderName, a temporary
+   * provider instance is built for that provider using the stored settings
+   * and secrets, so the UI can preview models before saving the selection.
+   * Falls back to the active (saved) provider when omitted.
    */
   @Get('models')
-  async getModels(): Promise<ModelsResponse> {
-    const result = await this.llm.getModels();
+  async getModels(@Query('provider') providerParam?: string): Promise<ModelsResponse> {
+    let llm: LlmProvider = this.llm;
+
+    if (providerParam !== undefined) {
+      if (!(LLM_PROVIDERS as readonly string[]).includes(providerParam)) {
+        throw new BadRequestException({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: `Unknown provider: ${providerParam}. Must be one of: ${LLM_PROVIDERS.join(', ')}`,
+          },
+        });
+      }
+
+      const appConfig = this.configStore.get();
+      const ps = appConfig.providerSettings;
+      llm = createLlmProvider({
+        provider: providerParam as LlmProviderName,
+        askSageToken: this.secretsStore.getSecret('llm.ask-sage.token') ?? '',
+        anthropicApiKey: this.secretsStore.getSecret('llm.anthropic.apiKey') ?? '',
+        openaiApiKey: this.secretsStore.getSecret('llm.openai.apiKey') ?? '',
+        askSageBaseUrl: ps?.['ask-sage']?.baseUrl ?? undefined,
+        anthropicBaseUrl: ps?.['anthropic']?.baseUrl ?? undefined,
+        openaiBaseUrl: ps?.['openai']?.baseUrl ?? undefined,
+        ollamaBaseUrl: ps?.['ollama']?.baseUrl ?? undefined,
+        defaultModel: appConfig.llmModel,
+      });
+    }
+
+    const result = await llm.getModels();
 
     if (!result.ok) {
       this.logger.warn(`Failed to fetch models: ${result.error}`);

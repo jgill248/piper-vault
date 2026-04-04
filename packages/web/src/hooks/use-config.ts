@@ -9,10 +9,10 @@ export function useConfig() {
   });
 }
 
-export function useModels() {
+export function useModels(provider?: string) {
   return useQuery({
-    queryKey: ['models'],
-    queryFn: () => api.getModels(),
+    queryKey: ['models', provider ?? ''],
+    queryFn: () => api.getModels(provider),
   });
 }
 
