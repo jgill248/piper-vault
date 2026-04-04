@@ -38,16 +38,23 @@ export class LicenseStore {
   private readonly logger = new Logger(LicenseStore.name);
   private cached: LicenseInfo;
 
+  private readonly disabled: boolean;
+
   constructor() {
+    const env = process.env['LICENSE_DISABLED'];
+    this.disabled = env === 'true' || env === '1' || env === 'yes';
     this.cached = this.loadAndVerify();
   }
 
   getStatus(): LicenseInfo {
+    if (this.disabled) {
+      return { status: 'valid' };
+    }
     return { ...this.cached };
   }
 
   isValid(): boolean {
-    return this.cached.status === 'valid';
+    return this.disabled || this.cached.status === 'valid';
   }
 
   /**
