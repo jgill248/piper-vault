@@ -36,25 +36,44 @@ export function Features() {
           <h2 className="font-headline text-5xl font-black text-primary uppercase tracking-tighter mb-4">
             Features
           </h2>
-          <div className="w-24 h-1 bg-tertiary" />
+          <p className="text-secondary font-medium tracking-widest uppercase text-sm">
+            Everything you need. Nothing you don't control.
+          </p>
+          <div className="w-24 h-1 bg-tertiary mt-4" />
         </div>
         <div className="grid md:grid-cols-3 gap-12">
           <FeatureCard
-            icon="print"
-            title="Cross-LLM Sync"
-            description="Cross-LLM Instance, Community-driven, Prompt-intelligent RAG search. Synchronize your knowledge across disparate intelligence models."
+            icon="search"
+            title="AI-Powered Search"
+            description="Chat with your documents using any LLM provider — Anthropic, OpenAI, Ollama, or Ask Sage. Semantic search with citation-backed answers grounded in your knowledge."
           />
           <FeatureCard
-            icon="inventory_2"
-            title="Structured Context"
-            description="Everything Community Support, +Entity Extraction, Priority E-mail support. Deep taxonomic organization of your digital legacy."
-            decorativeIcon="inventory_2"
+            icon="hub"
+            title="Knowledge Graph"
+            description="Connect notes with [[wiki-links]], visualize relationships in an interactive force-directed graph, and discover connections you didn't know existed."
+            decorativeIcon="hub"
           />
           <FeatureCard
-            icon="door_sliding"
+            icon="shield_lock"
             iconFill
-            title="Air-Gapped Privacy"
-            description="Vault Local Intelligence decoupled to ensure maximum secure roots and Privacy. Intelligence that never leaves your machine."
+            title="Fully Local"
+            description="Your data never leaves your machine. Embeddings run locally via ONNX. No cloud dependency, no telemetry, no third-party data processing. Audit every line of code."
+          />
+          <FeatureCard
+            icon="description"
+            title="Multi-Format Ingestion"
+            description="PDF, DOCX, CSV, JSON, HTML, Markdown, plain text. Drag and drop files, import directories, or auto-ingest from watched folders."
+          />
+          <FeatureCard
+            icon="edit_note"
+            title="Native Note Editor"
+            description="Write in Markdown with auto-save, YAML frontmatter, wiki-link autocomplete, backlinks, and AI-powered link suggestions — all built in."
+            decorativeIcon="edit_note"
+          />
+          <FeatureCard
+            icon="extension"
+            title="Extensible"
+            description="Plugin system for custom file parsers. Webhook API for external integrations. System prompt presets for per-model tuning. Open source — extend anything."
           />
         </div>
       </div>

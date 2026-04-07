@@ -16,6 +16,9 @@ interface PricingCardProps {
   bgClass: string;
   featured?: boolean;
   badge?: string;
+  ctaText: string;
+  ctaHref: string;
+  ctaEnabled?: boolean;
 }
 
 function PricingCard({
@@ -29,6 +32,9 @@ function PricingCard({
   bgClass,
   featured,
   badge,
+  ctaText,
+  ctaHref,
+  ctaEnabled = true,
 }: PricingCardProps) {
   return (
     <div
@@ -37,7 +43,7 @@ function PricingCard({
       }`}
     >
       {badge && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 text-xs font-bold uppercase tracking-widest rounded-full">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 text-xs font-bold uppercase tracking-widest">
           {badge}
         </div>
       )}
@@ -72,12 +78,23 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <button
-        disabled
-        className="w-full py-4 bg-outline/40 text-on-surface/60 font-bold rounded-sm cursor-not-allowed"
-      >
-        Coming Soon
-      </button>
+      {ctaEnabled ? (
+        <a
+          href={ctaHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full py-4 bg-primary text-on-primary font-bold text-center block hover:bg-primary-container transition-all btn-press"
+        >
+          {ctaText}
+        </a>
+      ) : (
+        <button
+          disabled
+          className="w-full py-4 bg-outline/40 text-on-surface/60 font-bold cursor-not-allowed"
+        >
+          {ctaText}
+        </button>
+      )}
     </div>
   );
 }
@@ -91,60 +108,74 @@ export function Pricing() {
             Pricing
           </h2>
           <p className="text-secondary font-medium tracking-widest uppercase text-sm">
-            Select Your Clearance Level
+            Open Source Core. Paid Cloud & Enterprise.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <PricingCard
-            title="Hobbyist Node"
-            price="$5"
-            priceSuffix="/ Month"
-            priceNote="Billed Annually"
+            title="Self-Hosted"
+            price="Free"
+            priceNote="Open source, forever"
+            priceColor="text-secondary"
             borderColor="border-outline-variant"
             bgClass="bg-surface-container-low"
+            ctaText="Get Started"
+            ctaHref="https://github.com/jgill248/delve"
             features={[
-              { icon: 'check_circle', iconColor: 'text-secondary', text: '1 Docker Instance' },
-              { icon: 'check_circle', iconColor: 'text-secondary', text: 'Community Support' },
-              { icon: 'check_circle', iconColor: 'text-secondary', text: 'Basic RAG Search' },
+              { icon: 'check_circle', iconColor: 'text-secondary', text: 'All features included' },
+              { icon: 'check_circle', iconColor: 'text-secondary', text: 'Unlimited sources & notes' },
+              { icon: 'check_circle', iconColor: 'text-secondary', text: 'All LLM providers' },
+              { icon: 'check_circle', iconColor: 'text-secondary', text: 'Knowledge graph' },
+              { icon: 'check_circle', iconColor: 'text-secondary', text: 'Plugin system' },
+              { icon: 'check_circle', iconColor: 'text-secondary', text: 'Community support' },
             ]}
           />
           <PricingCard
-            title="Sovereign Pro"
+            title="Cloud"
             price="$19"
             priceSuffix="/ Month"
-            priceNote="Billed Annually"
+            priceNote="We host it for you"
             borderColor="border-primary"
             bgClass="bg-surface-container-highest"
             featured
-            badge="Most Sovereign"
+            badge="Most Popular"
+            ctaText="Coming Soon"
+            ctaHref="#"
+            ctaEnabled={false}
             features={[
               {
                 icon: 'verified',
                 iconColor: 'text-primary',
-                text: 'Everything in Hobbyist',
+                text: 'Everything in Self-Hosted',
                 bold: true,
               },
-              { icon: 'check_circle', iconColor: 'text-primary', text: 'Entity Extraction' },
-              {
-                icon: 'check_circle',
-                iconColor: 'text-primary',
-                text: 'Priority Email Support',
-              },
-              { icon: 'check_circle', iconColor: 'text-primary', text: 'Advanced Connectors' },
+              { icon: 'check_circle', iconColor: 'text-primary', text: 'Managed hosting & backups' },
+              { icon: 'check_circle', iconColor: 'text-primary', text: 'Automatic updates' },
+              { icon: 'check_circle', iconColor: 'text-primary', text: 'Priority email support' },
+              { icon: 'check_circle', iconColor: 'text-primary', text: '99.9% uptime SLA' },
             ]}
           />
           <PricingCard
-            title="Bureau Edition"
+            title="Enterprise"
             price="Custom"
             priceColor="text-tertiary"
-            priceNote="Enterprise Solutions"
+            priceNote="For teams & organizations"
             borderColor="border-tertiary"
             bgClass="bg-surface-container-low"
+            ctaText="Coming Soon"
+            ctaHref="#"
+            ctaEnabled={false}
             features={[
-              { icon: 'hub', iconColor: 'text-tertiary', text: 'Unlimited Nodes' },
-              { icon: 'lock_open', iconColor: 'text-tertiary', text: 'SSO Integration' },
-              { icon: 'description', iconColor: 'text-tertiary', text: 'Dedicated SLA' },
-              { icon: 'history_edu', iconColor: 'text-tertiary', text: 'Audit Logging' },
+              {
+                icon: 'verified',
+                iconColor: 'text-tertiary',
+                text: 'Everything in Cloud',
+                bold: true,
+              },
+              { icon: 'lock_open', iconColor: 'text-tertiary', text: 'SSO / OIDC integration' },
+              { icon: 'group', iconColor: 'text-tertiary', text: 'Team workspaces & roles' },
+              { icon: 'history_edu', iconColor: 'text-tertiary', text: 'Audit logging' },
+              { icon: 'description', iconColor: 'text-tertiary', text: 'Dedicated SLA & support' },
             ]}
           />
         </div>
