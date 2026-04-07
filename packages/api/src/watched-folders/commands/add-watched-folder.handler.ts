@@ -6,6 +6,7 @@ import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { watchedFolders } from '../../database/schema';
 import type { WatchedFolderRow } from '../../database/schema';
+import { sanitizePath } from '../../common/path-validator';
 
 @CommandHandler(AddWatchedFolderCommand)
 export class AddWatchedFolderHandler implements ICommandHandler<AddWatchedFolderCommand> {
@@ -14,7 +15,10 @@ export class AddWatchedFolderHandler implements ICommandHandler<AddWatchedFolder
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   async execute(command: AddWatchedFolderCommand): Promise<WatchedFolderRow> {
-    const { collectionId, folderPath, recursive } = command;
+    const { collectionId, recursive } = command;
+
+    // Sanitize path to prevent traversal attacks (CWE-22)
+    const folderPath = sanitizePath(command.folderPath);
 
     // Validate that the folder exists and is a directory
     if (!existsSync(folderPath)) {

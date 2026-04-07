@@ -21,6 +21,7 @@ import {
   WebhookIngestUrlSchema,
   detectMimeType,
 } from './dto/webhook-ingest.dto';
+import { validatePublicUrl } from '../common/url-validator';
 
 // Webhook endpoints use API key auth (ApiKeyGuard), not JWT auth.
 // @Public() prevents the global JwtAuthGuard from blocking these routes.
@@ -93,6 +94,9 @@ export class WebhooksController {
 
     const { url, filename: providedFilename, tags } = parsed.data;
 
+    // SSRF protection: block private/reserved IPs and non-http(s) protocols
+    await validatePublicUrl(url);
+
     // Derive filename from URL path if not provided
     let filename = providedFilename;
     if (!filename) {
@@ -117,6 +121,17 @@ export class WebhooksController {
           error: {
             code: 'FETCH_FAILED',
             message: `Failed to fetch URL: HTTP ${response.status} ${response.statusText}`,
+          },
+        });
+      }
+
+      // Reject responses that exceed 50 MB before buffering into memory
+      const contentLength = response.headers.get('content-length');
+      if (contentLength && parseInt(contentLength, 10) > 50_000_000) {
+        throw new BadRequestException({
+          error: {
+            code: 'CONTENT_TOO_LARGE',
+            message: 'Response exceeds the 50 MB size limit',
           },
         });
       }
