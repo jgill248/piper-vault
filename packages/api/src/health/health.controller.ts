@@ -3,7 +3,6 @@ import { sql } from 'drizzle-orm';
 import type { Embedder } from '@delve/core';
 import type { Database } from '../database/connection';
 import { Public } from '../auth/decorators/public.decorator';
-import { SkipLicense } from '../license/decorators/skip-license.decorator';
 
 interface HealthResponse {
   readonly status: 'ok' | 'degraded';
@@ -12,7 +11,6 @@ interface HealthResponse {
   readonly embedding: 'ok' | 'warn';
 }
 
-@SkipLicense()
 @Public()
 @Controller('health')
 export class HealthController {

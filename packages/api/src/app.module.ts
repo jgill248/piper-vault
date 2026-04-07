@@ -13,7 +13,6 @@ import { WatchedFoldersModule } from './watched-folders/watched-folders.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { AuthModule } from './auth/auth.module';
-import { LicenseModule } from './license/license.module';
 import { NotesModule } from './notes/notes.module';
 import { PresetsModule } from './presets/presets.module';
 
@@ -28,9 +27,6 @@ import { PresetsModule } from './presets/presets.module';
 
     // Infrastructure
     DatabaseModule,
-
-    // License (global — must come before AuthModule so license guard runs first)
-    LicenseModule,
 
     // Auth (global — must come before feature modules so APP_GUARD is in scope)
     AuthModule,
