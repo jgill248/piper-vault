@@ -260,7 +260,10 @@ export const api = {
   updateConfig: (body: Partial<AppConfig>): Promise<AppConfig> =>
     request<AppConfig>('/config', { method: 'PATCH', body: JSON.stringify(body) }),
 
-  getModels: (): Promise<ModelsResponse> => request<ModelsResponse>('/config/models'),
+  getModels: (provider?: string): Promise<ModelsResponse> => {
+    const url = provider ? `/config/models?provider=${encodeURIComponent(provider)}` : '/config/models';
+    return request<ModelsResponse>(url);
+  },
 
   getProviderSettings: (): Promise<LlmProviderStatus[]> =>
     request<LlmProviderStatus[]>('/config/providers'),
