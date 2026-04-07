@@ -38,6 +38,11 @@ vi.mock('../../hooks/use-config', () => {
       mutate: (...args: unknown[]) => ((globalThis as Record<string, unknown>).__mockMutate as ((...a: unknown[]) => unknown) | undefined)?.(...args),
       isPending: false,
     }),
+    useModels: () => ({
+      data: { models: ['gpt-4', 'gpt-4-turbo', 'claude-3-opus'] },
+      isLoading: false,
+      isError: false,
+    }),
   };
 });
 
