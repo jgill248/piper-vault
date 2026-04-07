@@ -125,6 +125,17 @@ export class WebhooksController {
         });
       }
 
+      // Reject responses that exceed 50 MB before buffering into memory
+      const contentLength = response.headers.get('content-length');
+      if (contentLength && parseInt(contentLength, 10) > 50_000_000) {
+        throw new BadRequestException({
+          error: {
+            code: 'CONTENT_TOO_LARGE',
+            message: 'Response exceeds the 50 MB size limit',
+          },
+        });
+      }
+
       content = await response.text();
     } catch (err) {
       if (err instanceof BadRequestException) throw err;

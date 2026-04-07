@@ -88,6 +88,10 @@ function isPrivateIP(ip: string): boolean {
     if (a === 169 && b === 254) return true;
     // 0.0.0.0/8 — unspecified
     if (a === 0) return true;
+    // 224.0.0.0/4 — multicast
+    if (a !== undefined && a >= 224 && a <= 239) return true;
+    // 240.0.0.0/4 — reserved
+    if (a !== undefined && a >= 240) return true;
 
     return false;
   }
@@ -103,6 +107,12 @@ function isPrivateIP(ip: string): boolean {
     if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
     // fe80::/10 — link-local
     if (normalized.startsWith('fe80')) return true;
+    // ::ffff:0:0/96 — IPv6-mapped IPv4 (check the embedded IPv4 address)
+    if (normalized.startsWith('::ffff:')) {
+      const embedded = normalized.slice(7);
+      if (isIP(embedded) === 4) return isPrivateIP(embedded);
+      return true; // malformed mapped address — block
+    }
 
     return false;
   }
