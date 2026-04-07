@@ -18,6 +18,11 @@ export function walkDirectory(dirPath: string): WalkedFile[] {
   function walk(currentPath: string): void {
     const entries = readdirSync(currentPath, { withFileTypes: true });
     for (const entry of entries) {
+      // Skip symlinks to prevent symlink traversal attacks (CWE-59)
+      if (entry.isSymbolicLink()) {
+        continue;
+      }
+
       const fullPath = join(currentPath, entry.name);
       if (entry.isDirectory()) {
         // Skip hidden directories and node_modules

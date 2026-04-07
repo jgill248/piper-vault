@@ -51,6 +51,7 @@ export class FileWatcher {
     this.watcher = chokidar.watch(this.dirPath, {
       persistent: true,
       ignoreInitial: false,
+      followSymlinks: false,
       depth: recursive ? undefined : 0,
       ignored,
       awaitWriteFinish: {

@@ -43,8 +43,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
-      # SSL bypass for embedding model download
-      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      # NOTE: Do NOT set NODE_TLS_REJECT_UNAUTHORIZED=0 here — it disables TLS
+      # verification for ALL outbound connections (MITM risk). The embedding model
+      # is pre-baked into the Docker image so no runtime download is needed.
     volumes:
       - plugins:/app/plugins
       - watched:/app/watched

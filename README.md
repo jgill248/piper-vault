@@ -1,12 +1,17 @@
-# Delve
+# P.I.P.E.R. Vault
 
-**Personal Knowledge Vault with AI-Powered Search**
+**Open-Source Personal Knowledge Vault with AI-Powered Search**
 
-Delve is a local-first knowledge vault where you build, connect, and search your personal knowledge — entirely on your own machine. Ingest notes, documents, transcripts, and other content, then query it through natural language powered by your choice of LLM. The system indexes content locally using PostgreSQL with pgvector, performs semantic similarity search, and generates grounded, citation-backed answers.
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-Hub-2496ED.svg)](https://hub.docker.com/r/pipervault/piper-vault)
+
+P.I.P.E.R. Vault is an open-source, local-first knowledge vault where you build, connect, and search your personal knowledge — entirely on your own machine. Ingest notes, documents, transcripts, and other content, then query it through natural language powered by your choice of LLM. The system indexes content locally using PostgreSQL with pgvector, performs semantic similarity search, and generates grounded, citation-backed answers.
 
 The vault is the product. Chat is a feature for querying the vault.
 
 Everything runs in a **single Docker container** — PostgreSQL, API server, React UI, and embedding model bundled together. One command to start, zero external dependencies beyond your LLM API key (which you can configure through the UI after first boot).
+
+**Free and open source forever.** Self-host with full functionality. [Cloud hosting and enterprise features](#pricing) available for teams and organizations that need managed infrastructure, SSO, and priority support.
 
 ---
 
@@ -26,6 +31,8 @@ Everything runs in a **single Docker container** — PostgreSQL, API server, Rea
 - [Testing](#testing)
 - [Design System](#design-system)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -646,13 +653,37 @@ Design mockups are in `spec/stitch/`. Full design system references:
 | **4. Scale & Ecosystem** | Done | Watched folders, webhooks, multi-collection, auth, plugins |
 | **5. Native Knowledge Management** | Done | Wiki-link graph, frontmatter, markdown editor, note folders, tags, graph-aware retrieval |
 | **A. The Vault Experience** | Active | Knowledge graph viz, Obsidian/Notion import, vault-first onboarding, tag browser, smart link suggestions |
-| **B. Distribution** | Planned | License-key gated distribution, CI/CD pipeline, landing page, payment |
-| **C. Polish** | Backlog | Follow-up questions, MCP server mode |
+| **B. Distribution** | Planned | CI/CD pipeline, cloud hosting, payment integration |
+| **C. Polish** | Backlog | Follow-up questions, MCP server mode, OIDC/SSO |
 
 Full specification: [spec/spec.md](spec/spec.md)
 
 ---
 
+## Contributing
+
+P.I.P.E.R. Vault is open source and we welcome contributions. Whether it's bug fixes, new file parsers, LLM adapters, or UI improvements — all contributions are appreciated.
+
+```bash
+# Fork and clone
+git clone https://github.com/YOUR_USERNAME/delve.git
+cd delve
+
+# Install and run
+pnpm install --frozen-lockfile
+docker compose up -d    # Start PostgreSQL
+cp .env.example .env    # Configure
+pnpm run dev            # Start dev servers
+```
+
+Please open an issue before starting major work so we can discuss the approach.
+
+---
+
 ## License
 
-This project is private. All rights reserved.
+P.I.P.E.R. Vault is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE).
+
+This means you can freely use, modify, and self-host P.I.P.E.R. Vault. If you modify the software and offer it as a network service, you must make your modifications available under the same license.
+
+Commercial cloud hosting and enterprise features (SSO, team workspaces, audit logging, priority support) are available under a separate commercial license. See [pipervault.com](https://pipervault.com) for details.

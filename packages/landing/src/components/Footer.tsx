@@ -6,19 +6,32 @@ export function Footer() {
           PIPER VAULT
         </div>
         <div className="flex flex-wrap justify-center gap-8 font-body text-sm uppercase tracking-widest">
+          <a
+            className="text-surface-container/80 hover:text-white transition-opacity"
+            href="https://github.com/jgill248/delve"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+          <a
+            className="text-surface-container/80 hover:text-white transition-opacity"
+            href="https://hub.docker.com/r/pipervault/piper-vault"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Docker Hub
+          </a>
           <a className="text-surface-container/80 hover:text-white transition-opacity" href="#">
-            Terms
+            Documentation
           </a>
           <a className="text-surface-container/80 hover:text-white transition-opacity" href="#">
             Privacy
           </a>
-          <a className="text-surface underline hover:text-white transition-opacity" href="#">
-            Docker Hub Auth Guide
-          </a>
         </div>
       </div>
       <div className="text-center font-body text-xs uppercase tracking-[0.2em] opacity-60">
-        &copy; 1894-2026 P.I.P.E.R. Vault Digital Printing House. All Rights Reserved.
+        &copy; 2026 P.I.P.E.R. Vault &middot; Licensed under AGPL-3.0
       </div>
     </footer>
   );

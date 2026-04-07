@@ -17,20 +17,28 @@ export function Navbar() {
         >
           Pricing
         </a>
+        <a
+          className="text-secondary hover:text-primary-container transition-colors"
+          href="https://github.com/jgill248/delve"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub
+        </a>
         <a className="text-secondary hover:text-primary-container transition-colors" href="#">
           Documentation
         </a>
-        <a className="text-secondary hover:text-primary-container transition-colors" href="#">
-          Status
-        </a>
       </div>
       <div className="flex items-center space-x-4">
-        <button className="text-secondary font-medium hover:text-primary transition-colors">
-          Log In
-        </button>
-        <button className="bg-primary text-on-primary px-6 py-2 rounded shadow-sm hover:bg-primary-container transition-all btn-press font-semibold">
-          Register
-        </button>
+        <a
+          href="https://github.com/jgill248/delve"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-primary text-on-primary px-6 py-2 rounded shadow-sm hover:bg-primary-container transition-all btn-press font-semibold flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-sm">star</span>
+          Star on GitHub
+        </a>
       </div>
     </nav>
   );
