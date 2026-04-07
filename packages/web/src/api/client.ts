@@ -28,9 +28,6 @@ import type {
   SystemPromptPreset,
   CreatePresetInput,
   UpdatePresetInput,
-  LicenseInfo,
-  ActivateLicenseInput,
-  ActivateLicenseResponse,
 } from '@delve/shared';
 
 export type { AppConfig };
@@ -60,13 +57,6 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   _onUnauthorized = handler;
 }
 
-/** Called when a 402 is received so the UI can show the license activation screen. */
-let _onLicenseRequired: (() => void) | null = null;
-
-export function setLicenseRequiredHandler(handler: (() => void) | null): void {
-  _onLicenseRequired = handler;
-}
-
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const authHeaders: Record<string, string> =
     _authToken ? { Authorization: `Bearer ${_authToken}` } : {};
@@ -84,17 +74,6 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     },
     ...options,
   });
-
-  if (response.status === 402) {
-    _onLicenseRequired?.();
-    const error = await response
-      .json()
-      .catch(() => ({ error: { message: response.statusText } }));
-    throw new Error(
-      (error as { error?: { message?: string } }).error?.message ??
-        'License required',
-    );
-  }
 
   if (response.status === 401) {
     _onUnauthorized?.();
@@ -506,15 +485,4 @@ export const api = {
 
   deletePreset: (id: string): Promise<void> =>
     request<void>(`/presets/${id}`, { method: 'DELETE' }),
-
-  // --- License ---
-
-  getLicenseStatus: (): Promise<LicenseInfo> =>
-    request<LicenseInfo>('/license/status'),
-
-  activateLicense: (input: ActivateLicenseInput): Promise<ActivateLicenseResponse> =>
-    request<ActivateLicenseResponse>('/license/activate', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    }),
 };
