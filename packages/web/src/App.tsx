@@ -8,16 +8,14 @@ import { NotesPanel } from './components/notes/NotesPanel';
 import { GraphPanel } from './components/graph/GraphPanel';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
-import { LicenseActivationPage } from './components/license/LicenseActivationPage';
 import { useTheme } from './hooks/use-theme';
 import { useAuthConfig } from './hooks/use-auth-config';
-import { useLicenseStatus } from './hooks/use-license-status';
 import { useVaultStatus } from './hooks/use-vault-status';
 import { CollectionProvider } from './context/CollectionContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { NavigationProvider } from './context/NavigationContext';
-import { setAuthToken, setUnauthorizedHandler, setLicenseRequiredHandler } from './api/client';
+import { setAuthToken, setUnauthorizedHandler } from './api/client';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,7 +62,6 @@ function AppShell() {
   const [view, setView] = useState<View>('chat');
   const [authView, setAuthView] = useState<AuthView>('login');
   const vaultRedirected = useRef(false);
-  const { license, isLoading: licenseLoading, refetch: refetchLicense } = useLicenseStatus();
   const { authEnabled, isLoading: authConfigLoading } = useAuthConfig();
   const { isAuthenticated, isLoading: authStateLoading, token, logout } = useAuth();
 
@@ -85,37 +82,6 @@ function AppShell() {
       setUnauthorizedHandler(null);
     };
   }, [logout]);
-
-  // Register a handler so the API client can trigger the license gate on 402
-  useEffect(() => {
-    setLicenseRequiredHandler(() => {
-      refetchLicense();
-    });
-    return () => {
-      setLicenseRequiredHandler(null);
-    };
-  }, [refetchLicense]);
-
-  // While we're checking license status, render nothing (avoids flash)
-  if (licenseLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest animate-pulse">
-          Initializing...
-        </span>
-      </div>
-    );
-  }
-
-  // If no valid license, show activation page
-  if (license?.status !== 'valid') {
-    return (
-      <LicenseActivationPage
-        status={license?.status ?? 'missing'}
-        onActivated={refetchLicense}
-      />
-    );
-  }
 
   // While we're checking config or auth state, render nothing (avoids flash)
   if (authConfigLoading || authStateLoading) {
