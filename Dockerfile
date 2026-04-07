@@ -5,7 +5,7 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-RUN npm i -g pnpm@9
+RUN npm i -g pnpm@10
 
 # Copy workspace manifests and config files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json tsconfig.migrate.json .npmrc ./
@@ -36,7 +36,7 @@ FROM node:20-slim AS api
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-RUN npm i -g pnpm@9
+RUN npm i -g pnpm@10
 
 # Copy workspace manifests for production install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -106,7 +106,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-RUN npm i -g pnpm@9
+RUN npm i -g pnpm@10
 
 # Copy workspace manifests for production install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./

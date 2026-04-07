@@ -27,6 +27,12 @@ export function NotesPanel() {
     }
   }, [pendingNoteId, clearPendingNote]);
 
+  // Clear selected note when user explicitly switches folders
+  const handleSelectPath = useCallback((path: string | undefined) => {
+    setSelectedPath(path);
+    setSelectedNoteId(undefined);
+  }, []);
+
   const { data: notesData, isLoading: notesLoading } = useNotes({
     collectionId: activeCollectionId,
     parentPath: selectedPath ?? '',
@@ -163,7 +169,7 @@ export function NotesPanel() {
           <FolderTree
             folders={folders ?? []}
             selectedPath={selectedPath}
-            onSelectPath={setSelectedPath}
+            onSelectPath={handleSelectPath}
             onCreateFolder={handleCreateFolder}
           />
         </div>
