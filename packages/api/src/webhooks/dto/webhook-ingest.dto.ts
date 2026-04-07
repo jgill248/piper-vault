@@ -12,8 +12,11 @@ export function detectMimeType(filename: string): string {
 }
 
 export const WebhookIngestSchema = z.object({
-  content: z.string().min(1),
-  filename: z.string().min(1).max(500),
+  content: z.string().min(1).max(50_000_000),
+  filename: z.string().min(1).max(500).refine(
+    (f) => !f.includes('..') && !f.includes('/') && !f.includes('\\'),
+    'Filename must not contain path separators or traversal sequences',
+  ),
   fileType: z.string().optional(),
   tags: z.array(z.string().min(1).max(50)).max(100).optional(),
   metadata: z.record(z.unknown()).optional(),
@@ -23,7 +26,10 @@ export type WebhookIngestDto = z.infer<typeof WebhookIngestSchema>;
 
 export const WebhookIngestUrlSchema = z.object({
   url: z.string().url(),
-  filename: z.string().min(1).max(500).optional(),
+  filename: z.string().min(1).max(500).refine(
+    (f) => !f.includes('..') && !f.includes('/') && !f.includes('\\'),
+    'Filename must not contain path separators or traversal sequences',
+  ).optional(),
   tags: z.array(z.string().min(1).max(50)).max(100).optional(),
 });
 
