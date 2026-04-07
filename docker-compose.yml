@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: delve
       POSTGRES_DB: delve
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_LISTEN_PORT: 5050
     ports:
-      - "5050:5050"
+      - "127.0.0.1:5050:5050"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
