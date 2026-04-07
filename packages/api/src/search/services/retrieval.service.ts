@@ -172,6 +172,10 @@ export class RetrievalService {
     embedding: readonly number[],
     options: RetrievalOptions,
   ): Promise<ChunkSearchResult[]> {
+    // Validate embedding values are finite numbers (defense-in-depth, CWE-89)
+    if (!embedding.every((v) => Number.isFinite(v))) {
+      throw new Error('Embedding contains non-finite values');
+    }
     const vectorLiteral = `[${[...embedding].join(',')}]`;
 
     // Build filter clauses
