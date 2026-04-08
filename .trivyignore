@@ -1,6 +1,68 @@
-# Trivy CVE suppressions — no fix available in Debian bookworm repos
+# Trivy CVE suppressions for Debian bookworm base image packages.
+# These are known low-severity issues with no fix available in the
+# Debian 12 repos (disputed, won't-fix, or theoretical).
 # Reviewed: 2026-04-08
 
-# tar 1.34+dfsg-1.2+deb12u1 — base Debian package, no patched version available
-CVE-2026-5704
-CVE-2025-45582
+# ── shadow 1:4.13+dfsg1-1+deb12u2 ───────────────────────────────
+# Removed from api stage; kept in standalone (su needed by entrypoint).
+# CVE is about /etc/login.defs reading sensitive info — not exploitable
+# in a container where only the entrypoint runs su.
+CVE-2007-5686
+
+# ── nginx 1.22.1-9+deb12u4 (standalone only) ────────────────────
+# Log escape-sequence injection (2009). Requires attacker-controlled
+# log content rendered in a vulnerable terminal emulator.
+CVE-2009-4487
+
+# ── openssl 3.0.x / libssl3 ─────────────────────────────────────
+# Theoretical cache-timing attack on DES (2010). DES is disabled
+# in modern TLS configurations; Node.js statically links OpenSSL.
+CVE-2010-0928
+
+# ── glibc 2.36-9+deb12u13 ───────────────────────────────────────
+# All glibc CVEs below are disputed or theoretical with no Debian fix.
+CVE-2010-4756
+CVE-2018-20796
+CVE-2019-1010022
+CVE-2019-1010023
+CVE-2019-1010024
+CVE-2019-1010025
+CVE-2019-9192
+
+# ── iptables 1.8.9-2 (standalone via postgres deps) ─────────────
+# iptables -m limit race condition (2012). Not exploitable — iptables
+# rules are not modified at runtime inside the container.
+CVE-2012-2663
+
+# ── systemd / libsystemd0 252 ───────────────────────────────────
+# TOCTOU in journald (2013). systemd is not PID 1 in this container;
+# only libsystemd0 is present as a transitive dependency.
+CVE-2013-4392
+
+# ── openldap / libldap 2.5.13+dfsg-5 (standalone via postgres) ──
+# All three are low-severity issues in libldap used only as a
+# transitive dependency. No LDAP connections are made at runtime.
+CVE-2015-3276
+CVE-2017-14159
+CVE-2017-17740
+
+# ── libxslt 1.1.35-1+deb12u3 ────────────────────────────────────
+# Weak random number generation in XSLT keys (2015). libxslt is not
+# used for cryptographic operations in this application.
+CVE-2015-9019
+
+# ── coreutils 9.1-1 ─────────────────────────────────────────────
+# chown follows symlinks in recursive mode (2017). Not exploitable —
+# chown -R is only called during container init on trusted paths.
+CVE-2017-18018
+
+# ── krb5 / libkrb5 1.20.1-2+deb12u4 (standalone via postgres) ──
+# Integer overflow in kadm5_modify_policy (2018). kadmind is not
+# running; libkrb5 is a transitive dependency only.
+CVE-2018-5709
+
+# ── libgcrypt20 1.10.1-3 ────────────────────────────────────────
+# Theoretical Bleichenbacher-style attack on ElGamal (2018).
+# libgcrypt is a transitive dep of libsystemd0; no ElGamal operations
+# are performed by this application.
+CVE-2018-6829

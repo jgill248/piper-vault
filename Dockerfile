@@ -63,6 +63,14 @@ ENV HF_HOME=/app/.cache/huggingface
 COPY scripts/download-model.mjs ./packages/api/download-model.mjs
 RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
 
+# Harden: remove OS packages not needed at Node.js runtime to reduce CVE surface.
+# Fixes: tar (CVE-2026-5704, CVE-2025-45582, CVE-2005-2541),
+#        perl (CVE-2011-4116), shadow/login (CVE-2007-5686),
+#        apt (CVE-2011-3374), gnutls28 (CVE-2011-3389)
+RUN dpkg --remove --force-remove-essential --force-depends \
+      tar perl-base login passwd apt libapt-pkg6.0 libgnutls30 || true; \
+    rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
+
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
@@ -153,6 +161,14 @@ COPY nginx.standalone.conf /etc/nginx/conf.d/default.conf
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY scripts/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
+
+# Harden: remove OS packages not needed at runtime to reduce CVE surface.
+# Keeps login/passwd (needed by su in entrypoint).
+# Fixes: tar (CVE-2026-5704, CVE-2025-45582, CVE-2005-2541),
+#        perl (CVE-2011-4116), apt (CVE-2011-3374), gnutls28 (CVE-2011-3389)
+RUN dpkg --remove --force-remove-essential --force-depends \
+      tar perl-base apt libapt-pkg6.0 libgnutls30 || true; \
+    rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
 
 EXPOSE 8080
 
