@@ -21,7 +21,16 @@ const ConfigUpdatesSchema = z
     similarityThreshold: z.number().min(0).max(1).optional(),
     maxContextTokens: z.number().int().min(500).max(32000).optional(),
     maxConversationTurns: z.number().int().min(1).max(50).optional(),
+    hybridSearchEnabled: z.boolean().optional(),
+    hybridSearchWeight: z.number().min(0).max(1).optional(),
+    rerankEnabled: z.boolean().optional(),
+    rerankStrategy: z.enum(['none', 'llm']).optional(),
+    rerankTopN: z.number().int().min(1).max(50).optional(),
+    followUpQuestionsEnabled: z.boolean().optional(),
+    pluginsDir: z.string().optional(),
     authEnabled: z.boolean().optional(),
+    graphBoostEnabled: z.boolean().optional(),
+    graphBoostFactor: z.number().min(0).max(1).optional(),
     providerSettings: z
       .record(
         z.enum(['ask-sage', 'anthropic', 'openai', 'ollama']),
