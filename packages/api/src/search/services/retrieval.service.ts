@@ -54,6 +54,11 @@ interface ChunkSearchRow {
   score: number;
 }
 
+/** Format a JS array of strings as a PostgreSQL array literal: {a,b,c} */
+function pgArray(arr: readonly string[]): string {
+  return `{${arr.join(',')}}`;
+}
+
 @Injectable()
 export class RetrievalService {
   private readonly logger = new Logger(RetrievalService.name);
@@ -147,7 +152,7 @@ export class RetrievalService {
         : sql``;
     const tagFilter =
       options.tags !== undefined && options.tags.length > 0
-        ? sql`AND s.tags && ${options.tags as string[]}::text[]`
+        ? sql`AND s.tags && ${pgArray(options.tags)}::text[]`
         : sql``;
 
     const rawRows = await this.db.execute(
@@ -181,15 +186,15 @@ export class RetrievalService {
     // Build filter clauses
     const sourceFilter =
       options.sourceIds !== undefined && options.sourceIds.length > 0
-        ? sql`AND c.source_id = ANY(${options.sourceIds as string[]}::uuid[])`
+        ? sql`AND c.source_id = ANY(${pgArray(options.sourceIds)}::uuid[])`
         : sql``;
     const fileTypeFilter =
       options.fileTypes !== undefined && options.fileTypes.length > 0
-        ? sql`AND s.file_type = ANY(${options.fileTypes as string[]}::text[])`
+        ? sql`AND s.file_type = ANY(${pgArray(options.fileTypes)}::text[])`
         : sql``;
     const tagFilter =
       options.tags !== undefined && options.tags.length > 0
-        ? sql`AND s.tags && ${options.tags as string[]}::text[]`
+        ? sql`AND s.tags && ${pgArray(options.tags)}::text[]`
         : sql``;
     const dateFromFilter =
       options.dateFrom !== undefined
@@ -235,15 +240,15 @@ export class RetrievalService {
 
     const sourceFilter =
       options.sourceIds !== undefined && options.sourceIds.length > 0
-        ? sql`AND c.source_id = ANY(${options.sourceIds as string[]}::uuid[])`
+        ? sql`AND c.source_id = ANY(${pgArray(options.sourceIds)}::uuid[])`
         : sql``;
     const fileTypeFilter =
       options.fileTypes !== undefined && options.fileTypes.length > 0
-        ? sql`AND s.file_type = ANY(${options.fileTypes as string[]}::text[])`
+        ? sql`AND s.file_type = ANY(${pgArray(options.fileTypes)}::text[])`
         : sql``;
     const tagFilter =
       options.tags !== undefined && options.tags.length > 0
-        ? sql`AND s.tags && ${options.tags as string[]}::text[]`
+        ? sql`AND s.tags && ${pgArray(options.tags)}::text[]`
         : sql``;
     const dateFromFilter =
       options.dateFrom !== undefined
@@ -296,12 +301,12 @@ export class RetrievalService {
       sql`
         SELECT DISTINCT COALESCE(sl.target_source_id, NULL) AS linked_id
         FROM source_links sl
-        WHERE sl.source_id = ANY(${matchedSourceIds}::uuid[])
+        WHERE sl.source_id = ANY(${pgArray(matchedSourceIds)}::uuid[])
           AND sl.target_source_id IS NOT NULL
         UNION
         SELECT DISTINCT sl.source_id AS linked_id
         FROM source_links sl
-        WHERE sl.target_source_id = ANY(${matchedSourceIds}::uuid[])
+        WHERE sl.target_source_id = ANY(${pgArray(matchedSourceIds)}::uuid[])
       `,
     );
 
@@ -334,7 +339,7 @@ export class RetrievalService {
         FROM chunks c
         JOIN sources s ON c.source_id = s.id
         WHERE s.status = 'ready'
-          AND c.source_id = ANY(${linkedSourceIds}::uuid[])
+          AND c.source_id = ANY(${pgArray(linkedSourceIds)}::uuid[])
           ${collectionFilter}
         ORDER BY c.chunk_index
         LIMIT 10
