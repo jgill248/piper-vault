@@ -5,7 +5,7 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-RUN npm i -g pnpm@9
+RUN npm i -g pnpm@10
 
 # Copy workspace manifests and config files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json tsconfig.base.json tsconfig.migrate.json .npmrc ./
@@ -36,7 +36,8 @@ FROM node:20-slim AS api
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-RUN npm i -g pnpm@9
+RUN npm i -g pnpm@10 \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy workspace manifests for production install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -44,8 +45,9 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install production dependencies only, then remove pnpm (not needed at runtime)
+RUN pnpm install --frozen-lockfile --prod \
+ && rm -rf /usr/local/lib/node_modules/pnpm /usr/local/bin/pnpm /usr/local/lib/node_modules/corepack /usr/local/bin/corepack
 
 # Copy compiled output from builder
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
@@ -106,7 +108,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-RUN npm i -g pnpm@9
+RUN npm i -g pnpm@10 \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy workspace manifests for production install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -114,8 +117,9 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install production dependencies only, then remove pnpm (not needed at runtime)
+RUN pnpm install --frozen-lockfile --prod \
+ && rm -rf /usr/local/lib/node_modules/pnpm /usr/local/bin/pnpm /usr/local/lib/node_modules/corepack /usr/local/bin/corepack
 
 # Copy compiled output from builder
 COPY --from=builder /app/packages/api/dist ./packages/api/dist

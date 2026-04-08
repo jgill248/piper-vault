@@ -115,10 +115,21 @@ export class SourcesController {
     const parsedPage = page !== undefined ? parseInt(page, 10) : 1;
     const parsedPageSize = pageSize !== undefined ? parseInt(pageSize, 10) : 20;
 
+    if (isNaN(parsedPage) || parsedPage < 1) {
+      throw new BadRequestException({
+        error: { code: 'VALIDATION_ERROR', message: 'page must be a positive integer' },
+      });
+    }
+    if (isNaN(parsedPageSize) || parsedPageSize < 1) {
+      throw new BadRequestException({
+        error: { code: 'VALIDATION_ERROR', message: 'pageSize must be a positive integer' },
+      });
+    }
+
     return this.queryBus.execute(
       new ListSourcesQuery(
-        isNaN(parsedPage) ? 1 : parsedPage,
-        isNaN(parsedPageSize) ? 20 : Math.min(parsedPageSize, 100),
+        parsedPage,
+        Math.min(parsedPageSize, 100),
         collectionId,
       ),
     );

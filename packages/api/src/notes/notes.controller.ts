@@ -12,6 +12,7 @@ import {
   Inject,
   BadRequestException,
   Logger,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import type { PaginatedResponse, Source } from '@delve/shared';
@@ -90,10 +91,21 @@ export class NotesController {
     const parsedPage = page !== undefined ? parseInt(page, 10) : 1;
     const parsedPageSize = pageSize !== undefined ? parseInt(pageSize, 10) : 20;
 
+    if (isNaN(parsedPage) || parsedPage < 1) {
+      throw new BadRequestException({
+        error: { code: 'VALIDATION_ERROR', message: 'page must be a positive integer' },
+      });
+    }
+    if (isNaN(parsedPageSize) || parsedPageSize < 1) {
+      throw new BadRequestException({
+        error: { code: 'VALIDATION_ERROR', message: 'pageSize must be a positive integer' },
+      });
+    }
+
     return this.queryBus.execute(
       new ListNotesQuery(
-        isNaN(parsedPage) ? 1 : parsedPage,
-        isNaN(parsedPageSize) ? 20 : Math.min(parsedPageSize, 100),
+        parsedPage,
+        Math.min(parsedPageSize, 100),
         collectionId,
         parentPath,
         search,
@@ -140,7 +152,7 @@ export class NotesController {
 
   @Patch('folders/:id')
   async renameFolder(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ): Promise<{ ok: boolean }> {
     const parsed = RenameFolderSchema.safeParse(body);
@@ -161,7 +173,7 @@ export class NotesController {
   @Delete('folders/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteFolder(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query('deleteContents') deleteContents?: string,
   ): Promise<void> {
     await this.commandBus.execute(
@@ -179,18 +191,18 @@ export class NotesController {
   // --- Note by ID endpoints (param routes AFTER static routes) ---
 
   @Get(':id')
-  async get(@Param('id') id: string): Promise<Source & { linkCount: number; backlinkCount: number }> {
+  async get(@Param('id', ParseUUIDPipe) id: string): Promise<Source & { linkCount: number; backlinkCount: number }> {
     return this.queryBus.execute(new GetNoteQuery(id));
   }
 
   @Get(':id/backlinks')
-  async getBacklinks(@Param('id') id: string): Promise<readonly BacklinkEntry[]> {
+  async getBacklinks(@Param('id', ParseUUIDPipe) id: string): Promise<readonly BacklinkEntry[]> {
     return this.queryBus.execute(new GetBacklinksQuery(id));
   }
 
   @Get(':id/suggestions')
   async getSuggestions(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query('limit') limit?: string,
   ): Promise<readonly SuggestionEntry[]> {
     const parsedLimit = limit ? parseInt(limit, 10) : 10;
@@ -200,7 +212,7 @@ export class NotesController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: unknown): Promise<{ ok: boolean }> {
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() body: unknown): Promise<{ ok: boolean }> {
     const parsed = UpdateNoteSchema.safeParse(body);
     if (!parsed.success) {
       throw new BadRequestException({
@@ -228,7 +240,7 @@ export class NotesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.commandBus.execute(new DeleteNoteCommand(id));
   }
 }
