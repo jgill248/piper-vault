@@ -1,0 +1,6 @@
+# Trivy CVE suppressions — no fix available in Debian bookworm repos
+# Reviewed: 2026-04-08
+
+# tar 1.34+dfsg-1.2+deb12u1 — base Debian package, no patched version available
+CVE-2026-5704
+CVE-2025-45582

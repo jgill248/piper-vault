@@ -28,7 +28,7 @@ chown -R postgres:postgres "$PGDATA"
 # Remove stale postmaster.pid from a previous crashed container
 rm -f "$PGDATA/postmaster.pid"
 
-# ── 2. Start PostgreSQL temporarily ──────────────────────────────
+# ── 2. Start PostgreSQL ──────────────────────────────────────────
 echo "[entrypoint] Starting PostgreSQL..."
 su - postgres -c "$PG_BIN/pg_ctl -D '$PGDATA' -l /tmp/pg_startup.log start -w -t 30"
 
@@ -45,20 +45,36 @@ su - postgres -c "$PG_BIN/psql -d ${DB_NAME} -c \"GRANT ALL ON SCHEMA public TO 
 echo "[entrypoint] Running database migrations..."
 DATABASE_URL="$DATABASE_URL" node /app/packages/api/migrate.cjs
 
-# ── 5. Stop temporary PostgreSQL (supervisord will manage it) ────
-echo "[entrypoint] Stopping temporary PostgreSQL..."
-su - postgres -c "$PG_BIN/pg_ctl -D '$PGDATA' stop -m fast -w"
+# ── 5. Export environment for API ────────────────────────────────
+export NODE_ENV="production"
+export PORT="3001"
+export HF_HOME="/app/.cache/huggingface"
+[ -n "${OLLAMA_BASE_URL:-}" ] && export OLLAMA_BASE_URL
+[ -n "${NODE_TLS_REJECT_UNAUTHORIZED:-}" ] && export NODE_TLS_REJECT_UNAUTHORIZED
 
-# ── 6. Pass through optional environment variables to supervisord ──
-# Only advanced overrides — all user-facing config is managed via the UI.
-EXTRA_ENV=""
-[ -n "${OLLAMA_BASE_URL:-}" ] && EXTRA_ENV="${EXTRA_ENV},OLLAMA_BASE_URL=\"${OLLAMA_BASE_URL}\""
-[ -n "${NODE_TLS_REJECT_UNAUTHORIZED:-}" ] && EXTRA_ENV="${EXTRA_ENV},NODE_TLS_REJECT_UNAUTHORIZED=\"${NODE_TLS_REJECT_UNAUTHORIZED}\""
+# ── 6. Graceful shutdown handler ────────────────────────────────
+cleanup() {
+    echo "[entrypoint] Shutting down..."
+    kill "$API_PID" 2>/dev/null || true
+    nginx -s quit 2>/dev/null || true
+    su - postgres -c "$PG_BIN/pg_ctl -D '$PGDATA' stop -m fast -w" 2>/dev/null || true
+    exit 0
+}
+trap cleanup SIGTERM SIGINT
 
-if [ -n "$EXTRA_ENV" ]; then
-  sed -i "s|^environment=.*|&${EXTRA_ENV}|" /etc/supervisor/conf.d/delve.conf
-fi
+# ── 7. Start API server ─────────────────────────────────────────
+echo "[entrypoint] Starting API server..."
+node /app/packages/api/dist/main.js &
+API_PID=$!
 
-# ── 7. Launch supervisord ────────────────────────────────────────
-echo "[entrypoint] Starting all services via supervisord..."
-exec supervisord -c /etc/supervisor/conf.d/delve.conf
+# ── 8. Start nginx (foreground-ish, backgrounded for wait) ──────
+echo "[entrypoint] Starting Nginx..."
+nginx -g "daemon off;" &
+NGINX_PID=$!
+
+echo "[entrypoint] All services started."
+
+# Wait for any child to exit — if one dies, bring everything down
+wait -n "$API_PID" "$NGINX_PID" 2>/dev/null || true
+echo "[entrypoint] A service exited unexpectedly, shutting down..."
+cleanup
