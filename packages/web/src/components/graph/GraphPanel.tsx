@@ -11,6 +11,7 @@ interface GraphNode {
   title: string | null;
   filename: string;
   isNote: boolean;
+  isGenerated?: boolean;
   linkCount: number;
   backlinkCount: number;
   x?: number;
@@ -157,9 +158,11 @@ export function GraphPanel() {
         ctx.stroke();
         ctx.setLineDash([]);
       } else {
-        ctx.fillStyle = node.isNote
-          ? getColor('--color-primary', '#570013')
-          : getColor('--color-secondary', '#4f6073');
+        ctx.fillStyle = node.isGenerated
+          ? getColor('--color-tertiary', '#362400')
+          : node.isNote
+            ? getColor('--color-primary', '#570013')
+            : getColor('--color-secondary', '#4f6073');
         ctx.fill();
       }
 

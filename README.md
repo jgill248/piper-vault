@@ -292,9 +292,10 @@ Configure at least one. The active provider is selected in the UI Settings panel
 - **Multi-format ingestion** — PDF, DOCX, CSV, JSON, HTML, YAML, Markdown, plain text
 - **Native note editor** — Write in Markdown with a built-in editor; notes live alongside ingested documents
 - **Wiki-links** — Link notes together with `[[title]]` syntax; backlinks tracked automatically
+- **LLM Wiki (auto-synthesis)** — When you ingest a source, the LLM automatically generates and updates wiki pages — entity summaries, concept pages, and cross-references. Conversations can be promoted to wiki pages too. A periodic lint pass catches contradictions, orphaned pages, and stale claims.
 - **Hierarchical folders** — Organize notes into nested folder structures
 - **YAML frontmatter** — Extract metadata from note headers
-- **Knowledge graph** — Force-directed visualization of connections between notes and sources
+- **Knowledge graph** — Force-directed visualization of connections between notes and sources, with generated wiki pages visually differentiated
 - **Multi-collection support** — Organize all content into named workspace collections
 - **Tags** — Tag sources and notes for topic-based organization
 
@@ -308,6 +309,8 @@ Configure at least one. The active provider is selected in the UI Settings panel
 
 ### Automation & Extensibility
 - **Watched folders** — Auto-ingest files from monitored directories
+- **Wiki generation** — Background LLM-powered synthesis creates wiki pages from ingested sources, with configurable model, folder, and page limits
+- **Wiki lint** — Scheduled health checks detect broken links, contradictions, orphaned pages, and missing cross-references
 - **Webhook ingestion** — API key-based file upload endpoint with rate limiting
 - **Plugin system** — Custom JavaScript plugins for extending extraction and processing
 - **System prompt presets** — Save and switch between per-model prompt configurations
@@ -356,6 +359,7 @@ delve/
 │   │       ├── sources/        Source ingestion & management
 │   │       ├── watched-folders/ Auto-ingestion from directories
 │   │       ├── webhooks/       Webhook ingestion endpoints
+│   │       ├── wiki/           LLM Wiki generation, lint, and scheduling
 │   │       ├── api-keys/       API key management
 │   │       └── app.module.ts   Root NestJS module
 │   ├── web/                    React frontend
@@ -369,6 +373,7 @@ delve/
 │   │       ├── ingestion/      File parsing, chunking, embedding pipeline
 │   │       ├── retrieval/      Vector search, re-ranking, context assembly
 │   │       ├── llm/            LLM adapter interfaces & implementations
+│   │       ├── wiki/           Wiki generation, linting, and indexing
 │   │       └── export/         Markdown export
 │   └── shared/                 Shared types, constants, utilities
 ├── scripts/
@@ -403,7 +408,7 @@ NestJS application using CQRS (Command Query Responsibility Segregation). All op
 HTTP Request → Controller (Zod validation) → CommandBus / QueryBus → Handler (business logic via core) → Response DTO
 ```
 
-**Modules:** sources, chat, search, notes, collections, auth, api-keys, watched-folders, webhooks, plugins, config, health, database.
+**Modules:** sources, chat, search, notes, collections, auth, api-keys, watched-folders, webhooks, wiki, plugins, config, health, database.
 
 ### `packages/core` — Business Logic
 
@@ -653,6 +658,7 @@ Design mockups are in `spec/stitch/`. Full design system references:
 | **4. Scale & Ecosystem** | Done | Watched folders, webhooks, multi-collection, auth, plugins |
 | **5. Native Knowledge Management** | Done | Wiki-link graph, frontmatter, markdown editor, note folders, tags, graph-aware retrieval |
 | **A. The Vault Experience** | Active | Knowledge graph viz, Obsidian/Notion import, vault-first onboarding, tag browser, smart link suggestions |
+| **LLM Wiki** | Active | Auto-synthesis of wiki pages from sources, conversation-to-wiki promotion, scheduled lint, wiki index & log |
 | **B. Distribution** | Planned | CI/CD pipeline, cloud hosting, payment integration |
 | **C. Polish** | Backlog | Follow-up questions, MCP server mode, OIDC/SSO |
 

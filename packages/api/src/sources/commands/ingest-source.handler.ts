@@ -1,4 +1,4 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Inject, Logger, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { eq, and, isNull } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
@@ -7,6 +7,7 @@ import type { IngestionPipeline } from '@delve/core';
 import type { Embedder } from '@delve/core';
 import { extractFrontmatter, parseWikiLinks } from '@delve/core';
 import { IngestSourceCommand } from './ingest-source.command';
+import { SourceIngestedEvent } from '../events/source-ingested.event';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { sources, chunks, sourceLinks } from '../../database/schema';
@@ -24,6 +25,7 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
     @Inject(DATABASE) private readonly db: Database,
     @Inject('INGESTION_PIPELINE') private readonly pipeline: IngestionPipeline,
     @Inject('EMBEDDER') private readonly embedder: Embedder,
+    private readonly eventBus: EventBus,
   ) {}
 
   async execute(command: IngestSourceCommand): Promise<Result<IngestSourceResult, string>> {
@@ -216,6 +218,9 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
     this.logger.log(
       `Ingested "${filename}" → source ${sourceId} (${textChunks.length} chunks)`,
     );
+
+    // Emit event for async wiki generation
+    this.eventBus.publish(new SourceIngestedEvent(sourceId, collectionId, filename));
 
     return { ok: true, value: { sourceId, chunkCount: textChunks.length } };
   }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './database/database.module';
 import { CoreProvidersModule } from './core/core-providers.module';
 import { CollectionsModule } from './collections/collections.module';
@@ -17,6 +18,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { AuthModule } from './auth/auth.module';
 import { NotesModule } from './notes/notes.module';
 import { PresetsModule } from './presets/presets.module';
+import { WikiModule } from './wiki/wiki.module';
 
 @Module({
   imports: [
@@ -29,6 +31,9 @@ import { PresetsModule } from './presets/presets.module';
 
     // Rate limiting — 30 requests per minute global default (CWE-770)
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 30 }]),
+
+    // Task scheduling for wiki lint and maintenance
+    ScheduleModule.forRoot(),
 
     // Infrastructure
     DatabaseModule,
@@ -53,6 +58,7 @@ import { PresetsModule } from './presets/presets.module';
     WebhooksModule,
     NotesModule,
     PresetsModule,
+    WikiModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

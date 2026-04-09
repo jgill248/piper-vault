@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { MessageSquare, Database, Settings, FileText, Network } from 'lucide-react';
+import { MessageSquare, Database, Settings, FileText, Network, Sparkles } from 'lucide-react';
 import { useHealth } from '../hooks/use-health';
 import { CollectionSelector } from './collections/CollectionSelector';
 
-type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph';
+type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph' | 'wiki';
 
 interface SidebarProps {
   activeView: View;
@@ -36,6 +36,11 @@ const NAV_ITEMS: NavItem[] = [
     id: 'graph',
     label: 'GRAPH',
     icon: <Network size={14} strokeWidth={1.5} />,
+  },
+  {
+    id: 'wiki',
+    label: 'WIKI',
+    icon: <Sparkles size={14} strokeWidth={1.5} />,
   },
   {
     id: 'settings',

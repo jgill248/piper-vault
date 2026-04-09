@@ -10,6 +10,7 @@ export interface GraphNode {
   readonly title: string | null;
   readonly filename: string;
   readonly isNote: boolean;
+  readonly isGenerated: boolean;
   readonly linkCount: number;
   readonly backlinkCount: number;
 }
@@ -42,6 +43,7 @@ export class GetGraphHandler implements IQueryHandler<GetGraphQuery> {
           s.title,
           s.filename,
           s.is_note,
+          s.is_generated,
           COALESCE((SELECT count(*) FROM source_links sl WHERE sl.source_id = s.id), 0)::int AS link_count,
           COALESCE((SELECT count(*) FROM source_links sl WHERE sl.target_source_id = s.id), 0)::int AS backlink_count
         FROM sources s
@@ -56,6 +58,7 @@ export class GetGraphHandler implements IQueryHandler<GetGraphQuery> {
       title: string | null;
       filename: string;
       is_note: boolean;
+      is_generated: boolean;
       link_count: number;
       backlink_count: number;
     }[]).map((r) => ({
@@ -63,6 +66,7 @@ export class GetGraphHandler implements IQueryHandler<GetGraphQuery> {
       title: r.title,
       filename: r.filename,
       isNote: r.is_note,
+      isGenerated: r.is_generated,
       linkCount: r.link_count,
       backlinkCount: r.backlink_count,
     }));
