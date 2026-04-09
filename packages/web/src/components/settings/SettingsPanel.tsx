@@ -575,7 +575,7 @@ export function SettingsPanel() {
                 aria-label="Save configuration changes"
                 className="btn-primary text-[10px] px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                {updateConfig.isPending ? 'SAVING...' : 'COMMIT_CHANGES_'}
+                {updateConfig.isPending ? 'SAVING...' : 'COMMIT CHANGES'}
               </button>
               <button
                 onClick={handleReset}

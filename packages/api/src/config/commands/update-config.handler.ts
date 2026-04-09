@@ -31,6 +31,13 @@ const ConfigUpdatesSchema = z
     authEnabled: z.boolean().optional(),
     graphBoostEnabled: z.boolean().optional(),
     graphBoostFactor: z.number().min(0).max(1).optional(),
+    wikiEnabled: z.boolean().optional(),
+    wikiAutoIngest: z.boolean().optional(),
+    wikiAutoPromote: z.boolean().optional(),
+    wikiMaxPagesPerIngest: z.number().int().min(1).max(20).optional(),
+    wikiGenerationModel: z.string().optional(),
+    wikiParentPath: z.string().optional(),
+    wikiLintSchedule: z.string().optional(),
     providerSettings: z
       .record(
         z.enum(['ask-sage', 'anthropic', 'openai', 'ollama']),
