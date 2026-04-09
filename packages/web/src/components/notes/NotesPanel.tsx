@@ -19,12 +19,13 @@ export function NotesPanel() {
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<NoteEditorHandle>(null);
 
-  // Handle navigation from other panels (e.g., graph → note)
+  // Handle navigation from other panels (e.g., graph → note).
+  // Adjust state during render to avoid cascading effect re-renders.
+  if (pendingNoteId && selectedNoteId !== pendingNoteId) {
+    setSelectedNoteId(pendingNoteId);
+  }
   useEffect(() => {
-    if (pendingNoteId) {
-      setSelectedNoteId(pendingNoteId);
-      clearPendingNote();
-    }
+    if (pendingNoteId) clearPendingNote();
   }, [pendingNoteId, clearPendingNote]);
 
   // Clear selected note when user explicitly switches folders
@@ -51,12 +52,11 @@ export function NotesPanel() {
   );
   const selectedNote = notes.find((n) => n.id === selectedNoteId) ?? selectedNoteData ?? undefined;
 
-  // Auto-switch folder when navigating to a note in a different path
-  useEffect(() => {
-    if (selectedNoteData && selectedNoteData.parentPath !== (selectedPath ?? '')) {
-      setSelectedPath(selectedNoteData.parentPath ?? undefined);
-    }
-  }, [selectedNoteData, selectedPath]);
+  // Auto-switch folder when navigating to a note in a different path.
+  // Adjust state during render to avoid cascading effect re-renders.
+  if (selectedNoteData && selectedNoteData.parentPath !== (selectedPath ?? '')) {
+    setSelectedPath(selectedNoteData.parentPath ?? undefined);
+  }
 
   // Get all note names for autocomplete
   const allNotesQuery = useNotes({ collectionId: activeCollectionId, pageSize: 100 });

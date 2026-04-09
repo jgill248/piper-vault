@@ -15,7 +15,7 @@ import { GetWikiIndexQuery } from './queries/get-wiki-index.query';
 import { toWikiLogResponse } from './dto/wiki-log-response.dto';
 import { DEFAULT_COLLECTION_ID } from '@delve/shared';
 
-@Controller('api/v1/wiki')
+@Controller('wiki')
 export class WikiController {
   constructor(
     private readonly commandBus: CommandBus,

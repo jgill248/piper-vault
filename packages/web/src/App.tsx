@@ -36,20 +36,19 @@ type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph' | 'wiki';
 function VaultRedirect({
   view,
   setView,
-  redirected,
 }: {
   view: View;
   setView: (v: View) => void;
-  redirected: React.MutableRefObject<boolean>;
 }) {
   const { isEmpty, isLoading } = useVaultStatus();
+  const redirected = useRef(false);
 
   useEffect(() => {
     if (!isLoading && isEmpty && view === 'chat' && !redirected.current) {
       redirected.current = true;
       setView('sources');
     }
-  }, [isEmpty, isLoading, view, setView, redirected]);
+  }, [isEmpty, isLoading, view, setView]);
 
   return null;
 }
@@ -62,7 +61,6 @@ type AuthView = 'login' | 'register';
 function AppShell() {
   const [view, setView] = useState<View>('chat');
   const [authView, setAuthView] = useState<AuthView>('login');
-  const vaultRedirected = useRef(false);
   const { authEnabled, isLoading: authConfigLoading } = useAuthConfig();
   const { isAuthenticated, isLoading: authStateLoading, token, logout } = useAuth();
 
@@ -110,7 +108,7 @@ function AppShell() {
   // Normal app shell
   return (
     <NavigationProvider onNavigate={setView}>
-      <VaultRedirect view={view} setView={setView} redirected={vaultRedirected} />
+      <VaultRedirect view={view} setView={setView} />
       <Layout activeView={view} onNavigate={setView}>
         {view === 'chat' && <ChatPanel />}
         {view === 'sources' && <SourcesPanel />}
