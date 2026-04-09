@@ -43,7 +43,7 @@ export interface WikiPromoteResult {
 /**
  * Parses a JSON response from the LLM, stripping markdown code fences if present.
  */
-function parseJsonResponse<T>(raw: string): Result<T, string> {
+export function parseJsonResponse<T>(raw: string): Result<T, string> {
   let cleaned = raw.trim();
   // Strip ```json ... ``` fences
   if (cleaned.startsWith('```')) {

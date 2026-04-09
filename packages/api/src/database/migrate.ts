@@ -337,7 +337,7 @@ export async function runMigrations(connectionString: string): Promise<void> {
   // LLM Wiki: Add wiki generation fields to sources
   await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS is_generated BOOLEAN NOT NULL DEFAULT false`;
   await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS generated_by TEXT`;
-  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS generation_source_ids UUID[] NOT NULL DEFAULT ARRAY[]::uuid[]`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS generation_source_ids TEXT[] NOT NULL DEFAULT ARRAY[]::text[]`;
   await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS last_lint_at TIMESTAMPTZ`;
   await sql`CREATE INDEX IF NOT EXISTS sources_is_generated_idx ON sources(is_generated)`;
   console.log('  migration: sources wiki generation columns (is_generated, generated_by, generation_source_ids, last_lint_at)');
@@ -348,7 +348,7 @@ export async function runMigrations(connectionString: string): Promise<void> {
       id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       operation           TEXT NOT NULL,
       summary             TEXT NOT NULL,
-      affected_source_ids UUID[] NOT NULL DEFAULT ARRAY[]::uuid[],
+      affected_source_ids TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
       source_trigger_id   UUID,
       metadata            JSONB NOT NULL DEFAULT '{}',
       created_at          TIMESTAMPTZ NOT NULL DEFAULT now()

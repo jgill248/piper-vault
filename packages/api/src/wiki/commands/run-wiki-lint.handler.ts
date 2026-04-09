@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject, Logger } from '@nestjs/common';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, isNull, sql, inArray } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import type { LlmProvider, WikiLintResult } from '@delve/core';
 import { runStructuralLint, runSemanticLint } from '@delve/core';
@@ -87,20 +87,31 @@ export class RunWikiLintHandler implements ICommandHandler<RunWikiLintCommand> {
       .map((p) => ({ title: p.title ?? p.filename, sourceId: p.id }));
 
     // Stale pages: wiki pages whose source documents were updated after the wiki page
+    // Batch-fetch all referenced source IDs in one query to avoid N+1
+    const allGenSourceIds = wikiPages
+      .flatMap((p) => (p.generationSourceIds as string[]))
+      .filter((id) => id.length > 0);
+
+    const sourceUpdateMap = new Map<string, Date>();
+    if (allGenSourceIds.length > 0) {
+      const uniqueIds = [...new Set(allGenSourceIds)];
+      const srcRows = await this.db
+        .select({ id: sources.id, updatedAt: sources.updatedAt })
+        .from(sources)
+        .where(inArray(sources.id, uniqueIds));
+      for (const row of srcRows) {
+        sourceUpdateMap.set(row.id, row.updatedAt);
+      }
+    }
+
     const stalePages: { title: string; sourceId: string; reason: string }[] = [];
     for (const page of wikiPages) {
       const genSourceIds = page.generationSourceIds as string[];
       if (genSourceIds.length === 0) continue;
 
       for (const genId of genSourceIds) {
-        const srcRows = await this.db
-          .select({ updatedAt: sources.updatedAt })
-          .from(sources)
-          .where(eq(sources.id, genId))
-          .limit(1);
-
-        const src = srcRows[0];
-        if (src && page.updatedAt && src.updatedAt > page.updatedAt) {
+        const srcUpdatedAt = sourceUpdateMap.get(genId);
+        if (srcUpdatedAt && page.updatedAt && srcUpdatedAt > page.updatedAt) {
           stalePages.push({
             title: page.title ?? page.filename,
             sourceId: page.id,
@@ -129,12 +140,12 @@ export class RunWikiLintHandler implements ICommandHandler<RunWikiLintCommand> {
     const allIssues = [...structuralIssues, ...semanticIssues];
     const summary = `Lint complete: ${allIssues.length} issue(s) found across ${wikiPages.length} wiki page(s)`;
 
-    // Update last_lint_at on all wiki pages
-    for (const page of wikiPages) {
+    // Update last_lint_at on all wiki pages in one batch
+    if (wikiPageIds.length > 0) {
       await this.db
         .update(sources)
         .set({ lastLintAt: new Date() })
-        .where(eq(sources.id, page.id));
+        .where(inArray(sources.id, wikiPageIds));
     }
 
     // Log the lint operation

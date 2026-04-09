@@ -21,7 +21,7 @@ export function WikiPanel() {
         <div>
           <h1 className="font-headline font-semibold text-on-surface text-sm">LLM Wiki</h1>
           <p className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest mt-0.5">
-            AI-GENERATED_KNOWLEDGE_BASE
+            AI-GENERATED KNOWLEDGE BASE
           </p>
         </div>
         <span className="material-symbols-outlined text-primary text-lg">auto_awesome</span>

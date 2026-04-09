@@ -6,6 +6,7 @@
 import type { Result } from '@delve/shared';
 import type { LlmProvider } from '../llm/provider.js';
 import { WIKI_INDEX_SYSTEM_PROMPT, buildWikiIndexPrompt } from './wiki-prompts.js';
+import { parseJsonResponse } from './wiki-generator.js';
 
 export interface WikiIndexCategory {
   readonly name: string;
@@ -40,19 +41,5 @@ export async function generateWikiIndex(
     return { ok: false, error: `LLM index query failed: ${result.error}` };
   }
 
-  let cleaned = result.value.content.trim();
-  if (cleaned.startsWith('```')) {
-    const firstNewline = cleaned.indexOf('\n');
-    const lastFence = cleaned.lastIndexOf('```');
-    if (firstNewline !== -1 && lastFence > firstNewline) {
-      cleaned = cleaned.slice(firstNewline + 1, lastFence).trim();
-    }
-  }
-
-  try {
-    const parsed = JSON.parse(cleaned) as WikiIndex;
-    return { ok: true, value: parsed };
-  } catch {
-    return { ok: false, error: `Failed to parse wiki index JSON: ${cleaned.slice(0, 200)}` };
-  }
+  return parseJsonResponse<WikiIndex>(result.value.content);
 }

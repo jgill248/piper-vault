@@ -1,13 +1,13 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { DEFAULT_COLLECTION_ID } from '@delve/shared';
 import type { LlmProvider, WikiIndex } from '@delve/core';
 import { generateWikiIndex } from '@delve/core';
 import { GetWikiIndexQuery } from './get-wiki-index.query';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { sources, sourceLinks } from '../../database/schema';
+import { sources } from '../../database/schema';
 import { ConfigStore } from '../../config/config.store';
 
 @QueryHandler(GetWikiIndexQuery)

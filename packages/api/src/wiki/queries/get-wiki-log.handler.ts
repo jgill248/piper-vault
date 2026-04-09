@@ -1,6 +1,6 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { GetWikiLogQuery } from './get-wiki-log.query';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
@@ -25,11 +25,11 @@ export class GetWikiLogHandler implements IQueryHandler<GetWikiLogQuery> {
         .limit(limit)
         .offset(offset),
       this.db
-        .select({ count: wikiLog.id })
+        .select({ count: sql<number>`count(*)` })
         .from(wikiLog)
         .where(condition),
     ]);
 
-    return { items, total: countResult.length };
+    return { items, total: Number(countResult[0]?.count ?? 0) };
   }
 }

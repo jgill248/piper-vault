@@ -6,6 +6,7 @@
 import type { Result } from '@delve/shared';
 import type { LlmProvider } from '../llm/provider.js';
 import { WIKI_LINT_SYSTEM_PROMPT, buildWikiLintPrompt } from './wiki-prompts.js';
+import { parseJsonResponse } from './wiki-generator.js';
 
 export type WikiLintIssueType = 'contradiction' | 'missing_link' | 'stale' | 'incomplete' | 'orphaned' | 'broken_link';
 export type WikiLintSeverity = 'low' | 'medium' | 'high';
@@ -110,20 +111,12 @@ export async function runSemanticLint(
       return { ok: false, error: `LLM lint query failed: ${result.error}` };
     }
 
-    let cleaned = result.value.content.trim();
-    if (cleaned.startsWith('```')) {
-      const firstNewline = cleaned.indexOf('\n');
-      const lastFence = cleaned.lastIndexOf('```');
-      if (firstNewline !== -1 && lastFence > firstNewline) {
-        cleaned = cleaned.slice(firstNewline + 1, lastFence).trim();
-      }
-    }
+    const parsed = parseJsonResponse<{
+      issues?: { type: string; severity: string; description: string; affectedPages: string[]; suggestedFix: string }[];
+    }>(result.value.content);
 
-    try {
-      const parsed = JSON.parse(cleaned) as {
-        issues?: { type: string; severity: string; description: string; affectedPages: string[]; suggestedFix: string }[];
-      };
-      for (const issue of parsed.issues ?? []) {
+    if (parsed.ok) {
+      for (const issue of parsed.value.issues ?? []) {
         allIssues.push({
           type: issue.type as WikiLintIssueType,
           severity: issue.severity as WikiLintSeverity,
@@ -132,9 +125,8 @@ export async function runSemanticLint(
           suggestedFix: issue.suggestedFix,
         });
       }
-    } catch {
-      // If one batch fails to parse, continue with others
     }
+    // If one batch fails to parse, continue with others
   }
 
   return { ok: true, value: allIssues };

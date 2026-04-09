@@ -3,13 +3,13 @@ import { Inject, Logger } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
 import type { LlmProvider } from '@delve/core';
 import { generateWikiPages } from '@delve/core';
-import { DEFAULT_COLLECTION_ID } from '@delve/shared';
 import { GenerateWikiPagesCommand } from './generate-wiki-pages.command';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { sources, wikiLog } from '../../database/schema';
 import { ConfigStore } from '../../config/config.store';
 import { CreateNoteCommand } from '../../notes/commands/create-note.command';
+import { UpdateNoteCommand } from '../../notes/commands/update-note.command';
 
 @CommandHandler(GenerateWikiPagesCommand)
 export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPagesCommand> {
@@ -62,9 +62,9 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       return;
     }
 
-    // Get existing wiki page titles for cross-referencing
+    // Get existing wiki page titles (with IDs) for cross-referencing and updates
     const existingPages = await this.db
-      .select({ title: sources.title })
+      .select({ id: sources.id, title: sources.title, content: sources.content })
       .from(sources)
       .where(
         and(
@@ -93,8 +93,9 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       return;
     }
 
-    const { pages, summary } = result.value;
+    const { pages, updatedPages, summary } = result.value;
     const createdIds: string[] = [];
+    const updatedIds: string[] = [];
 
     // Create each generated wiki page as a note
     for (const page of pages) {
@@ -126,16 +127,47 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       }
     }
 
+    // Apply updates to existing wiki pages
+    for (const update of updatedPages) {
+      const existing = existingPages.find(
+        (p) => p.title?.toLowerCase() === update.title.toLowerCase(),
+      );
+      if (!existing) {
+        this.logger.debug(`Update target "${update.title}" not found, skipping`);
+        continue;
+      }
+
+      try {
+        const existingContent = existing.content ?? '';
+        const newContent = `${existingContent}\n\n---\n\n${update.appendContent}`;
+        await this.commandBus.execute(
+          new UpdateNoteCommand(existing.id, newContent),
+        );
+        updatedIds.push(existing.id);
+        this.logger.debug(`Updated wiki page "${update.title}": ${update.reason}`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Failed to update wiki page "${update.title}": ${message}`);
+      }
+    }
+
     // Log the wiki operation
-    if (createdIds.length > 0) {
+    const allAffectedIds = [...createdIds, ...updatedIds];
+    if (allAffectedIds.length > 0) {
       await this.db.insert(wikiLog).values({
         operation: 'ingest',
         summary,
-        affectedSourceIds: createdIds,
+        affectedSourceIds: allAffectedIds,
         sourceTriggerIds: sourceId,
-        metadata: { pagesGenerated: pages.length, sourceFilename: source.filename },
+        metadata: {
+          pagesGenerated: pages.length,
+          pagesUpdated: updatedIds.length,
+          sourceFilename: source.filename,
+        },
       });
-      this.logger.log(`Wiki generation: ${createdIds.length} pages created from source ${sourceId}`);
+      this.logger.log(
+        `Wiki generation: ${createdIds.length} created, ${updatedIds.length} updated from source ${sourceId}`,
+      );
     }
   }
 }

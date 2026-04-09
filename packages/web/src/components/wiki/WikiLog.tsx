@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { api } from '../../api/client';
-import type { WikiLogItem } from '../../api/client';
+import { useWikiLog } from '../../hooks/use-wiki';
 
 const OPERATION_LABELS: Record<string, string> = {
   ingest: 'INGEST',
@@ -17,22 +15,28 @@ const OPERATION_COLORS: Record<string, string> = {
 };
 
 export function WikiLog() {
-  const [items, setItems] = useState<WikiLogItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, isError } = useWikiLog({ limit: 50 });
+  const items = data?.items ?? [];
 
-  useEffect(() => {
-    api.getWikiLog({ limit: 50 })
-      .then((res) => setItems(res.items))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest animate-pulse">
           LOADING_LOG...
         </span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-12">
+        <span className="font-label text-[10px] text-error uppercase tracking-widest">
+          LOG_LOAD_FAILED
+        </span>
+        <p className="font-body text-[11px] text-on-surface-variant mt-2">
+          Could not load the wiki activity log.
+        </p>
       </div>
     );
   }

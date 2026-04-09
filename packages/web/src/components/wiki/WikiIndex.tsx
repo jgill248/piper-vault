@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react';
-import { api } from '../../api/client';
-
-interface WikiCategory {
-  name: string;
-  pages: { title: string; summary: string }[];
-}
+import { useWikiIndex } from '../../hooks/use-wiki';
 
 export function WikiIndex() {
-  const [categories, setCategories] = useState<WikiCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, isError } = useWikiIndex();
+  const categories = data?.categories ?? [];
 
-  useEffect(() => {
-    api.getWikiIndex()
-      .then((res) => setCategories(res.categories))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest animate-pulse">
           BUILDING_INDEX...
         </span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-12">
+        <span className="font-label text-[10px] text-error uppercase tracking-widest">
+          INDEX_LOAD_FAILED
+        </span>
+        <p className="font-body text-[11px] text-on-surface-variant mt-2">
+          Could not load the wiki index. Check that the API is running.
+        </p>
       </div>
     );
   }

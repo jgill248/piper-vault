@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from '../../api/client';
+import { useRunWikiLint } from '../../hooks/use-wiki';
 import type { WikiLintIssue } from '../../api/client';
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -20,13 +20,12 @@ const TYPE_LABELS: Record<string, string> = {
 export function WikiLintReport() {
   const [issues, setIssues] = useState<WikiLintIssue[]>([]);
   const [summary, setSummary] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [hasRun, setHasRun] = useState(false);
+  const lintMutation = useRunWikiLint();
 
   async function handleRunLint() {
-    setLoading(true);
     try {
-      const result = await api.runWikiLint();
+      const result = await lintMutation.mutateAsync({});
       if (result.ok && result.value) {
         setIssues(result.value.issues);
         setSummary(result.value.summary);
@@ -37,8 +36,6 @@ export function WikiLintReport() {
     } catch {
       setSummary('Failed to run lint');
       setHasRun(true);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -51,10 +48,10 @@ export function WikiLintReport() {
         </div>
         <button
           onClick={handleRunLint}
-          disabled={loading}
+          disabled={lintMutation.isPending}
           className="btn-secondary text-[10px] px-3 py-1.5 disabled:opacity-40"
         >
-          {loading ? 'RUNNING...' : 'RUN_LINT_'}
+          {lintMutation.isPending ? 'RUNNING...' : 'RUN LINT'}
         </button>
       </div>
 

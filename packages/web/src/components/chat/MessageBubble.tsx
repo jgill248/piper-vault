@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { User, Cpu, Sparkles } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
-import { api } from '../../api/client';
+import { usePromoteToWiki } from '../../hooks/use-wiki';
 
 interface MessageBubbleProps {
   message: Message;
@@ -36,20 +35,26 @@ function formatTimestamp(date: Date | string): string {
 export function MessageBubble({ message, conversationId, onSourceClick }: MessageBubbleProps) {
   const isUser = message.role === MESSAGE_ROLE.USER;
   const isAssistant = message.role === MESSAGE_ROLE.ASSISTANT;
-  const [promoteStatus, setPromoteStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const promoteMutation = usePromoteToWiki();
 
   const sourceNames = message.sourceNames;
 
   async function handlePromoteToWiki() {
     if (!conversationId) return;
-    setPromoteStatus('loading');
     try {
-      const result = await api.promoteToWiki({ conversationId, messageId: message.id });
-      setPromoteStatus(result.ok ? 'done' : 'error');
+      await promoteMutation.mutateAsync({ conversationId, messageId: message.id });
     } catch {
-      setPromoteStatus('error');
+      // Error state handled by mutation
     }
   }
+
+  const promoteStatus = promoteMutation.isPending
+    ? 'loading'
+    : promoteMutation.isSuccess
+      ? 'done'
+      : promoteMutation.isError
+        ? 'error'
+        : 'idle';
 
   return (
     <div className={`flex flex-col mb-4 ${isUser ? 'items-end' : 'items-start'}`}>
