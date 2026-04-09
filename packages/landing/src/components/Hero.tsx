@@ -14,7 +14,8 @@ export function Hero() {
           <p className="text-xl text-on-surface-variant max-w-lg mb-10 leading-relaxed">
             P.I.P.E.R. Vault is an open-source, local-first knowledge vault with AI-powered search.
             Ingest documents, build a wiki-link graph, and chat with your knowledge — all running in
-            a single Docker container. No data ever leaves your machine.
+            a single Docker container. Now with LLM-powered wiki synthesis: your AI reads every source
+            and builds a living knowledge base automatically. No data ever leaves your machine.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a

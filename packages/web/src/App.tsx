@@ -6,6 +6,7 @@ import { SourcesPanel } from './components/sources/SourcesPanel';
 import { SettingsPanel } from './components/settings/SettingsPanel';
 import { NotesPanel } from './components/notes/NotesPanel';
 import { GraphPanel } from './components/graph/GraphPanel';
+import { WikiPanel } from './components/wiki/WikiPanel';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { useTheme } from './hooks/use-theme';
@@ -26,7 +27,7 @@ const queryClient = new QueryClient({
   },
 });
 
-type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph';
+type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph' | 'wiki';
 
 /**
  * When the vault is empty and the user hasn't navigated yet,
@@ -115,6 +116,7 @@ function AppShell() {
         {view === 'sources' && <SourcesPanel />}
         {view === 'notes' && <NotesPanel />}
         {view === 'graph' && <GraphPanel />}
+        {view === 'wiki' && <WikiPanel />}
         {view === 'settings' && <SettingsPanel />}
       </Layout>
     </NavigationProvider>

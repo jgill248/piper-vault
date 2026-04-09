@@ -73,7 +73,8 @@ describe('IngestSourceHandler', () => {
     db = makeDb();
     pipeline = makeIngestionPipeline();
     embedder = makeEmbedder();
-    handler = new IngestSourceHandler(db, pipeline, embedder);
+    const eventBus = { publish: vi.fn() } as any;
+    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
   });
 
   it('returns ok result with sourceId and chunkCount on success', async () => {
@@ -100,7 +101,8 @@ describe('IngestSourceHandler', () => {
         error: 'No parser available for MIME type "application/x-unknown"',
       }),
     });
-    handler = new IngestSourceHandler(db, pipeline, embedder);
+    const eventBus = { publish: vi.fn() } as any;
+    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
 
     const command = new IngestSourceCommand(
       makeBuffer(),
@@ -121,7 +123,8 @@ describe('IngestSourceHandler', () => {
     embedder = makeEmbedder({
       embedBatch: vi.fn().mockResolvedValue({ ok: false, error: 'Embedding model unavailable' }),
     });
-    handler = new IngestSourceHandler(db, pipeline, embedder);
+    const eventBus = { publish: vi.fn() } as any;
+    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
 
     const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);
 
@@ -146,7 +149,8 @@ describe('IngestSourceHandler', () => {
       }),
     } as unknown as Database;
 
-    handler = new IngestSourceHandler(db, pipeline, embedder);
+    const eventBus = { publish: vi.fn() } as any;
+    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
 
     const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);
 

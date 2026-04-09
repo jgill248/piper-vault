@@ -22,6 +22,10 @@ export function toSourceResponse(row: SourceRow): Source {
     parentPath: row.parentPath,
     title: row.title,
     frontmatter: (row.frontmatter ?? {}) as Record<string, unknown>,
+    isGenerated: row.isGenerated,
+    generatedBy: row.generatedBy,
+    generationSourceIds: Array.isArray(row.generationSourceIds) ? (row.generationSourceIds as string[]) : [],
+    lastLintAt: row.lastLintAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

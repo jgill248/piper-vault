@@ -71,6 +71,12 @@ export function Features() {
             decorativeIcon="edit_note"
           />
           <FeatureCard
+            icon="auto_awesome"
+            title="LLM Wiki"
+            description="Your LLM reads every source you add and builds a living wiki — entity pages, concept summaries, cross-references. Conversations become wiki pages. A scheduled lint pass catches contradictions and gaps."
+            decorativeIcon="auto_awesome"
+          />
+          <FeatureCard
             icon="extension"
             title="Extensible"
             description="Plugin system for custom file parsers. Webhook API for external integrations. System prompt presets for per-model tuning. Open source — extend anything."

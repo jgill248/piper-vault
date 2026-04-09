@@ -25,3 +25,7 @@ export * from './llm/follow-up-generator.js';
 export * from './llm/note-context-formatter.js';
 export * from './export/markdown-exporter.js';
 export * from './plugins/index.js';
+export * from './wiki/wiki-prompts.js';
+export * from './wiki/wiki-generator.js';
+export * from './wiki/wiki-linter.js';
+export * from './wiki/wiki-index-generator.js';

@@ -29,15 +29,15 @@ RUN npx nx run-many --target=build --all
 RUN npx tsc -p tsconfig.migrate.json
 
 # ============================================================
-# Stage 2: Production API server
+# Stage 2a: Assembly — prod deps, compiled output, ONNX model
+# Uses node:20-slim because it needs pnpm + network for deps/model.
+# This stage is NOT shipped — its /app tree is copied to distroless.
 # ============================================================
-FROM node:20-slim AS api
+FROM node:20-slim AS api-assembly
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-RUN npm i -g pnpm@10 \
- && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+RUN npm i -g pnpm@10
 
 # Copy workspace manifests for production install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -45,9 +45,8 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install production dependencies only, then remove pnpm (not needed at runtime)
-RUN pnpm install --frozen-lockfile --prod \
- && rm -rf /usr/local/lib/node_modules/pnpm /usr/local/bin/pnpm /usr/local/lib/node_modules/corepack /usr/local/bin/corepack
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy compiled output from builder
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
@@ -58,18 +57,32 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 RUN mkdir -p /app/plugins /app/watched
 
 # Pre-download the ONNX embedding model so it's baked into the image.
-# HF_HOME must persist as an ENV so the runtime knows where the cache lives.
-# Run from packages/core so Node resolves @huggingface/transformers from node_modules.
 ENV HF_HOME=/app/.cache/huggingface
 COPY scripts/download-model.mjs ./packages/api/download-model.mjs
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs \
+ && rm -f /app/packages/api/download-model.mjs
+
+# ============================================================
+# Stage 2b: Production API server (Google Distroless)
+# No shell, no package manager, no OS utilities — near-zero CVEs.
+# The :nonroot tag runs as UID 65532, eliminating root entirely.
+# ============================================================
+FROM gcr.io/distroless/nodejs20-debian12:nonroot AS api
+
+WORKDIR /app
+ENV HF_HOME=/app/.cache/huggingface
+
+# Copy the fully-assembled app tree. --chown ensures the non-root
+# user (UID 65532) owns all files.
+COPY --from=api-assembly --chown=65532:65532 /app /app
 
 EXPOSE 3001
 
+# Exec-form healthcheck (no shell available in distroless)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD curl -sf http://localhost:3001/api/v1/health || exit 1
+  CMD ["/nodejs/bin/node", "-e", "const h=require('http');h.get('http://localhost:3001/api/v1/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"]
 
-CMD ["node", "packages/api/dist/main.js"]
+CMD ["packages/api/dist/main.js"]
 
 # ============================================================
 # Stage 3: Production web server (nginx)
@@ -92,18 +105,20 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # ============================================================
 FROM node:20-slim AS standalone
 
-# Install PostgreSQL 16 + pgvector, Nginx, and supervisord
+# Install PostgreSQL 16 + pgvector and Nginx.
+# Use wget (no nghttp2) instead of curl; hardcode bookworm to avoid lsb-release/python.
+# Supervisor replaced by entrypoint process management — eliminates python3 dependency.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      gnupg2 curl ca-certificates lsb-release \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+      gnupg2 wget ca-certificates \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" \
        > /etc/apt/sources.list.d/pgdg.list \
-    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc \
        | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg \
     && apt-get update && apt-get install -y --no-install-recommends \
       postgresql-16 \
       postgresql-16-pgvector \
       nginx \
-      supervisor \
+    && apt-get purge -y --auto-remove wget gnupg2 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -135,7 +150,8 @@ COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
 # Pre-download the ONNX embedding model
 ENV HF_HOME=/app/.cache/huggingface
 COPY scripts/download-model.mjs ./packages/api/download-model.mjs
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs \
+ && rm -f /app/packages/api/download-model.mjs
 
 # Create directories for runtime volumes
 RUN mkdir -p /app/plugins /app/watched
@@ -150,15 +166,23 @@ RUN mkdir -p /root/.delve
 # Copy configuration files
 COPY nginx.standalone.conf /etc/nginx/conf.d/default.conf
 RUN rm -f /etc/nginx/sites-enabled/default
-COPY scripts/supervisord.conf /etc/supervisor/conf.d/delve.conf
 COPY scripts/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
+
+# Harden: remove OS packages not needed at runtime to reduce CVE surface.
+# Keeps login/passwd (needed by su in entrypoint).
+# Keeps libgnutls30 — required transitively by PostgreSQL (initdb → libldap → libgnutls).
+# Fixes: tar (CVE-2026-5704, CVE-2025-45582, CVE-2005-2541),
+#        perl (CVE-2011-4116), apt (CVE-2011-3374)
+RUN dpkg --remove --force-remove-essential --force-depends \
+      tar perl-base apt libapt-pkg6.0 || true; \
+    rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
 
 EXPOSE 8080
 
 VOLUME ["/var/lib/postgresql/data", "/root/.delve"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -sf http://localhost:8080/api/v1/health || exit 1
+  CMD node -e "const h=require('http');h.get('http://localhost:8080/api/v1/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

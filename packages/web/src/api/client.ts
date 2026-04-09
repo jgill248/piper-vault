@@ -485,4 +485,45 @@ export const api = {
 
   deletePreset: (id: string): Promise<void> =>
     request<void>(`/presets/${id}`, { method: 'DELETE' }),
+
+  // --- Wiki ---
+
+  promoteToWiki: (body: { conversationId: string; messageId?: string; collectionId?: string }): Promise<{ ok: boolean; value?: { sourceId: string; title: string }; error?: string }> =>
+    request('/wiki/promote', { method: 'POST', body: JSON.stringify(body) }),
+
+  runWikiLint: (body?: { collectionId?: string }): Promise<{ ok: boolean; value?: { issues: WikiLintIssue[]; summary: string }; error?: string }> =>
+    request('/wiki/lint', { method: 'POST', body: JSON.stringify(body ?? {}) }),
+
+  getWikiLog: (params?: { limit?: number; offset?: number; operation?: string }): Promise<{ items: WikiLogItem[]; total: number }> => {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.offset) qs.set('offset', String(params.offset));
+    if (params?.operation) qs.set('operation', params.operation);
+    const query = qs.toString();
+    return request(`/wiki/log${query ? `?${query}` : ''}`);
+  },
+
+  getWikiIndex: (collectionId?: string): Promise<{ categories: { name: string; pages: { title: string; summary: string }[] }[] }> => {
+    const qs = collectionId ? `?collectionId=${collectionId}` : '';
+    return request(`/wiki/index${qs}`);
+  },
 };
+
+// --- Wiki types (used by client only) ---
+
+export interface WikiLintIssue {
+  type: string;
+  severity: string;
+  description: string;
+  affectedPages: string[];
+  suggestedFix: string;
+}
+
+export interface WikiLogItem {
+  id: string;
+  operation: string;
+  summary: string;
+  affectedSourceIds: string[];
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
