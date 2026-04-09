@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { User, Cpu } from 'lucide-react';
+import { User, Cpu, Sparkles } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
+import { api } from '../../api/client';
 
 interface MessageBubbleProps {
   message: Message;
+  conversationId?: string;
   onSourceClick?: (sourceId: string) => void;
 }
 
@@ -30,11 +33,23 @@ function formatTimestamp(date: Date | string): string {
     : `${d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })} ${formatTime(d)}`;
 }
 
-export function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
+export function MessageBubble({ message, conversationId, onSourceClick }: MessageBubbleProps) {
   const isUser = message.role === MESSAGE_ROLE.USER;
   const isAssistant = message.role === MESSAGE_ROLE.ASSISTANT;
+  const [promoteStatus, setPromoteStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
 
   const sourceNames = message.sourceNames;
+
+  async function handlePromoteToWiki() {
+    if (!conversationId) return;
+    setPromoteStatus('loading');
+    try {
+      const result = await api.promoteToWiki({ conversationId, messageId: message.id });
+      setPromoteStatus(result.ok ? 'done' : 'error');
+    } catch {
+      setPromoteStatus('error');
+    }
+  }
 
   return (
     <div className={`flex flex-col mb-4 ${isUser ? 'items-end' : 'items-start'}`}>
@@ -197,6 +212,24 @@ export function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
               </button>
             );
           })}
+        </div>
+      )}
+
+      {/* Promote to wiki button */}
+      {isAssistant && conversationId && (
+        <div className="mt-1">
+          <button
+            onClick={handlePromoteToWiki}
+            disabled={promoteStatus === 'loading' || promoteStatus === 'done'}
+            className="flex items-center gap-1 font-label text-[9px] text-on-surface-variant hover:text-primary uppercase tracking-wider transition-colors disabled:opacity-40"
+            title="Save this conversation as a wiki page"
+          >
+            <Sparkles size={10} strokeWidth={1.5} />
+            {promoteStatus === 'idle' && 'SAVE_TO_WIKI'}
+            {promoteStatus === 'loading' && 'GENERATING...'}
+            {promoteStatus === 'done' && 'SAVED_TO_WIKI'}
+            {promoteStatus === 'error' && 'FAILED — RETRY'}
+          </button>
         </div>
       )}
     </div>

@@ -57,6 +57,20 @@ export interface AppConfig {
   readonly graphBoostFactor: number;
   /** Per-provider settings (base URLs). Credentials stored separately in SecretsStore. */
   readonly providerSettings: LlmProviderSettingsMap;
+  /** LLM Wiki: master toggle for wiki auto-generation. */
+  readonly wikiEnabled: boolean;
+  /** Auto-generate wiki pages when a source is ingested. */
+  readonly wikiAutoIngest: boolean;
+  /** Auto-promote good chat answers to wiki pages. */
+  readonly wikiAutoPromote: boolean;
+  /** Cron expression for scheduled wiki lint runs. */
+  readonly wikiLintSchedule: string;
+  /** LLM model override for wiki generation (empty = use default llmModel). */
+  readonly wikiGenerationModel: string;
+  /** Maximum wiki pages generated per source ingestion. */
+  readonly wikiMaxPagesPerIngest: number;
+  /** Folder path for generated wiki pages. */
+  readonly wikiParentPath: string;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -81,4 +95,11 @@ export const DEFAULT_CONFIG: AppConfig = {
   graphBoostEnabled: false,
   graphBoostFactor: 0.15,
   providerSettings: {},
+  wikiEnabled: false,
+  wikiAutoIngest: true,
+  wikiAutoPromote: false,
+  wikiLintSchedule: '0 3 * * *',
+  wikiGenerationModel: '',
+  wikiMaxPagesPerIngest: 10,
+  wikiParentPath: 'wiki/',
 };

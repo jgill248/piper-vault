@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 
-type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph';
+type View = 'chat' | 'sources' | 'settings' | 'notes' | 'graph' | 'wiki';
 
 interface LayoutProps {
   activeView: View;

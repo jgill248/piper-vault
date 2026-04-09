@@ -89,6 +89,10 @@ export const sources = pgTable('sources', {
   parentPath: text('parent_path'),
   title: varchar('title', { length: 500 }),
   frontmatter: jsonb('frontmatter').notNull().default({}),
+  isGenerated: boolean('is_generated').notNull().default(false),
+  generatedBy: text('generated_by'),
+  generationSourceIds: textArray('generation_source_ids').notNull().default(sql`ARRAY[]::uuid[]`),
+  lastLintAt: timestamp('last_lint_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -189,6 +193,16 @@ export const apiKeys = pgTable('api_keys', {
   expiresAt: timestamp('expires_at'),
 });
 
+export const wikiLog = pgTable('wiki_log', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  operation: text('operation').notNull(),
+  summary: text('summary').notNull(),
+  affectedSourceIds: textArray('affected_source_ids').notNull().default(sql`ARRAY[]::uuid[]`),
+  sourceTriggerIds: uuid('source_trigger_id'),
+  metadata: jsonb('metadata').notNull().default({}),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type CollectionRow = typeof collections.$inferSelect;
@@ -211,3 +225,5 @@ export type NoteFolderRow = typeof noteFolders.$inferSelect;
 export type NewNoteFolderRow = typeof noteFolders.$inferInsert;
 export type SystemPromptPresetRow = typeof systemPromptPresets.$inferSelect;
 export type NewSystemPromptPresetRow = typeof systemPromptPresets.$inferInsert;
+export type WikiLogRow = typeof wikiLog.$inferSelect;
+export type NewWikiLogRow = typeof wikiLog.$inferInsert;

@@ -334,6 +334,30 @@ export async function runMigrations(connectionString: string): Promise<void> {
   `;
   console.log('  seed: default system prompt preset');
 
+  // LLM Wiki: Add wiki generation fields to sources
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS is_generated BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS generated_by TEXT`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS generation_source_ids UUID[] NOT NULL DEFAULT ARRAY[]::uuid[]`;
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS last_lint_at TIMESTAMPTZ`;
+  await sql`CREATE INDEX IF NOT EXISTS sources_is_generated_idx ON sources(is_generated)`;
+  console.log('  migration: sources wiki generation columns (is_generated, generated_by, generation_source_ids, last_lint_at)');
+
+  // LLM Wiki: wiki_log table for tracking all wiki operations
+  await sql`
+    CREATE TABLE IF NOT EXISTS wiki_log (
+      id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      operation           TEXT NOT NULL,
+      summary             TEXT NOT NULL,
+      affected_source_ids UUID[] NOT NULL DEFAULT ARRAY[]::uuid[],
+      source_trigger_id   UUID,
+      metadata            JSONB NOT NULL DEFAULT '{}',
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_wiki_log_created_at ON wiki_log(created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_wiki_log_operation ON wiki_log(operation)`;
+  console.log('  table: wiki_log');
+
     console.log('Migrations complete.');
   } finally {
     await sql.end();

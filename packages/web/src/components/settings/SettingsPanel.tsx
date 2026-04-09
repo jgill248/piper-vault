@@ -8,6 +8,7 @@ import { ApiKeysSection } from './ApiKeysSection';
 import { WatchedFoldersSection } from './WatchedFoldersSection';
 import { ProviderSettingsSection } from './ProviderSettingsSection';
 import { PresetsSection } from './PresetsSection';
+import { WikiSettingsSection } from './WikiSettingsSection';
 
 interface SectionProps {
   title: string;
@@ -447,7 +448,7 @@ export function SettingsPanel() {
       {/* Section jump nav */}
       {!isLoading && (
         <div className="flex items-center gap-1 px-4 py-2 border-b border-outline-variant/20 bg-surface shrink-0 overflow-x-auto">
-          {['LLM', 'PRESETS', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'AUTH', 'API_KEYS', 'FOLDERS', 'PLUGINS'].map((label) => (
+          {['LLM', 'PRESETS', 'EMBEDDING', 'CHUNKING', 'RETRIEVAL', 'INTELLIGENCE', 'SYSTEM', 'INTERFACE', 'AUTH', 'API_KEYS', 'FOLDERS', 'WIKI', 'PLUGINS'].map((label) => (
             <button
               key={label}
               onClick={() => {
@@ -559,6 +560,9 @@ export function SettingsPanel() {
 
             {/* Watched Folders */}
             <WatchedFoldersSection />
+
+            {/* LLM Wiki */}
+            <WikiSettingsSection draft={draft} onChange={handleChange} />
 
             {/* Plugin system */}
             <PluginsPanel />
