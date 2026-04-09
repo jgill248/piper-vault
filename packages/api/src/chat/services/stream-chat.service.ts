@@ -2,7 +2,7 @@ import { Injectable, Inject, Logger, InternalServerErrorException } from '@nestj
 import { eq, asc } from 'drizzle-orm';
 import type { Message, ChatRequest } from '@delve/shared';
 import { DEFAULT_COLLECTION_ID } from '@delve/shared';
-import type { LlmProvider, LlmStreamChunk, NoteMetadata } from '@delve/core';
+import type { LlmProvider, NoteMetadata } from '@delve/core';
 import { buildPrompt, detectQueryIntent, formatNoteContext } from '@delve/core';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';

@@ -5,6 +5,7 @@ import { IngestSourceCommand } from './ingest-source.command';
 import type { IngestionPipeline } from '@delve/core';
 import type { Embedder } from '@delve/core';
 import type { Database } from '../../database/connection';
+import type { EventBus } from '@nestjs/cqrs';
 
 // ---------------------------------------------------------------------------
 // Helpers / factories
@@ -73,7 +74,7 @@ describe('IngestSourceHandler', () => {
     db = makeDb();
     pipeline = makeIngestionPipeline();
     embedder = makeEmbedder();
-    const eventBus = { publish: vi.fn() } as any;
+    const eventBus = { publish: vi.fn() } as unknown as EventBus;
     handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
   });
 
@@ -101,7 +102,7 @@ describe('IngestSourceHandler', () => {
         error: 'No parser available for MIME type "application/x-unknown"',
       }),
     });
-    const eventBus = { publish: vi.fn() } as any;
+    const eventBus = { publish: vi.fn() } as unknown as EventBus;
     handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
 
     const command = new IngestSourceCommand(
@@ -123,7 +124,7 @@ describe('IngestSourceHandler', () => {
     embedder = makeEmbedder({
       embedBatch: vi.fn().mockResolvedValue({ ok: false, error: 'Embedding model unavailable' }),
     });
-    const eventBus = { publish: vi.fn() } as any;
+    const eventBus = { publish: vi.fn() } as unknown as EventBus;
     handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
 
     const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);
@@ -149,7 +150,7 @@ describe('IngestSourceHandler', () => {
       }),
     } as unknown as Database;
 
-    const eventBus = { publish: vi.fn() } as any;
+    const eventBus = { publish: vi.fn() } as unknown as EventBus;
     handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
 
     const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);

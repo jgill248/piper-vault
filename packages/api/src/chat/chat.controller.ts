@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   Query,
-  Req,
   Res,
   HttpCode,
   HttpStatus,
@@ -17,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { z } from 'zod';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply } from 'fastify';
 import type { ChatResponse, PaginatedResponse, Conversation, ConversationWithMessages } from '@delve/shared';
 import { SendMessageCommand } from './commands/send-message.command';
 import { DeleteConversationCommand } from './commands/delete-conversation.command';
