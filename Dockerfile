@@ -29,14 +29,15 @@ RUN npx nx run-many --target=build --all
 RUN npx tsc -p tsconfig.migrate.json
 
 # ============================================================
-# Stage 2: Production API server
+# Stage 2a: Assembly — prod deps, compiled output, ONNX model
+# Uses node:20-slim because it needs pnpm + network for deps/model.
+# This stage is NOT shipped — its /app tree is copied to distroless.
 # ============================================================
-FROM node:20-slim AS api
+FROM node:20-slim AS api-assembly
 
 WORKDIR /app
 
-RUN npm i -g pnpm@10 \
- && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+RUN npm i -g pnpm@10
 
 # Copy workspace manifests for production install
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -44,9 +45,8 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install production dependencies only, then remove pnpm (not needed at runtime)
-RUN pnpm install --frozen-lockfile --prod \
- && rm -rf /usr/local/lib/node_modules/pnpm /usr/local/bin/pnpm /usr/local/lib/node_modules/corepack /usr/local/bin/corepack
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy compiled output from builder
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
@@ -57,26 +57,32 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 RUN mkdir -p /app/plugins /app/watched
 
 # Pre-download the ONNX embedding model so it's baked into the image.
-# HF_HOME must persist as an ENV so the runtime knows where the cache lives.
-# Run from packages/core so Node resolves @huggingface/transformers from node_modules.
 ENV HF_HOME=/app/.cache/huggingface
 COPY scripts/download-model.mjs ./packages/api/download-model.mjs
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs \
+ && rm -f /app/packages/api/download-model.mjs
 
-# Harden: remove OS packages not needed at Node.js runtime to reduce CVE surface.
-# Fixes: tar (CVE-2026-5704, CVE-2025-45582, CVE-2005-2541),
-#        perl (CVE-2011-4116), shadow/login (CVE-2007-5686),
-#        apt (CVE-2011-3374), gnutls28 (CVE-2011-3389)
-RUN dpkg --remove --force-remove-essential --force-depends \
-      tar perl-base login passwd apt libapt-pkg6.0 libgnutls30 || true; \
-    rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
+# ============================================================
+# Stage 2b: Production API server (Google Distroless)
+# No shell, no package manager, no OS utilities — near-zero CVEs.
+# The :nonroot tag runs as UID 65532, eliminating root entirely.
+# ============================================================
+FROM gcr.io/distroless/nodejs20-debian12:nonroot AS api
+
+WORKDIR /app
+ENV HF_HOME=/app/.cache/huggingface
+
+# Copy the fully-assembled app tree. --chown ensures the non-root
+# user (UID 65532) owns all files.
+COPY --from=api-assembly --chown=65532:65532 /app /app
 
 EXPOSE 3001
 
+# Exec-form healthcheck (no shell available in distroless)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "const h=require('http');h.get('http://localhost:3001/api/v1/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
+  CMD ["/nodejs/bin/node", "-e", "const h=require('http');h.get('http://localhost:3001/api/v1/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"]
 
-CMD ["node", "packages/api/dist/main.js"]
+CMD ["packages/api/dist/main.js"]
 
 # ============================================================
 # Stage 3: Production web server (nginx)
@@ -144,7 +150,8 @@ COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
 # Pre-download the ONNX embedding model
 ENV HF_HOME=/app/.cache/huggingface
 COPY scripts/download-model.mjs ./packages/api/download-model.mjs
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs \
+ && rm -f /app/packages/api/download-model.mjs
 
 # Create directories for runtime volumes
 RUN mkdir -p /app/plugins /app/watched
@@ -164,10 +171,11 @@ RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoin
 
 # Harden: remove OS packages not needed at runtime to reduce CVE surface.
 # Keeps login/passwd (needed by su in entrypoint).
+# Keeps libgnutls30 — required transitively by PostgreSQL (initdb → libldap → libgnutls).
 # Fixes: tar (CVE-2026-5704, CVE-2025-45582, CVE-2005-2541),
-#        perl (CVE-2011-4116), apt (CVE-2011-3374), gnutls28 (CVE-2011-3389)
+#        perl (CVE-2011-4116), apt (CVE-2011-3374)
 RUN dpkg --remove --force-remove-essential --force-depends \
-      tar perl-base apt libapt-pkg6.0 libgnutls30 || true; \
+      tar perl-base apt libapt-pkg6.0 || true; \
     rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
 
 EXPOSE 8080

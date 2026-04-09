@@ -15,6 +15,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
     deploy:
       resources:
         limits:
@@ -49,6 +53,16 @@ services:
     volumes:
       - plugins:/app/plugins
       - watched:/app/watched
+    networks:
+      - backend
+    # Harden: drop all Linux capabilities, run read-only, prevent privilege escalation
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=256m
     deploy:
       resources:
         limits:
@@ -64,10 +78,36 @@ services:
       - api
     ports:
       - "${WEB_PORT:-8080}:80"
+    networks:
+      - frontend
+      - backend
+    # Harden: minimal capabilities for nginx (needs CHOWN/SETGID/SETUID for worker
+    # fork and NET_BIND_SERVICE for port 80), read-only root with tmpfs for caches
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=64m
+      - /var/cache/nginx:noexec,nosuid,size=128m
+      - /var/run:noexec,nosuid,size=1m
     deploy:
       resources:
         limits:
           memory: 128M
+
+networks:
+  # frontend: exposed to host via web ports
+  frontend:
+  # backend: internal-only, isolates postgres and api from direct host access
+  backend:
+    internal: true
 
 volumes:
   pgdata:

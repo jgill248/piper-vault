@@ -61,6 +61,12 @@ CVE-2017-18018
 # running; libkrb5 is a transitive dependency only.
 CVE-2018-5709
 
+# ── gnutls28 / libgnutls30 3.7.9-2+deb12u6 (standalone only) ────
+# BEAST attack (2011). Mitigated by modern TLS configurations that
+# disable CBC ciphers. libgnutls30 cannot be removed — PostgreSQL's
+# initdb depends on it transitively via libldap.
+CVE-2011-3389
+
 # ── libgcrypt20 1.10.1-3 ────────────────────────────────────────
 # Theoretical Bleichenbacher-style attack on ElGamal (2018).
 # libgcrypt is a transitive dep of libsystemd0; no ElGamal operations
