@@ -25,6 +25,16 @@ export function useRunWikiLint() {
   });
 }
 
+export function useInitializeWiki() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body?: { collectionId?: string }) => api.initializeWiki(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wiki'] });
+    },
+  });
+}
+
 export function usePromoteToWiki() {
   const queryClient = useQueryClient();
   return useMutation({

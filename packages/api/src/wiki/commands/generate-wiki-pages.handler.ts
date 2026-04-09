@@ -26,7 +26,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     const { sourceId, collectionId } = command;
     const cfg = this.configStore.get();
 
-    if (!cfg.wikiEnabled || !cfg.wikiAutoIngest) {
+    if (!cfg.wikiEnabled || (!cfg.wikiAutoIngest && !command.force)) {
       this.logger.debug('Wiki auto-ingest disabled, skipping');
       return;
     }

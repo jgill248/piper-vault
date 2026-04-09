@@ -10,6 +10,7 @@ import {
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { PromoteToWikiCommand } from './commands/promote-to-wiki.command';
 import { RunWikiLintCommand } from './commands/run-wiki-lint.command';
+import { InitializeWikiCommand } from './commands/initialize-wiki.command';
 import { GetWikiLogQuery } from './queries/get-wiki-log.query';
 import { GetWikiIndexQuery } from './queries/get-wiki-index.query';
 import { toWikiLogResponse } from './dto/wiki-log-response.dto';
@@ -36,6 +37,18 @@ export class WikiController {
         body.messageId,
         body.collectionId ?? DEFAULT_COLLECTION_ID,
       ),
+    );
+    return result;
+  }
+
+  /**
+   * POST /api/v1/wiki/initialize — Generate wiki pages from all existing unprocessed sources.
+   */
+  @Post('initialize')
+  @HttpCode(HttpStatus.OK)
+  async initialize(@Body() body: { collectionId?: string }) {
+    const result = await this.commandBus.execute(
+      new InitializeWikiCommand(body.collectionId),
     );
     return result;
   }

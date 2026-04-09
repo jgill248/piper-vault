@@ -5,6 +5,7 @@ const OPERATION_LABELS: Record<string, string> = {
   query: 'PROMOTE',
   lint: 'LINT',
   update: 'UPDATE',
+  initialize: 'INIT',
 };
 
 const OPERATION_COLORS: Record<string, string> = {
@@ -12,6 +13,7 @@ const OPERATION_COLORS: Record<string, string> = {
   query: 'text-blue-400',
   lint: 'text-yellow-500',
   update: 'text-green-500',
+  initialize: 'text-purple-400',
 };
 
 export function WikiLog() {
