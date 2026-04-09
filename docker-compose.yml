@@ -17,6 +17,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -32,6 +34,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   pgdata:

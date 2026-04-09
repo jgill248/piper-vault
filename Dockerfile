@@ -71,6 +71,11 @@ RUN dpkg --remove --force-remove-essential --force-depends \
       tar perl-base login passwd apt libapt-pkg6.0 libgnutls30 || true; \
     rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
 
+# Harden: run as non-root user (node:1000 is built into the node base image).
+# All app files are owned by node so the process can read but not escalate.
+RUN chown -R node:node /app
+USER node
+
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

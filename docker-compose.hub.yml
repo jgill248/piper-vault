@@ -20,6 +20,33 @@ services:
       - config:/root/.delve
       - plugins:/app/plugins
       - watched:/app/watched
+    # Harden: cap_drop ALL + re-add only what the standalone entrypoint needs.
+    # CHOWN/FOWNER/DAC_OVERRIDE — PostgreSQL init (chown data dir, createdb)
+    # SETGID/SETUID — su to postgres user in entrypoint
+    # NET_BIND_SERVICE — nginx binds port 8080 (not needed on >1024, but kept for safety)
+    # KILL — entrypoint sends SIGTERM to child processes on shutdown
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+      - KILL
+      - NET_BIND_SERVICE
+    # NOTE: no-new-privileges is NOT set here — the entrypoint uses `su` to
+    # switch to the postgres user, which requires privilege transitions.
+    tmpfs:
+      - /tmp:noexec,nosuid,size=256m
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+      # Limit the number of processes to prevent fork bombs
+    pids_limit: 256
 
 volumes:
   pgdata:
