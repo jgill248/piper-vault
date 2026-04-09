@@ -39,14 +39,13 @@ services:
     # switch to the postgres user, which requires privilege transitions.
     tmpfs:
       - /tmp:noexec,nosuid,size=256m
+    pids_limit: 256
     deploy:
       resources:
         limits:
           memory: 2G
         reservations:
           memory: 512M
-      # Limit the number of processes to prevent fork bombs
-    pids_limit: 256
 
 volumes:
   pgdata:

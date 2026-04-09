@@ -150,7 +150,8 @@ COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
 # Pre-download the ONNX embedding model
 ENV HF_HOME=/app/.cache/huggingface
 COPY scripts/download-model.mjs ./packages/api/download-model.mjs
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 node /app/packages/api/download-model.mjs \
+ && rm -f /app/packages/api/download-model.mjs
 
 # Create directories for runtime volumes
 RUN mkdir -p /app/plugins /app/watched
@@ -170,10 +171,11 @@ RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoin
 
 # Harden: remove OS packages not needed at runtime to reduce CVE surface.
 # Keeps login/passwd (needed by su in entrypoint).
+# Keeps libgnutls30 — required transitively by PostgreSQL (initdb → libldap → libgnutls).
 # Fixes: tar (CVE-2026-5704, CVE-2025-45582, CVE-2005-2541),
-#        perl (CVE-2011-4116), apt (CVE-2011-3374), gnutls28 (CVE-2011-3389)
+#        perl (CVE-2011-4116), apt (CVE-2011-3374)
 RUN dpkg --remove --force-remove-essential --force-depends \
-      tar perl-base apt libapt-pkg6.0 libgnutls30 || true; \
+      tar perl-base apt libapt-pkg6.0 || true; \
     rm -rf /var/lib/apt /var/cache/apt /var/log/dpkg.log /var/log/apt
 
 EXPOSE 8080
