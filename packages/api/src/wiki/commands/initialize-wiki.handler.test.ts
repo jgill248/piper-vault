@@ -226,6 +226,49 @@ describe('InitializeWikiHandler', () => {
     expect(cmd.collectionId).toBe('custom-collection');
   });
 
+  it('includes user-created notes as eligible sources', async () => {
+    // Notes (isNote=true) that are NOT generated should be eligible
+    const sourceRows = [
+      { id: 'src-1', filename: 'my-note.md' },
+      { id: 'src-2', filename: 'another-note.md' },
+    ];
+    const { db } = makeDb([], sourceRows);
+    const handler = new InitializeWikiHandler(db, configStore, commandBus);
+
+    const result: Result<InitializeWikiResult, string> = await handler.execute(
+      new InitializeWikiCommand(),
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.totalEligible).toBe(2);
+      expect(result.value.sourcesProcessed).toBe(2);
+    }
+    expect((commandBus.execute as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(2);
+  });
+
+  it('excludes wiki-generated notes from initialization', async () => {
+    // The DB query filters isGenerated=false, so generated notes won't appear
+    // in sourceRows. Simulate: only non-generated sources returned by the query.
+    const sourceRows = [
+      { id: 'src-1', filename: 'user-doc.txt' },
+    ];
+    const { db } = makeDb([], sourceRows);
+    const handler = new InitializeWikiHandler(db, configStore, commandBus);
+
+    const result: Result<InitializeWikiResult, string> = await handler.execute(
+      new InitializeWikiCommand(),
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // Only the non-generated source is processed
+      expect(result.value.totalEligible).toBe(1);
+      expect(result.value.sourcesProcessed).toBe(1);
+    }
+    expect((commandBus.execute as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+  });
+
   it('filters null sourceTriggerIds from wikiLog', async () => {
     const wikiLogRows = [
       { sourceTriggerIds: 'src-1' },

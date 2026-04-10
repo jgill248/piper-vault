@@ -48,7 +48,8 @@ export class InitializeWikiHandler implements ICommandHandler<InitializeWikiComm
         .filter((id): id is string => id !== null && id !== undefined),
     );
 
-    // Find all ready, non-note sources in this collection
+    // Find all ready, non-generated sources in this collection
+    // (includes user-created notes, excludes wiki-generated notes)
     const allSources = await this.db
       .select({ id: sources.id, filename: sources.filename })
       .from(sources)
@@ -56,7 +57,7 @@ export class InitializeWikiHandler implements ICommandHandler<InitializeWikiComm
         and(
           eq(sources.collectionId, collectionId),
           eq(sources.status, 'ready'),
-          eq(sources.isNote, false),
+          eq(sources.isGenerated, false),
         ),
       );
 
