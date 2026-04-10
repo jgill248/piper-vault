@@ -494,6 +494,19 @@ export const api = {
   runWikiLint: (body?: { collectionId?: string }): Promise<{ ok: boolean; value?: { issues: WikiLintIssue[]; summary: string }; error?: string }> =>
     request('/wiki/lint', { method: 'POST', body: JSON.stringify(body ?? {}) }),
 
+  initializeWiki: (body?: { collectionId?: string }): Promise<{
+    ok: boolean;
+    value?: {
+      totalEligible: number;
+      sourcesProcessed: number;
+      sourcesSkipped: number;
+      errors: string[];
+      summary: string;
+    };
+    error?: string;
+  }> =>
+    request('/wiki/initialize', { method: 'POST', body: JSON.stringify(body ?? {}) }),
+
   getWikiLog: (params?: { limit?: number; offset?: number; operation?: string }): Promise<{ items: WikiLogItem[]; total: number }> => {
     const qs = new URLSearchParams();
     if (params?.limit) qs.set('limit', String(params.limit));
@@ -503,7 +516,7 @@ export const api = {
     return request(`/wiki/log${query ? `?${query}` : ''}`);
   },
 
-  getWikiIndex: (collectionId?: string): Promise<{ categories: { name: string; pages: { title: string; summary: string }[] }[] }> => {
+  getWikiIndex: (collectionId?: string): Promise<{ categories: { name: string; pages: { id: string; title: string; summary: string }[] }[] }> => {
     const qs = collectionId ? `?collectionId=${collectionId}` : '';
     return request(`/wiki/index${qs}`);
   },

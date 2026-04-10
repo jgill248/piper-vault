@@ -8,13 +8,27 @@ import type { LlmProvider } from '../llm/provider.js';
 import { WIKI_INDEX_SYSTEM_PROMPT, buildWikiIndexPrompt } from './wiki-prompts.js';
 import { parseJsonResponse } from './wiki-generator.js';
 
+export interface WikiIndexPage {
+  readonly id: string;
+  readonly title: string;
+  readonly summary: string;
+}
+
 export interface WikiIndexCategory {
   readonly name: string;
-  readonly pages: readonly { title: string; summary: string }[];
+  readonly pages: readonly WikiIndexPage[];
 }
 
 export interface WikiIndex {
   readonly categories: readonly WikiIndexCategory[];
+}
+
+/** Raw index shape returned by the LLM (no page IDs). */
+export interface RawWikiIndex {
+  readonly categories: readonly {
+    readonly name: string;
+    readonly pages: readonly { title: string; summary: string }[];
+  }[];
 }
 
 /**
@@ -24,7 +38,7 @@ export async function generateWikiIndex(
   llm: LlmProvider,
   pages: readonly { title: string; tags: readonly string[]; summary: string }[],
   model?: string,
-): Promise<Result<WikiIndex, string>> {
+): Promise<Result<RawWikiIndex, string>> {
   if (pages.length === 0) {
     return { ok: true, value: { categories: [] } };
   }
@@ -41,5 +55,5 @@ export async function generateWikiIndex(
     return { ok: false, error: `LLM index query failed: ${result.error}` };
   }
 
-  return parseJsonResponse<WikiIndex>(result.value.content);
+  return parseJsonResponse<RawWikiIndex>(result.value.content);
 }
