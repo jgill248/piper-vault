@@ -70,6 +70,7 @@ export function WikiPanel() {
               <WikiDetail
                 pageId={selectedPageId}
                 onBack={() => setSelectedPageId(undefined)}
+                onNavigateToPage={setSelectedPageId}
               />
             </div>
           ) : (

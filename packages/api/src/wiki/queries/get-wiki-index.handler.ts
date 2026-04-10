@@ -94,14 +94,18 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
     titleToId: Map<string, string>,
   ): WikiIndex {
     return {
-      categories: raw.categories.map((cat) => ({
-        name: cat.name,
-        pages: cat.pages.map((p) => ({
-          id: titleToId.get(p.title.toLowerCase()) ?? '',
-          title: p.title,
-          summary: p.summary,
-        })),
-      })),
+      categories: raw.categories
+        .map((cat) => ({
+          name: cat.name,
+          pages: cat.pages
+            .map((p) => {
+              const id = titleToId.get(p.title.toLowerCase());
+              if (!id) return null;
+              return { id, title: p.title, summary: p.summary };
+            })
+            .filter((p): p is NonNullable<typeof p> => p !== null),
+        }))
+        .filter((cat) => cat.pages.length > 0),
     };
   }
 
@@ -114,13 +118,11 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
   ): WikiIndex {
     const byTag = new Map<string, WikiIndexCategory['pages'][number][]>();
     for (const page of pages) {
+      const id = titleToId.get(page.title.toLowerCase());
+      if (!id) continue;
       const tag = page.tags[0] ?? 'Uncategorized';
       const list = byTag.get(tag) ?? [];
-      list.push({
-        id: titleToId.get(page.title.toLowerCase()) ?? '',
-        title: page.title,
-        summary: page.summary,
-      });
+      list.push({ id, title: page.title, summary: page.summary });
       byTag.set(tag, list);
     }
     return {

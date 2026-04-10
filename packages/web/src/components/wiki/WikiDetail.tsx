@@ -11,22 +11,25 @@ import { useNavigation } from '../../context/NavigationContext';
 interface WikiDetailProps {
   readonly pageId: string;
   readonly onBack: () => void;
+  readonly onNavigateToPage?: (pageId: string) => void;
 }
 
-export function WikiDetail({ pageId, onBack }: WikiDetailProps) {
+export function WikiDetail({ pageId, onBack, onNavigateToPage }: WikiDetailProps) {
   const { data: page, isLoading, isError } = useNote(pageId);
   const { activeCollectionId } = useActiveCollection();
   const { navigateToNote } = useNavigation();
 
   // Build note name→id map for resolving wiki-links
   const allNotesQuery = useNotes({ collectionId: activeCollectionId, pageSize: 200 });
-  const noteMap = useMemo(() => {
+  const { noteMap, wikiPageIds } = useMemo(() => {
     const map = new Map<string, string>();
+    const wikiIds = new Set<string>();
     for (const note of allNotesQuery.data?.data ?? []) {
       const name = (note.title || note.filename).replace(/\.md$/, '');
       map.set(name.toLowerCase(), note.id);
+      if (note.isGenerated) wikiIds.add(note.id);
     }
-    return map;
+    return { noteMap: map, wikiPageIds: wikiIds };
   }, [allNotesQuery.data]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,10 +47,20 @@ export function WikiDetail({ pageId, onBack }: WikiDetailProps) {
         displayText={dt ?? null}
         section={sec ?? null}
         resolved={resolved}
-        onClick={resolved ? () => navigateToNote(id) : undefined}
+        onClick={resolved
+          ? () => {
+              // Stay in wiki for wiki pages, navigate to Notes for user notes
+              if (onNavigateToPage && wikiPageIds.has(id)) {
+                onNavigateToPage(id);
+              } else {
+                navigateToNote(id);
+              }
+            }
+          : undefined
+        }
       />
     );
-  }, [noteMap, navigateToNote]);
+  }, [noteMap, wikiPageIds, navigateToNote, onNavigateToPage]);
 
   if (isLoading) {
     return (
