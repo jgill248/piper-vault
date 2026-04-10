@@ -516,7 +516,7 @@ export const api = {
     return request(`/wiki/log${query ? `?${query}` : ''}`);
   },
 
-  getWikiIndex: (collectionId?: string): Promise<{ categories: { name: string; pages: { title: string; summary: string }[] }[] }> => {
+  getWikiIndex: (collectionId?: string): Promise<{ categories: { name: string; pages: { id: string; title: string; summary: string }[] }[] }> => {
     const qs = collectionId ? `?collectionId=${collectionId}` : '';
     return request(`/wiki/index${qs}`);
   },
