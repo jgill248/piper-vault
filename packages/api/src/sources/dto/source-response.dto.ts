@@ -26,6 +26,7 @@ export function toSourceResponse(row: SourceRow): Source {
     generatedBy: row.generatedBy,
     generationSourceIds: Array.isArray(row.generationSourceIds) ? (row.generationSourceIds as string[]) : [],
     lastLintAt: row.lastLintAt,
+    userReviewed: row.userReviewed,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

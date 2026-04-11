@@ -93,6 +93,7 @@ export const sources = pgTable('sources', {
   generatedBy: text('generated_by'),
   generationSourceIds: textArray('generation_source_ids').notNull().default(sql`ARRAY[]::text[]`),
   lastLintAt: timestamp('last_lint_at'),
+  userReviewed: boolean('user_reviewed').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -203,6 +204,19 @@ export const wikiLog = pgTable('wiki_log', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+export const wikiPageVersions = pgTable('wiki_page_versions', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  sourceId: uuid('source_id')
+    .notNull()
+    .references(() => sources.id, { onDelete: 'cascade' }),
+  versionNumber: integer('version_number').notNull(),
+  content: text('content').notNull(),
+  changeType: text('change_type').notNull().default('synthesis'),
+  changeSummary: text('change_summary'),
+  triggeredBy: uuid('triggered_by'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type CollectionRow = typeof collections.$inferSelect;
@@ -227,3 +241,5 @@ export type SystemPromptPresetRow = typeof systemPromptPresets.$inferSelect;
 export type NewSystemPromptPresetRow = typeof systemPromptPresets.$inferInsert;
 export type WikiLogRow = typeof wikiLog.$inferSelect;
 export type NewWikiLogRow = typeof wikiLog.$inferInsert;
+export type WikiPageVersionRow = typeof wikiPageVersions.$inferSelect;
+export type NewWikiPageVersionRow = typeof wikiPageVersions.$inferInsert;

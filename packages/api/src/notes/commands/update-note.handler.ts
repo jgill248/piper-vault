@@ -191,6 +191,12 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
       }
     }
 
+    // If a user edits a generated wiki page, mark it as user-reviewed
+    // to protect it from silent overwrite by future auto-synthesis.
+    if (content !== undefined && note.isGenerated) {
+      updates['userReviewed'] = true;
+    }
+
     await this.db.update(sources).set(updates).where(eq(sources.id, noteId));
 
     // Backfill targetSourceId on any links pointing to this note's (possibly new) title.

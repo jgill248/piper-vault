@@ -358,6 +358,26 @@ export async function runMigrations(connectionString: string): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_wiki_log_operation ON wiki_log(operation)`;
   console.log('  table: wiki_log');
 
+  // Wiki v2: user_reviewed flag — marks pages a user has manually edited/curated
+  await sql`ALTER TABLE sources ADD COLUMN IF NOT EXISTS user_reviewed BOOLEAN NOT NULL DEFAULT false`;
+  console.log('  migration: sources.user_reviewed column');
+
+  // Wiki v2: page version history for tracking synthesis/edit changes
+  await sql`
+    CREATE TABLE IF NOT EXISTS wiki_page_versions (
+      id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      source_id       UUID NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+      version_number  INTEGER NOT NULL,
+      content         TEXT NOT NULL,
+      change_type     TEXT NOT NULL DEFAULT 'synthesis',
+      change_summary  TEXT,
+      triggered_by    UUID,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_wiki_page_versions_source ON wiki_page_versions(source_id, version_number DESC)`;
+  console.log('  table: wiki_page_versions');
+
     console.log('Migrations complete.');
   } finally {
     await sql.end();

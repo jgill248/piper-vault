@@ -43,7 +43,9 @@ function makeDb(
       where: vi.fn().mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return Promise.resolve(wikiLogRows);
-        return Promise.resolve(sourceRows);
+        // Second call chains .orderBy() for chronological ordering
+        const result = Promise.resolve(sourceRows);
+        return Object.assign(result, { orderBy: vi.fn().mockResolvedValue(sourceRows) });
       }),
     })),
   }));

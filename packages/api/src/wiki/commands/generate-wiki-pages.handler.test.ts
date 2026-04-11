@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { CommandBus } from '@nestjs/cqrs';
-import type { LlmProvider } from '@delve/core';
+import type { LlmProvider, Embedder } from '@delve/core';
 import { GenerateWikiPagesHandler } from './generate-wiki-pages.handler';
 import { GenerateWikiPagesCommand } from './generate-wiki-pages.command';
 import type { Database } from '../../database/connection';
 import type { ConfigStore } from '../../config/config.store';
 import { DEFAULT_CONFIG } from '@delve/shared';
 
-// Mock generateWikiPages from @delve/core
+// Mock core functions
 vi.mock('@delve/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@delve/core')>();
   return {
@@ -20,6 +20,17 @@ vi.mock('@delve/core', async (importOriginal) => {
         summary: 'Generated 1 page',
       },
     }),
+    synthesizeWikiPage: vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        content: 'Synthesized content',
+        mergedSourceIds: ['src-1', 'src-2'],
+        summary: 'Merged new info',
+        changeType: 'minor_update',
+      },
+    }),
+    findSimilarPages: vi.fn().mockReturnValue([]),
+    averageEmbeddings: vi.fn().mockReturnValue([0.1, 0.2, 0.3]),
   };
 });
 
@@ -50,9 +61,16 @@ function makeLlm(): LlmProvider {
   } as unknown as LlmProvider;
 }
 
+function makeEmbedder(): Embedder {
+  return {
+    dimensions: 384,
+    embed: vi.fn().mockResolvedValue({ ok: true, value: new Array(384).fill(0.1) }),
+    embedBatch: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+  } as unknown as Embedder;
+}
+
 function makeDb(
   sourceRow: { filename: string; content: string | null } | null = { filename: 'test.md', content: 'Test content' },
-  existingPages: Array<{ id: string; title: string | null; content: string | null }> = [],
 ) {
   let selectCallCount = 0;
 
@@ -61,12 +79,19 @@ function makeDb(
       where: vi.fn().mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          // First select: load source row
+          // loadSourceContent: source content
           return { limit: vi.fn().mockResolvedValue(sourceRow ? [sourceRow] : []) };
         }
-        // Second select: existing wiki pages
-        return Promise.resolve(existingPages);
+        if (selectCallCount === 2) {
+          // loadSourceContent: filename
+          return { limit: vi.fn().mockResolvedValue(sourceRow ? [{ filename: sourceRow.filename }] : []) };
+        }
+        // loadExistingWikiPages or computePageEmbeddings
+        return Promise.resolve([]);
       }),
+      orderBy: vi.fn().mockImplementation(() => ({
+        limit: vi.fn().mockResolvedValue([]),
+      })),
     })),
   }));
 
@@ -90,18 +115,20 @@ function makeDb(
 
 describe('GenerateWikiPagesHandler', () => {
   let llm: LlmProvider;
+  let embedder: Embedder;
   let commandBus: CommandBus;
 
   beforeEach(() => {
     vi.clearAllMocks();
     llm = makeLlm();
+    embedder = makeEmbedder();
     commandBus = makeCommandBus();
   });
 
   it('skips when wikiEnabled is false', async () => {
     const configStore = makeConfigStore({ wikiEnabled: false });
     const { db } = makeDb();
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
 
@@ -111,7 +138,7 @@ describe('GenerateWikiPagesHandler', () => {
   it('skips when wikiAutoIngest is false and force is false', async () => {
     const configStore = makeConfigStore({ wikiAutoIngest: false });
     const { db } = makeDb();
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1', false));
 
@@ -121,7 +148,7 @@ describe('GenerateWikiPagesHandler', () => {
   it('proceeds when wikiAutoIngest is false but force is true', async () => {
     const configStore = makeConfigStore({ wikiAutoIngest: false });
     const { db } = makeDb();
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1', true));
 
@@ -131,7 +158,7 @@ describe('GenerateWikiPagesHandler', () => {
   it('still skips when wikiEnabled is false even with force=true', async () => {
     const configStore = makeConfigStore({ wikiEnabled: false, wikiAutoIngest: false });
     const { db } = makeDb();
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1', true));
 
@@ -141,7 +168,7 @@ describe('GenerateWikiPagesHandler', () => {
   it('proceeds normally when both wikiEnabled and wikiAutoIngest are true', async () => {
     const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
     const { db } = makeDb();
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
 
@@ -151,22 +178,31 @@ describe('GenerateWikiPagesHandler', () => {
   it('creates notes via CommandBus for generated pages', async () => {
     const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
     const { db } = makeDb();
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
 
-    // Should dispatch CreateNoteCommand for the generated page
     expect((commandBus.execute as ReturnType<typeof vi.fn>)).toHaveBeenCalled();
   });
 
   it('skips silently when source is not found', async () => {
     const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
     const { db } = makeDb(null);
-    const handler = new GenerateWikiPagesHandler(db, llm, configStore, commandBus);
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
 
     await handler.execute(new GenerateWikiPagesCommand('missing-src', 'col-1'));
 
     expect(generateWikiPages).not.toHaveBeenCalled();
+  });
+
+  it('embeds source content for similarity matching', async () => {
+    const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
+    const { db } = makeDb();
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
+
+    await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1', true));
+
+    expect(embedder.embed).toHaveBeenCalledWith('Test content');
   });
 
   it('default force is false', () => {

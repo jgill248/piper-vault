@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler, CommandBus } from '@nestjs/cqrs';
 import { Inject, Logger } from '@nestjs/common';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_COLLECTION_ID } from '@delve/shared';
 import { InitializeWikiCommand } from './initialize-wiki.command';
@@ -50,6 +50,8 @@ export class InitializeWikiHandler implements ICommandHandler<InitializeWikiComm
 
     // Find all ready, non-generated sources in this collection
     // (includes user-created notes, excludes wiki-generated notes)
+    // Process sources chronologically so later sources can synthesize into
+    // pages created by earlier sources during this initialization run.
     const allSources = await this.db
       .select({ id: sources.id, filename: sources.filename })
       .from(sources)
@@ -59,7 +61,8 @@ export class InitializeWikiHandler implements ICommandHandler<InitializeWikiComm
           eq(sources.status, 'ready'),
           eq(sources.isGenerated, false),
         ),
-      );
+      )
+      .orderBy(asc(sources.createdAt));
 
     const eligibleSources = allSources.filter((s) => !alreadyProcessedIds.has(s.id));
     const skipped = allSources.length - eligibleSources.length;

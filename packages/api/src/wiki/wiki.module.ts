@@ -5,12 +5,13 @@ import { GenerateWikiPagesHandler } from './commands/generate-wiki-pages.handler
 import { PromoteToWikiHandler } from './commands/promote-to-wiki.handler';
 import { RunWikiLintHandler } from './commands/run-wiki-lint.handler';
 import { InitializeWikiHandler } from './commands/initialize-wiki.handler';
+import { RegenerateWikiPageHandler } from './commands/regenerate-wiki-page.handler';
 import { GetWikiLogHandler } from './queries/get-wiki-log.handler';
 import { GetWikiIndexHandler } from './queries/get-wiki-index.handler';
 import { SourceIngestedListener } from './events/source-ingested.listener';
 import { WikiSchedulerService } from './services/wiki-scheduler.service';
 
-const CommandHandlers = [GenerateWikiPagesHandler, PromoteToWikiHandler, RunWikiLintHandler, InitializeWikiHandler];
+const CommandHandlers = [GenerateWikiPagesHandler, PromoteToWikiHandler, RunWikiLintHandler, InitializeWikiHandler, RegenerateWikiPageHandler];
 const QueryHandlers = [GetWikiLogHandler, GetWikiIndexHandler];
 const EventHandlers = [SourceIngestedListener];
 

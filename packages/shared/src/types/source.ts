@@ -7,7 +7,7 @@ export const SOURCE_STATUS = {
 
 export type SourceStatus = (typeof SOURCE_STATUS)[keyof typeof SOURCE_STATUS];
 
-export const WIKI_OPERATIONS = ['ingest', 'query', 'lint', 'update'] as const;
+export const WIKI_OPERATIONS = ['ingest', 'query', 'lint', 'update', 'synthesize', 'regenerate', 'initialize'] as const;
 export type WikiOperation = (typeof WIKI_OPERATIONS)[number];
 
 export interface Source {
@@ -30,6 +30,7 @@ export interface Source {
   readonly generatedBy?: string | null;
   readonly generationSourceIds: readonly string[];
   readonly lastLintAt?: Date | null;
+  readonly userReviewed: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

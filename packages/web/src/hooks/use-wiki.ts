@@ -45,3 +45,17 @@ export function usePromoteToWiki() {
     },
   });
 }
+
+export function useRegenerateWikiPage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { pageId: string; preview?: boolean }) =>
+      api.regenerateWikiPage(body),
+    onSuccess: (_data, variables) => {
+      if (!variables.preview) {
+        queryClient.invalidateQueries({ queryKey: ['wiki'] });
+        queryClient.invalidateQueries({ queryKey: ['notes'] });
+      }
+    },
+  });
+}
