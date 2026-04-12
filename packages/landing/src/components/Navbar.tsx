@@ -13,25 +13,38 @@ export function Navbar() {
         </a>
         <a
           className="text-secondary hover:text-primary-container transition-colors"
-          href="#pricing"
+          href="#hosting"
         >
-          Pricing
+          Hosting
         </a>
         <a
           className="text-secondary hover:text-primary-container transition-colors"
-          href="https://github.com/jgill248/delve"
+          href="https://github.com/jgill248/piper-vault"
           target="_blank"
           rel="noopener noreferrer"
         >
           GitHub
         </a>
-        <a className="text-secondary hover:text-primary-container transition-colors" href="#">
+        <a
+          className="text-secondary hover:text-primary-container transition-colors"
+          href="https://hub.docker.com/r/pipervault/piper-vault"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Docker Hub
+        </a>
+        <a
+          className="text-secondary hover:text-primary-container transition-colors"
+          href="https://github.com/jgill248/piper-vault#readme"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Documentation
         </a>
       </div>
       <div className="flex items-center space-x-4">
         <a
-          href="https://github.com/jgill248/delve"
+          href="https://github.com/jgill248/piper-vault"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-primary text-on-primary px-6 py-2 rounded shadow-sm hover:bg-primary-container transition-all btn-press font-semibold flex items-center gap-2"

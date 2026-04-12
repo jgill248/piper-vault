@@ -8,7 +8,7 @@ export function Footer() {
         <div className="flex flex-wrap justify-center gap-8 font-body text-sm uppercase tracking-widest">
           <a
             className="text-surface-container/80 hover:text-white transition-opacity"
-            href="https://github.com/jgill248/delve"
+            href="https://github.com/jgill248/piper-vault"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -22,16 +22,26 @@ export function Footer() {
           >
             Docker Hub
           </a>
-          <a className="text-surface-container/80 hover:text-white transition-opacity" href="#">
+          <a
+            className="text-surface-container/80 hover:text-white transition-opacity"
+            href="https://github.com/jgill248/piper-vault#readme"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Documentation
           </a>
-          <a className="text-surface-container/80 hover:text-white transition-opacity" href="#">
-            Privacy
+          <a
+            className="text-surface-container/80 hover:text-white transition-opacity"
+            href="https://github.com/jgill248/piper-vault/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            License
           </a>
         </div>
       </div>
       <div className="text-center font-body text-xs uppercase tracking-[0.2em] opacity-60">
-        &copy; 2026 P.I.P.E.R. Vault &middot; Licensed under AGPL-3.0
+        &copy; 2026 P.I.P.E.R. Vault &middot; Free and open source under AGPL-3.0
       </div>
     </footer>
   );
