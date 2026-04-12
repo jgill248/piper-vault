@@ -27,5 +27,7 @@ export * from './export/markdown-exporter.js';
 export * from './plugins/index.js';
 export * from './wiki/wiki-prompts.js';
 export * from './wiki/wiki-generator.js';
+export * from './wiki/wiki-synthesizer.js';
+export * from './wiki/wiki-similarity.js';
 export * from './wiki/wiki-linter.js';
 export * from './wiki/wiki-index-generator.js';

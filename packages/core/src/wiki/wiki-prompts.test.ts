@@ -4,10 +4,12 @@ import {
   buildWikiPromotePrompt,
   buildWikiLintPrompt,
   buildWikiIndexPrompt,
+  buildWikiSynthesizePrompt,
   WIKI_INGEST_SYSTEM_PROMPT,
   WIKI_PROMOTE_SYSTEM_PROMPT,
   WIKI_LINT_SYSTEM_PROMPT,
   WIKI_INDEX_SYSTEM_PROMPT,
+  WIKI_SYNTHESIZE_SYSTEM_PROMPT,
 } from './wiki-prompts';
 
 describe('wiki prompts', () => {
@@ -17,6 +19,7 @@ describe('wiki prompts', () => {
       expect(WIKI_PROMOTE_SYSTEM_PROMPT.length).toBeGreaterThan(50);
       expect(WIKI_LINT_SYSTEM_PROMPT.length).toBeGreaterThan(50);
       expect(WIKI_INDEX_SYSTEM_PROMPT.length).toBeGreaterThan(20);
+      expect(WIKI_SYNTHESIZE_SYSTEM_PROMPT.length).toBeGreaterThan(50);
     });
 
     it('all system prompts request JSON output', () => {
@@ -24,6 +27,7 @@ describe('wiki prompts', () => {
       expect(WIKI_PROMOTE_SYSTEM_PROMPT).toContain('JSON');
       expect(WIKI_LINT_SYSTEM_PROMPT).toContain('JSON');
       expect(WIKI_INDEX_SYSTEM_PROMPT).toContain('JSON');
+      expect(WIKI_SYNTHESIZE_SYSTEM_PROMPT).toContain('JSON');
     });
   });
 
@@ -100,6 +104,45 @@ describe('wiki prompts', () => {
       expect(prompt).toContain('"issues"');
       expect(prompt).toContain('"type"');
       expect(prompt).toContain('"severity"');
+    });
+  });
+
+  describe('buildWikiSynthesizePrompt', () => {
+    it('includes page title and existing content', () => {
+      const prompt = buildWikiSynthesizePrompt(
+        'Machine Learning',
+        '# ML\n\nML overview.',
+        ['ai', 'ml'],
+        'Deep learning extends ML.',
+        'doc2.pdf',
+      );
+      expect(prompt).toContain('Machine Learning');
+      expect(prompt).toContain('ML overview.');
+      expect(prompt).toContain('ai, ml');
+    });
+
+    it('includes new source content and filename', () => {
+      const prompt = buildWikiSynthesizePrompt(
+        'Topic',
+        'Existing',
+        [],
+        'New source material here',
+        'source.txt',
+      );
+      expect(prompt).toContain('New source material here');
+      expect(prompt).toContain('source.txt');
+    });
+
+    it('includes expected JSON schema', () => {
+      const prompt = buildWikiSynthesizePrompt('T', 'C', [], 'S', 'f.txt');
+      expect(prompt).toContain('"content"');
+      expect(prompt).toContain('"summary"');
+      expect(prompt).toContain('"changeType"');
+    });
+
+    it('omits tag line when no tags', () => {
+      const prompt = buildWikiSynthesizePrompt('T', 'C', [], 'S', 'f.txt');
+      expect(prompt).not.toContain('Tags:');
     });
   });
 

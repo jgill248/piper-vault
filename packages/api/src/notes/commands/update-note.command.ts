@@ -5,5 +5,6 @@ export class UpdateNoteCommand {
     public readonly title?: string,
     public readonly parentPath?: string | null,
     public readonly tags?: readonly string[],
+    public readonly userInitiated: boolean = true,
   ) {}
 }

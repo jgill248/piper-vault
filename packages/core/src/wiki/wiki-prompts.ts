@@ -157,6 +157,59 @@ Respond with a JSON object:
 }
 
 /**
+ * System prompt for synthesizing new source content into an existing wiki page.
+ * The LLM rewrites the page to coherently merge old and new information.
+ */
+export const WIKI_SYNTHESIZE_SYSTEM_PROMPT = `You are a knowledge engineer maintaining a personal wiki. You are given an existing wiki page and new source material that is relevant to it. Your job is to produce a unified rewrite of the page that coherently incorporates the new information.
+
+Guidelines:
+- Produce a COMPLETE rewrite of the page — not an appendix or addendum.
+- Preserve the existing structure, headings, and [[wiki-links]] where they are still accurate.
+- Integrate new facts, claims, and details from the source material into the appropriate sections.
+- If the new source contradicts existing content, prefer the newer information but note the discrepancy.
+- Add new [[wiki-links]] where the new source introduces related concepts.
+- Update the "Sources" section to include the new source alongside existing citations.
+- Maintain an encyclopedic, neutral tone — factual and concise.
+- Do not invent information beyond what the existing page and new source contain.
+- If the new source adds nothing meaningful to the page, set changeType to "no_change" and return the existing content unchanged.
+
+Respond with valid JSON only. No markdown fences, no explanation outside the JSON.`;
+
+/**
+ * Builds the user prompt for wiki page synthesis.
+ */
+export function buildWikiSynthesizePrompt(
+  pageTitle: string,
+  existingContent: string,
+  existingTags: readonly string[],
+  newSourceContent: string,
+  newSourceFilename: string,
+): string {
+  const tagList = existingTags.length > 0 ? `Tags: ${existingTags.join(', ')}` : '';
+
+  return `Rewrite the following wiki page to incorporate new source material.
+
+Page title: ${pageTitle}
+${tagList}
+
+--- EXISTING PAGE CONTENT ---
+${existingContent}
+--- END EXISTING PAGE CONTENT ---
+
+--- NEW SOURCE MATERIAL ---
+Source filename: ${newSourceFilename}
+${newSourceContent}
+--- END NEW SOURCE MATERIAL ---
+
+Respond with a JSON object matching this schema:
+{
+  "content": "Full rewritten markdown content with [[wiki-links]]...",
+  "summary": "One-line summary of what changed",
+  "changeType": "minor_update" | "major_rewrite" | "no_change"
+}`;
+}
+
+/**
  * System prompt for generating the wiki index.
  */
 export const WIKI_INDEX_SYSTEM_PROMPT = `You are a librarian organizing a wiki index. Given a list of wiki pages with their titles, tags, and summaries, produce a structured index organized by category.

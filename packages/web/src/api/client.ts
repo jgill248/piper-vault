@@ -520,6 +520,13 @@ export const api = {
     const qs = collectionId ? `?collectionId=${collectionId}` : '';
     return request(`/wiki/index${qs}`);
   },
+
+  regenerateWikiPage: (body: { pageId: string; preview?: boolean }): Promise<{
+    ok: boolean;
+    value?: { currentContent: string; proposedContent: string } | { applied: true };
+    error?: string;
+  }> =>
+    request('/wiki/regenerate', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // --- Wiki types (used by client only) ---

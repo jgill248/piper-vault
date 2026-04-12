@@ -11,6 +11,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { PromoteToWikiCommand } from './commands/promote-to-wiki.command';
 import { RunWikiLintCommand } from './commands/run-wiki-lint.command';
 import { InitializeWikiCommand } from './commands/initialize-wiki.command';
+import { RegenerateWikiPageCommand } from './commands/regenerate-wiki-page.command';
 import { GetWikiLogQuery } from './queries/get-wiki-log.query';
 import { GetWikiIndexQuery } from './queries/get-wiki-index.query';
 import { toWikiLogResponse } from './dto/wiki-log-response.dto';
@@ -61,6 +62,18 @@ export class WikiController {
   async lint(@Body() body: { collectionId?: string }) {
     const result = await this.commandBus.execute(
       new RunWikiLintCommand(body.collectionId),
+    );
+    return result;
+  }
+
+  /**
+   * POST /api/v1/wiki/regenerate — Regenerate a wiki page from its contributing sources.
+   */
+  @Post('regenerate')
+  @HttpCode(HttpStatus.OK)
+  async regenerate(@Body() body: { pageId: string; preview?: boolean }) {
+    const result = await this.commandBus.execute(
+      new RegenerateWikiPageCommand(body.pageId, body.preview ?? false),
     );
     return result;
   }
