@@ -1,22 +1,57 @@
 # P.I.P.E.R. Vault
 
-**Open-Source Personal Knowledge Vault with AI-Powered Search**
+**Your Personal Knowledge Vault with AI-Powered Search — Free and Open Source**
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Hub-2496ED.svg)](https://hub.docker.com/r/pipervault/piper-vault)
+[![GitHub](https://img.shields.io/badge/GitHub-jgill248%2Fpiper--vault-181717.svg?logo=github)](https://github.com/jgill248/piper-vault)
 
 P.I.P.E.R. Vault is an open-source, local-first knowledge vault where you build, connect, and search your personal knowledge — entirely on your own machine. Ingest notes, documents, transcripts, and other content, then query it through natural language powered by your choice of LLM. The system indexes content locally using PostgreSQL with pgvector, performs semantic similarity search, and generates grounded, citation-backed answers.
 
-The vault is the product. Chat is a feature for querying the vault.
+**The vault is the product. Chat is a feature for querying the vault.**
 
 Everything runs in a **single Docker container** — PostgreSQL, API server, React UI, and embedding model bundled together. One command to start, zero external dependencies beyond your LLM API key (which you can configure through the UI after first boot).
 
-**Free and open source forever.** Self-host with full functionality. [Cloud hosting and enterprise features](#pricing) available for teams and organizations that need managed infrastructure, SSO, and priority support.
+### Why Piper Vault?
+
+- **Free and open source, forever.** Licensed under AGPL-3.0. No feature gating, no license keys, no subscription. Every feature ships in the Docker image.
+- **Your data stays yours.** The database, the embedding model, the API, and the UI all live in one container on hardware you control. Zero telemetry. No account required.
+- **A wiki that writes itself.** The LLM reads every source you ingest and synthesizes a living knowledge base — entity pages, concept summaries, cross-references, and version history.
+- **Bring your own LLM.** Works with Anthropic, OpenAI, Ollama (fully offline), or Ask Sage. Swap providers from the Settings panel any time.
+- **Managed cloud hosting coming soon.** A hosted version is on the roadmap for those who want convenience over self-hosting — same AGPL source, no proprietary fork.
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/images/chat.png" alt="Chat with your vault, with inline citations" />
+      <br /><sub><b>Chat</b> — Ask questions of your vault, with inline citations back to every source.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/images/knowledge-graph.png" alt="Semantic knowledge graph visualizing notes and sources" />
+      <br /><sub><b>Knowledge Graph</b> — Force-directed visualization of every note, source, and generated wiki page.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/images/sources.png" alt="Source ingestion and archive browser" />
+      <br /><sub><b>Sources</b> — Drag and drop ingestion, watched folders, and a searchable archive.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/images/settings.png" alt="Settings and provider configuration" />
+      <br /><sub><b>Settings</b> — Configure LLM providers, API keys, system prompt presets, and wiki generation.</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Quick Start](#quick-start)
 - [Single-Container Architecture](#single-container-architecture)
 - [Deployment Options](#deployment-options)
@@ -41,9 +76,9 @@ Everything runs in a **single Docker container** — PostgreSQL, API server, Rea
 ```bash
 # Pull and run — no configuration needed to start
 docker run -d \
-  --name delve \
+  --name piper-vault \
   -p 8080:8080 \
-  -v delve-data:/var/lib/postgresql/data \
+  -v piper-vault-data:/var/lib/postgresql/data \
   pipervault/piper-vault:latest
 
 # Open in your browser
@@ -64,7 +99,7 @@ PostgreSQL, the API server, the embedding model, and the web UI all start inside
 
 ## Single-Container Architecture
 
-The standout feature of Delve's deployment model is the **all-in-one standalone container**. Instead of orchestrating separate database, backend, and frontend services, everything is bundled into a single Docker image managed by [supervisord](http://supervisord.org/).
+The standout feature of P.I.P.E.R. Vault's deployment model is the **all-in-one standalone container**. Instead of orchestrating separate database, backend, and frontend services, everything is bundled into a single Docker image managed by [supervisord](http://supervisord.org/).
 
 ### What's Inside
 
@@ -167,10 +202,10 @@ docker compose -f docker-compose.hub.yml up -d
 
 # Or raw Docker
 docker run -d \
-  --name delve \
+  --name piper-vault \
   -p 8080:8080 \
-  -v delve-data:/var/lib/postgresql/data \
-  -v delve-config:/root/.delve \
+  -v piper-vault-data:/var/lib/postgresql/data \
+  -v piper-vault-config:/root/.delve \
   pipervault/piper-vault:latest
 ```
 
@@ -178,9 +213,9 @@ You can optionally pass LLM API keys as environment variables to pre-configure p
 
 ```bash
 docker run -d \
-  --name delve \
+  --name piper-vault \
   -p 8080:8080 \
-  -v delve-data:/var/lib/postgresql/data \
+  -v piper-vault-data:/var/lib/postgresql/data \
   -e ANTHROPIC_API_KEY=sk-ant-... \
   pipervault/piper-vault:latest
 ```
@@ -206,10 +241,10 @@ Services:
 
 ```bash
 # Build the standalone (all-in-one) image locally
-docker build --target standalone -t delve:local .
+docker build --target standalone -t piper-vault:local .
 
 # Run it
-docker run -d -p 8080:8080 -v delve-data:/var/lib/postgresql/data delve:local
+docker run -d -p 8080:8080 -v piper-vault-data:/var/lib/postgresql/data piper-vault:local
 ```
 
 The multi-stage Dockerfile has four build targets:
@@ -343,7 +378,7 @@ Configure at least one. The active provider is selected in the UI Settings panel
 ## Project Structure
 
 ```
-delve/
+piper-vault/
 ├── packages/
 │   ├── api/                    NestJS backend (CQRS modules)
 │   │   └── src/
@@ -540,8 +575,8 @@ PostgreSQL 16 with pgvector. All schema changes are applied via versioned migrat
 
 ```bash
 # Clone
-git clone https://github.com/jgill248/delve.git
-cd delve
+git clone https://github.com/jgill248/piper-vault.git
+cd piper-vault
 
 # Install dependencies
 pnpm install --frozen-lockfile
@@ -579,13 +614,13 @@ pnpm run clean          # Clean all build artifacts
 
 ```bash
 # Build the standalone (all-in-one) image
-docker build --target standalone -t delve:dev .
+docker build --target standalone -t piper-vault:dev .
 
 # Build only the API image
-docker build --target api -t delve-api:dev .
+docker build --target api -t piper-vault-api:dev .
 
 # Build only the web image
-docker build --target web -t delve-web:dev .
+docker build --target web -t piper-vault-web:dev .
 ```
 
 ---
@@ -613,7 +648,7 @@ pnpm --filter @delve/web test
 
 ## Design System
 
-Delve uses the **Sovereign Press** design system — a 19th-century printing house aesthetic, like a curated ledger or library catalogue.
+P.I.P.E.R. Vault uses the **Sovereign Press** design system — a 19th-century printing house aesthetic, like a curated ledger or library catalogue.
 
 **Light mode (Parchment):**
 
@@ -659,7 +694,7 @@ Design mockups are in `spec/stitch/`. Full design system references:
 | **5. Native Knowledge Management** | Done | Wiki-link graph, frontmatter, markdown editor, note folders, tags, graph-aware retrieval |
 | **A. The Vault Experience** | Active | Knowledge graph viz, Obsidian/Notion import, vault-first onboarding, tag browser, smart link suggestions |
 | **LLM Wiki** | Active | Auto-synthesis of wiki pages from sources, conversation-to-wiki promotion, scheduled lint, wiki index & log |
-| **B. Distribution** | Planned | CI/CD pipeline, cloud hosting, payment integration |
+| **B. Distribution** | Planned | CI/CD pipeline, managed cloud hosting (opt-in convenience layer) |
 | **C. Polish** | Backlog | Follow-up questions, MCP server mode, OIDC/SSO |
 
 Full specification: [spec/spec.md](spec/spec.md)
@@ -672,8 +707,8 @@ P.I.P.E.R. Vault is open source and we welcome contributions. Whether it's bug f
 
 ```bash
 # Fork and clone
-git clone https://github.com/YOUR_USERNAME/delve.git
-cd delve
+git clone https://github.com/YOUR_USERNAME/piper-vault.git
+cd piper-vault
 
 # Install and run
 pnpm install --frozen-lockfile
@@ -690,6 +725,10 @@ Please open an issue before starting major work so we can discuss the approach.
 
 P.I.P.E.R. Vault is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE).
 
-This means you can freely use, modify, and self-host P.I.P.E.R. Vault. If you modify the software and offer it as a network service, you must make your modifications available under the same license.
+This means you can freely use, modify, and self-host P.I.P.E.R. Vault. Every feature — LLM Wiki, knowledge graph, all provider adapters, plugins, watched folders, webhooks — ships in the open-source image. There is no paid tier with extra features, no license key, and no subscription.
 
-Commercial cloud hosting and enterprise features (SSO, team workspaces, audit logging, priority support) are available under a separate commercial license. See [pipervault.com](https://pipervault.com) for details.
+If you modify the software and offer it as a network service, you must make your modifications available under the same license. That's the only obligation the AGPL imposes.
+
+### A note on managed hosting
+
+A **managed cloud version** of P.I.P.E.R. Vault is on the roadmap for people who'd rather not self-host. When it launches, it will run the same AGPL-3.0 source code — no proprietary fork, no feature gating. The self-hosted version will always have feature parity.
