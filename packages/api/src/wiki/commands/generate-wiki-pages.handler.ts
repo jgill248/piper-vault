@@ -115,18 +115,15 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
         // Snapshot current version before rewriting
         await this.snapshotVersion(page.id, page.content, 'synthesis', result.value.summary, sourceId);
 
-        // Update the page with synthesized content
+        // Update the page with synthesized content (automated — do not set userReviewed)
         await this.commandBus.execute(
-          new UpdateNoteCommand(page.id, result.value.content),
+          new UpdateNoteCommand(page.id, result.value.content, undefined, undefined, undefined, false),
         );
 
         // Accumulate source IDs
         await this.db
           .update(sources)
-          .set({
-            generationSourceIds: result.value.mergedSourceIds as string[],
-            userReviewed: false, // synthesis resets user review
-          })
+          .set({ generationSourceIds: result.value.mergedSourceIds as string[] })
           .where(eq(sources.id, page.id));
 
         synthesizedIds.push(page.id);
@@ -197,7 +194,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
               if (synthResult.ok && synthResult.value.changeType !== 'no_change') {
                 await this.snapshotVersion(target.id, target.content, 'synthesis', synthResult.value.summary, sourceId);
                 await this.commandBus.execute(
-                  new UpdateNoteCommand(target.id, synthResult.value.content),
+                  new UpdateNoteCommand(target.id, synthResult.value.content, undefined, undefined, undefined, false),
                 );
                 await this.db
                   .update(sources)

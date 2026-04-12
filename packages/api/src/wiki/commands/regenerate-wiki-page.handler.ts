@@ -99,12 +99,10 @@ export class RegenerateWikiPageHandler implements ICommandHandler<RegenerateWiki
     const allSourceIds: string[] = [];
 
     for (const src of sourceContents) {
-      allSourceIds.push(src.id);
-
       const result = await synthesizeWikiPage(
         this.llm,
         synthesizedContent,
-        allSourceIds.slice(0, -1), // existing sources up to this point
+        allSourceIds, // only successfully synthesized sources so far
         src.content,
         src.id,
         { pageTitle, pageTags },
@@ -117,6 +115,7 @@ export class RegenerateWikiPageHandler implements ICommandHandler<RegenerateWiki
       }
 
       synthesizedContent = result.value.content;
+      allSourceIds.push(src.id); // only track after successful synthesis
     }
 
     if (!synthesizedContent) {
@@ -149,18 +148,14 @@ export class RegenerateWikiPageHandler implements ICommandHandler<RegenerateWiki
       changeSummary: `Regenerated from ${sourceContents.length} sources`,
     });
 
-    // Update the page
+    // Update the page (automated — do not set userReviewed)
     await this.commandBus.execute(
-      new UpdateNoteCommand(pageId, synthesizedContent),
+      new UpdateNoteCommand(pageId, synthesizedContent, undefined, undefined, undefined, false),
     );
 
-    // Reset userReviewed since content is now AI-generated
     await this.db
       .update(sources)
-      .set({
-        userReviewed: false,
-        generationSourceIds: [...new Set(allSourceIds)],
-      })
+      .set({ generationSourceIds: [...new Set(allSourceIds)] })
       .where(eq(sources.id, pageId));
 
     // Log

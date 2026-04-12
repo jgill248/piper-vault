@@ -195,7 +195,8 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
 
     // If a user edits a generated wiki page, mark it as user-reviewed
     // to protect it from silent overwrite by future auto-synthesis.
-    if (content !== undefined && note.isGenerated) {
+    // Automated synthesis passes userInitiated=false to skip this flag.
+    if (content !== undefined && note.isGenerated && command.userInitiated) {
       updates['userReviewed'] = true;
     }
 
