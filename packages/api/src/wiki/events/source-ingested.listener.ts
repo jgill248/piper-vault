@@ -10,6 +10,11 @@ export class SourceIngestedListener implements IEventHandler<SourceIngestedEvent
   constructor(private readonly commandBus: CommandBus) {}
 
   async handle(event: SourceIngestedEvent): Promise<void> {
+    if (event.isGenerated) {
+      this.logger.debug(`Skipping wiki generation for generated source ${event.sourceId}`);
+      return;
+    }
+
     this.logger.debug(`Source ingested: ${event.sourceId} (${event.filename}), triggering wiki generation`);
     try {
       await this.commandBus.execute(

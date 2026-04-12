@@ -7,5 +7,6 @@ export class SourceIngestedEvent {
     public readonly sourceId: string,
     public readonly collectionId: string,
     public readonly filename: string,
+    public readonly isGenerated: boolean = false,
   ) {}
 }
