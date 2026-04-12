@@ -1,4 +1,4 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Inject, Logger, NotFoundException } from '@nestjs/common';
 import { eq, and, isNull, inArray } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
@@ -6,6 +6,7 @@ import { DEFAULT_CONFIG } from '@delve/shared';
 import type { IngestionPipeline, Embedder } from '@delve/core';
 import { extractFrontmatter, parseWikiLinks } from '@delve/core';
 import { UpdateNoteCommand } from './update-note.command';
+import { SourceIngestedEvent } from '../../sources/events/source-ingested.event';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { sources, chunks, sourceLinks } from '../../database/schema';
@@ -19,6 +20,7 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
     @Inject(DATABASE) private readonly db: Database,
     @Inject('INGESTION_PIPELINE') private readonly pipeline: IngestionPipeline,
     @Inject('EMBEDDER') private readonly embedder: Embedder,
+    @Inject(EventBus) private readonly eventBus: EventBus,
   ) {}
 
   async execute(command: UpdateNoteCommand): Promise<Result<void, string>> {
@@ -234,6 +236,13 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
     }
 
     this.logger.log(`Updated note ${noteId}`);
+
+    // Trigger async wiki generation for updated user-created notes
+    if (content !== undefined && !note.isGenerated) {
+      const resolvedTitle = (updates['title'] as string | undefined) ?? note.title ?? note.filename;
+      this.eventBus.publish(new SourceIngestedEvent(noteId, note.collectionId, resolvedTitle));
+    }
+
     return { ok: true, value: undefined };
   }
 }

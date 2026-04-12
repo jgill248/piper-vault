@@ -1,8 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { EventBus } from '@nestjs/cqrs';
 import { CreateNoteHandler } from './create-note.handler';
 import { CreateNoteCommand } from './create-note.command';
 import type { Database } from '../../database/connection';
 import type { IngestionPipeline, Embedder } from '@delve/core';
+
+function makeEventBus(): EventBus {
+  return { publish: vi.fn() } as unknown as EventBus;
+}
 
 function makeDb() {
   const insertValues = vi.fn().mockReturnValue({
@@ -47,7 +52,7 @@ describe('CreateNoteHandler', () => {
     const { db } = makeDb();
     const pipeline = makePipeline();
     const embedder = makeEmbedder();
-    const handler = new CreateNoteHandler(db, pipeline, embedder);
+    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
 
     const result = await handler.execute(
       new CreateNoteCommand('My Note', 'Hello [[World]]', 'col-1', null, ['test']),
@@ -64,7 +69,7 @@ describe('CreateNoteHandler', () => {
     const { db, insertValues } = makeDb();
     const pipeline = makePipeline();
     const embedder = makeEmbedder();
-    const handler = new CreateNoteHandler(db, pipeline, embedder);
+    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
 
     await handler.execute(
       new CreateNoteCommand(
@@ -92,7 +97,7 @@ describe('CreateNoteHandler', () => {
       ingest: vi.fn().mockResolvedValue({ ok: false, error: 'Parse error' }),
     } as unknown as IngestionPipeline;
     const embedder = makeEmbedder();
-    const handler = new CreateNoteHandler(db, pipeline, embedder);
+    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
 
     const result = await handler.execute(
       new CreateNoteCommand('Fail', 'content', 'col-1'),
@@ -110,7 +115,7 @@ describe('CreateNoteHandler', () => {
     const embedder = {
       embedBatch: vi.fn().mockResolvedValue({ ok: false, error: 'Embed error' }),
     } as unknown as Embedder;
-    const handler = new CreateNoteHandler(db, pipeline, embedder);
+    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
 
     const result = await handler.execute(
       new CreateNoteCommand('Note', 'content', 'col-1'),

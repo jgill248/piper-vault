@@ -219,6 +219,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
             collectionId,
             cfg.wikiParentPath,
             [...page.tags, 'wiki-generated'],
+            true, // skipWikiGeneration — prevent recursive wiki generation
           ),
         );
         if (noteResult.ok) {

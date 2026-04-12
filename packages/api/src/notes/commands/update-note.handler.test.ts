@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
+import type { EventBus } from '@nestjs/cqrs';
 import { UpdateNoteHandler } from './update-note.handler';
 import { UpdateNoteCommand } from './update-note.command';
 import type { Database } from '../../database/connection';
 import type { IngestionPipeline, Embedder } from '@delve/core';
+
+function makeEventBus(): EventBus {
+  return { publish: vi.fn() } as unknown as EventBus;
+}
 
 function makeDb(existingNote: Record<string, unknown> | null = null) {
   const deleteFn = vi.fn().mockReturnValue({
@@ -63,7 +68,7 @@ const NOTE = {
 describe('UpdateNoteHandler', () => {
   it('throws NotFoundException when note does not exist', async () => {
     const { db } = makeDb(null);
-    const handler = new UpdateNoteHandler(db, makePipeline(), makeEmbedder());
+    const handler = new UpdateNoteHandler(db, makePipeline(), makeEmbedder(), makeEventBus());
 
     await expect(
       handler.execute(new UpdateNoteCommand('missing-id', 'new content')),
@@ -74,7 +79,7 @@ describe('UpdateNoteHandler', () => {
     const { db } = makeDb(NOTE);
     const pipeline = makePipeline();
     const embedder = makeEmbedder();
-    const handler = new UpdateNoteHandler(db, pipeline, embedder);
+    const handler = new UpdateNoteHandler(db, pipeline, embedder, makeEventBus());
 
     const result = await handler.execute(
       new UpdateNoteCommand('note-1', 'updated content [[Link]]'),
@@ -89,7 +94,7 @@ describe('UpdateNoteHandler', () => {
     const { db } = makeDb(NOTE);
     const pipeline = makePipeline();
     const embedder = makeEmbedder();
-    const handler = new UpdateNoteHandler(db, pipeline, embedder);
+    const handler = new UpdateNoteHandler(db, pipeline, embedder, makeEventBus());
 
     const result = await handler.execute(
       new UpdateNoteCommand('note-1', undefined, 'New Title', undefined, ['new-tag']),
