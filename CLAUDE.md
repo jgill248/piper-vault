@@ -220,8 +220,23 @@ Project management is tracked on GitHub Projects and Issues. Use the `gh` CLI fo
 | Phase A: The Vault Experience | **Active** | Knowledge graph viz (#245), Obsidian/Notion import (#246), vault-first onboarding (#233), graph-aware search (#247), tag browser (#248), smart link suggestions (#249) |
 | Phase B: Distribution | Planned | License-key gated distribution (#236), CI/CD, landing page, payment |
 | Phase C: Polish | Backlog | Follow-up questions (#181), MCP server mode (#26) |
+| Phase D: Enterprise | Planned (after B) | Tenancy foundation (D1), RBAC & sharing (D2), audit log & admin UX (D3), enterprise add-on bundle with SSO/SAML/SCIM (D4), deployment & compliance posture (D5) |
 
 Phases 6–14 from the original spec have been closed as not_planned. They were speculative features with no market pull.
+
+### Phase D Sub-Milestones
+
+Phase D is split into five sequenced sub-milestones, each independently QA-gateable. Tracked via epic issues on GitHub with the `phase-d` label.
+
+| Sub-milestone | Scope | Licensing |
+|---------------|-------|-----------|
+| D1 — Tenancy Foundation | Organizations, teams, memberships; tenancy middleware; single-user migration path | OSS (AGPL) |
+| D2 — RBAC & Collection Sharing | Permission matrix, built-in roles, role bindings, collection collaborators | OSS (AGPL) |
+| D3 — Audit Log & Admin UX | Audit event taxonomy, append-only audit log, admin viewer & org settings | OSS (AGPL) |
+| D4 — Enterprise Add-on Bundle | `packages/enterprise/` (separately licensed): SSO (OIDC + SAML), SCIM, advanced audit, SIEM export, admin analytics | Commercial |
+| D5 — Deployment & Compliance | Helm chart, air-gapped bundle, managed cloud control plane, SOC2/GDPR posture, landing flip | OSS + commercial |
+
+Sequencing: D1 → D2 → D3 may overlap mildly. D4 depends on D1 (auth refactor needs tenancy). D5 can start anytime but closes after D1–D4.
 
 ### GitHub Project Board IDs
 
