@@ -41,6 +41,16 @@ export interface WikiPromoteResult {
 }
 
 /**
+ * Sanitise a string returned by an LLM: replace the Unicode replacement
+ * character (U+FFFD — appears when the model or transport layer corrupts
+ * multi-byte UTF-8 sequences such as em dashes) with a regular ASCII
+ * hyphen-minus surrounded by spaces, then NFC-normalize the result.
+ */
+export function sanitizeLlmText(text: string): string {
+  return text.replace(/\uFFFD/g, '-').normalize('NFC');
+}
+
+/**
  * Parses a JSON response from the LLM, stripping markdown code fences if present.
  */
 export function parseJsonResponse<T>(raw: string): Result<T, string> {
@@ -98,13 +108,13 @@ export async function generateWikiPages(
     ok: true,
     value: {
       pages: (data.pages ?? []).map((p) => ({
-        title: p.title,
-        content: p.content,
+        title: sanitizeLlmText(p.title),
+        content: sanitizeLlmText(p.content),
         tags: p.tags ?? [],
       })),
       updatedPages: (data.updatedPages ?? []).map((u) => ({
-        title: u.title,
-        appendContent: u.appendContent,
+        title: sanitizeLlmText(u.title),
+        appendContent: sanitizeLlmText(u.appendContent),
         reason: u.reason,
       })),
       summary: data.summary ?? `Generated ${data.pages?.length ?? 0} pages from ${sourceFilename}`,
@@ -148,10 +158,10 @@ export async function promoteConversationToWiki(
   return {
     ok: true,
     value: {
-      title: data.title,
-      content: data.content,
+      title: sanitizeLlmText(data.title),
+      content: sanitizeLlmText(data.content),
       tags: data.tags ?? [],
-      summary: data.summary ?? `Promoted conversation to wiki page: ${data.title}`,
+      summary: data.summary ?? `Promoted conversation to wiki page: ${sanitizeLlmText(data.title)}`,
     },
   };
 }

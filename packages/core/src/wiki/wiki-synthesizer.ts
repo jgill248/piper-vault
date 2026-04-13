@@ -5,7 +5,7 @@
  */
 import type { Result } from '@delve/shared';
 import type { LlmProvider } from '../llm/provider.js';
-import { parseJsonResponse } from './wiki-generator.js';
+import { parseJsonResponse, sanitizeLlmText } from './wiki-generator.js';
 import {
   WIKI_SYNTHESIZE_SYSTEM_PROMPT,
   buildWikiSynthesizePrompt,
@@ -81,7 +81,7 @@ export async function synthesizeWikiPage(
     value: {
       content: changeType === 'no_change'
         ? existingContent
-        : (data.content ?? existingContent),
+        : sanitizeLlmText(data.content ?? existingContent),
       mergedSourceIds,
       summary: data.summary ?? `Synthesized ${metadata.pageTitle} with new source`,
       changeType,
