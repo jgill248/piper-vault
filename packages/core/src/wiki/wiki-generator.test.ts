@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { generateWikiPages, promoteConversationToWiki, parseJsonResponse } from './wiki-generator';
+import { generateWikiPages, promoteConversationToWiki, parseJsonResponse, sanitizeLlmText } from './wiki-generator';
 import type { LlmProvider } from '../llm/provider';
 
 function makeLlm(response: string): LlmProvider {
@@ -17,6 +17,36 @@ function makeFailingLlm(): LlmProvider {
     listModels: vi.fn().mockResolvedValue([]),
   } as unknown as LlmProvider;
 }
+
+// ---------------------------------------------------------------------------
+// sanitizeLlmText
+// ---------------------------------------------------------------------------
+
+describe('sanitizeLlmText', () => {
+  it('replaces U+FFFD with a hyphen', () => {
+    expect(sanitizeLlmText('Meeting Notes \uFFFD Architecture Review'))
+      .toBe('Meeting Notes - Architecture Review');
+  });
+
+  it('replaces multiple U+FFFD characters', () => {
+    expect(sanitizeLlmText('\uFFFDhello\uFFFDworld\uFFFD'))
+      .toBe('-hello-world-');
+  });
+
+  it('leaves clean strings unchanged', () => {
+    expect(sanitizeLlmText('Normal title with em dash — here'))
+      .toBe('Normal title with em dash \u2014 here');
+  });
+
+  it('NFC-normalizes composed characters', () => {
+    // é as e + combining acute (NFD) should become single é (NFC)
+    expect(sanitizeLlmText('caf\u0065\u0301')).toBe('caf\u00E9');
+  });
+
+  it('handles empty string', () => {
+    expect(sanitizeLlmText('')).toBe('');
+  });
+});
 
 // ---------------------------------------------------------------------------
 // parseJsonResponse
@@ -141,6 +171,28 @@ describe('generateWikiPages', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.summary).toContain('source.md');
+    }
+  });
+
+  it('sanitizes U+FFFD in page titles and content', async () => {
+    const llm = makeLlm(JSON.stringify({
+      pages: [
+        { title: 'Notes \uFFFD Review', content: 'Content with \uFFFD char', tags: [] },
+      ],
+      updatedPages: [
+        { title: 'Existing \uFFFD Page', appendContent: 'New \uFFFD info', reason: 'update' },
+      ],
+      summary: 'ok',
+    }));
+
+    const result = await generateWikiPages(llm, 'f.txt', 'content', [], 5);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.pages[0].title).toBe('Notes - Review');
+      expect(result.value.pages[0].content).toBe('Content with - char');
+      expect(result.value.updatedPages[0].title).toBe('Existing - Page');
+      expect(result.value.updatedPages[0].appendContent).toBe('New - info');
     }
   });
 
