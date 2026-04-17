@@ -38,8 +38,8 @@ function CreatedKeyBanner({ fullKey, onDismiss }: CreatedKeyBannerProps) {
       <p className="font-label text-[9px] text-yellow-400 uppercase tracking-widest mb-2">
         KEY_CREATED — COPY NOW — NOT SHOWN AGAIN
       </p>
-      <div className="flex items-center gap-2">
-        <code className="flex-1 font-label text-[10px] text-primary bg-background px-2 py-1.5 overflow-x-auto whitespace-nowrap">
+      <div className="flex items-center gap-2 min-w-0">
+        <code className="flex-1 min-w-0 font-label text-[10px] text-primary bg-background px-2 py-1.5 overflow-x-auto whitespace-nowrap">
           {fullKey}
         </code>
         <button
@@ -89,18 +89,18 @@ function ApiKeyRowItem({ apiKey, collectionName, onRevoke, isRevoking }: ApiKeyR
             {apiKey.prefix}...
           </code>
         </div>
-        <div className="flex items-center gap-3 mt-0.5">
-          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+          <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest truncate max-w-full">
             {collectionName}
           </span>
-          <span className="font-label text-[9px] text-on-surface-variant">
+          <span className="font-label text-[9px] text-on-surface-variant whitespace-nowrap">
             Created {formatDate(apiKey.createdAt)}
           </span>
-          <span className="font-label text-[9px] text-on-surface-variant">
+          <span className="font-label text-[9px] text-on-surface-variant whitespace-nowrap">
             Used {formatDate(apiKey.lastUsedAt)}
           </span>
           {apiKey.expiresAt && (
-            <span className={`font-label text-[9px] ${new Date(apiKey.expiresAt) < new Date() ? 'text-red-400' : 'text-on-surface-variant'}`}>
+            <span className={`font-label text-[9px] whitespace-nowrap ${new Date(apiKey.expiresAt) < new Date() ? 'text-red-400' : 'text-on-surface-variant'}`}>
               Expires {formatDate(apiKey.expiresAt)}
             </span>
           )}

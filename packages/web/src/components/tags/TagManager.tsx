@@ -173,7 +173,8 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
                 onFilterByTag(activeTag === tag ? '' : tag);
               }
             }}
-            className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-label transition-colors ${
+            title={`#${tag} (${count})`}
+            className={`inline-flex items-center gap-1 px-2 py-1 text-[10px] font-label transition-colors max-w-[200px] ${
               bulkMode && selectedTags.has(tag)
                 ? 'text-red-300 bg-red-400/20 ring-1 ring-red-400/40'
                 : activeTag === tag
@@ -182,10 +183,10 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
             }`}
           >
             {bulkMode && selectedTags.has(tag) && (
-              <X size={8} strokeWidth={2} />
+              <X size={8} strokeWidth={2} className="shrink-0" />
             )}
-            #{tag}
-            <span className="opacity-60">{count}</span>
+            <span className="truncate">#{tag}</span>
+            <span className="opacity-60 shrink-0">{count}</span>
           </button>
         ))}
       </div>

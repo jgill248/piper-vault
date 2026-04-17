@@ -112,12 +112,12 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
       {!expanded && activeCount > 0 && (
         <div className="flex items-center gap-1.5 px-4 pb-1.5 flex-wrap">
           {filters.fileTypes.map((ft) => (
-            <span key={ft} className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider">
+            <span key={ft} className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider max-w-[160px] truncate">
               {ft}
             </span>
           ))}
           {filters.tags.map((tag) => (
-            <span key={tag} className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider">
+            <span key={tag} title={`#${tag}`} className="font-label text-[8px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider max-w-[160px] truncate">
               #{tag}
             </span>
           ))}

@@ -38,10 +38,13 @@ export function GraphPanel() {
   const [highlightNodes, setHighlightNodes] = useState<Set<GraphNode>>(new Set());
   const [highlightLinks, setHighlightLinks] = useState<Set<GraphLink>>(new Set());
 
-  // Track container size
+  // Track container size. Seed from clientWidth/Height synchronously so the
+  // canvas mounts at the right size on narrow viewports — otherwise the
+  // initial 800×600 default overflows small containers until the observer fires.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    setDimensions({ width: el.clientWidth, height: el.clientHeight });
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) {

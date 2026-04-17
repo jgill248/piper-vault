@@ -80,7 +80,7 @@ export function MessageBubble({ message, conversationId, onSourceClick }: Messag
 
       {/* Message body */}
       <div
-        className={`max-w-[80%] px-4 py-3 text-sm ${
+        className={`max-w-full md:max-w-[80%] min-w-0 px-4 py-3 text-sm ${
           isUser
             ? 'bg-surface-container-high text-on-surface border-r-2 border-r-on-surface-variant/30'
             : 'bg-surface text-on-surface border-l-3 border-l-primary/50'
@@ -197,7 +197,7 @@ export function MessageBubble({ message, conversationId, onSourceClick }: Messag
 
       {/* Source citations */}
       {isAssistant && message.sources && message.sources.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5 max-w-[80%]">
+        <div className="mt-1.5 flex flex-wrap gap-1.5 max-w-full md:max-w-[80%]">
           <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest self-center">
             SOURCES:
           </span>

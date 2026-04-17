@@ -161,9 +161,9 @@ export function NotesPanel() {
           </button>
         </div>
       )}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 min-w-0">
       {/* Left panel: Folders + Note list */}
-      <div className="w-64 flex flex-col border-r border-outline-variant/20 bg-surface">
+      <div className="w-64 shrink-0 flex flex-col border-r border-outline-variant/20 bg-surface">
         {/* Folder tree */}
         <div className="h-48 border-b border-outline-variant/20 overflow-auto">
           <FolderTree
@@ -204,10 +204,10 @@ export function NotesPanel() {
       </div>
 
       {/* Right panel: Editor + Backlinks */}
-      <div className="flex-1 flex flex-col bg-surface-container">
+      <div className="flex-1 min-w-0 flex flex-col bg-surface-container">
         {selectedNote ? (
           <>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 min-w-0 overflow-hidden">
               <NoteEditor
                 ref={editorRef}
                 noteId={selectedNote.id}

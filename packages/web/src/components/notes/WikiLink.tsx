@@ -27,7 +27,8 @@ export function WikiLink({
       <button
         type="button"
         onClick={onClick}
-        className="font-label text-xs text-primary underline decoration-primary/30 underline-offset-2 cursor-pointer hover:decoration-primary transition-all inline"
+        title={label}
+        className="font-label text-xs text-primary underline decoration-primary/30 underline-offset-2 cursor-pointer hover:decoration-primary transition-all inline [overflow-wrap:anywhere] [word-break:break-word]"
         style={{
           background: 'none',
           border: 'none',
@@ -42,7 +43,7 @@ export function WikiLink({
 
   return (
     <span
-      className="font-label text-xs text-on-surface-variant underline decoration-dashed decoration-on-surface-variant/30 underline-offset-2 cursor-default"
+      className="font-label text-xs text-on-surface-variant underline decoration-dashed decoration-on-surface-variant/30 underline-offset-2 cursor-default [overflow-wrap:anywhere] [word-break:break-word]"
       title={`"${targetFilename}" does not exist yet`}
     >
       {label}

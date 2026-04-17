@@ -36,14 +36,14 @@ function MoveFolderMenu({
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full z-50 mt-0.5 min-w-[140px] bg-surface-container-high border border-outline-variant/30"
+      className="absolute right-0 top-full z-50 mt-0.5 min-w-[140px] max-w-[260px] bg-surface-container-high border border-outline-variant/30"
     >
       <div className="px-2 py-1 border-b border-outline-variant/20">
         <span className="text-[9px] font-label text-on-surface-variant uppercase tracking-wider">Move to folder</span>
       </div>
       <button
         onClick={() => { onMove(null); onClose(); }}
-        className={`w-full text-left px-2 py-1.5 text-xs font-label transition-colors hover:bg-surface ${
+        className={`w-full text-left px-2 py-1.5 text-xs font-label transition-colors hover:bg-surface truncate ${
           !currentPath ? 'text-primary' : 'text-secondary hover:text-on-surface'
         }`}
       >
@@ -53,7 +53,8 @@ function MoveFolderMenu({
         <button
           key={folder.id}
           onClick={() => { onMove(folder.path); onClose(); }}
-          className={`w-full text-left px-2 py-1.5 text-xs font-label transition-colors hover:bg-surface ${
+          title={folder.path}
+          className={`w-full text-left px-2 py-1.5 text-xs font-label transition-colors hover:bg-surface truncate ${
             currentPath === folder.path ? 'text-primary' : 'text-secondary hover:text-on-surface'
           }`}
         >
@@ -126,7 +127,7 @@ export function NoteList({
                   e.stopPropagation();
                   setMoveMenuNoteId(showMoveMenu ? undefined : note.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-on-surface-variant hover:text-primary transition-all"
+                className="opacity-0 group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 p-0.5 text-on-surface-variant hover:text-primary transition-all"
                 title="Move to folder"
                 aria-label={`Move ${note.title || note.filename} to folder`}
               >
@@ -137,7 +138,7 @@ export function NoteList({
                   e.stopPropagation();
                   onDeleteNote(note.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-on-surface-variant hover:text-red-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 p-0.5 text-on-surface-variant hover:text-red-400 transition-all"
                 title="Delete note"
                 aria-label={`Delete ${note.title || note.filename}`}
               >
@@ -145,11 +146,12 @@ export function NoteList({
               </button>
             </div>
             {note.tags && note.tags.length > 0 && (
-              <div className="flex gap-1 mt-1 ml-5">
+              <div className="flex flex-wrap gap-1 mt-1 ml-5 min-w-0 overflow-hidden">
                 {note.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
-                    className="text-[10px] font-label text-on-surface-variant bg-surface px-1"
+                    title={`#${tag}`}
+                    className="text-[10px] font-label text-on-surface-variant bg-surface px-1 max-w-[120px] truncate"
                   >
                     #{tag}
                   </span>
