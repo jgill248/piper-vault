@@ -104,7 +104,12 @@
       "Bash(docker images:*)",
       "Bash(docker info:*)",
       "mcp__plugin_playwright_playwright__browser_close",
-      "Bash(pnpm db:migrate)"
+      "Bash(pnpm db:migrate)",
+      "Bash(docker start *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); notes=[n for n in d.get\\('data',[]\\) if 'Vector Search' in \\(n.get\\('title'\\) or ''\\)]; print\\(json.dumps\\([{'id':n['id'],'title':n.get\\('title'\\),'filename':n.get\\('filename'\\)} for n in notes], indent=2\\)\\)\")",
+      "Bash(base64 -w0 D:/tmp/fullapp-test-upload.md)",
+      "Bash(echo \"status: $?\")"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"
