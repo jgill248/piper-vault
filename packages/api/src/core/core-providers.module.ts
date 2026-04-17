@@ -1,8 +1,20 @@
-import { Module, Global, Injectable, Inject } from '@nestjs/common';
+import { Module, Global, Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Provider } from '@nestjs/common';
-import { OnnxEmbedder, DefaultIngestionPipeline, createLlmProvider, LlmReranker } from '@delve/core';
-import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk, PluginRegistry } from '@delve/core';
+import {
+  OnnxEmbedder,
+  DefaultIngestionPipeline,
+  createResilientLlmProvider,
+  LlmReranker,
+} from '@delve/core';
+import type {
+  LlmProvider,
+  LlmQuery,
+  LlmResponse,
+  LlmStreamChunk,
+  PluginRegistry,
+} from '@delve/core';
+import type { LlmProviderName } from '@delve/shared';
 import type { Result } from '@delve/shared';
 import { ConfigStore } from '../config/config.store.js';
 import { SecretsStore } from '../config/secrets.store.js';
@@ -18,8 +30,26 @@ import { PluginsModule } from '../plugins/plugins.module.js';
  * active provider config on every call so that changes made through the
  * settings UI take effect without a server restart.
  */
+const KNOWN_PROVIDER_NAMES: readonly LlmProviderName[] = [
+  'ask-sage',
+  'anthropic',
+  'openai',
+  'ollama',
+];
+
+function parseFallbackProviders(raw: string | undefined): readonly LlmProviderName[] {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter((s): s is LlmProviderName =>
+      (KNOWN_PROVIDER_NAMES as readonly string[]).includes(s),
+    );
+}
+
 @Injectable()
 export class LlmProviderProxy implements LlmProvider {
+  private readonly logger = new Logger(LlmProviderProxy.name);
   private provider: LlmProvider;
   private lastProvider: string = '';
   private lastConfigSnapshot: string = '';
@@ -83,30 +113,51 @@ export class LlmProviderProxy implements LlmProvider {
     });
     this.lastSecretsGeneration = this.secretsStore.generation;
 
-    return createLlmProvider({
-      provider: appConfig.llmProvider,
-      // Credentials: SecretsStore > env var > empty
-      askSageToken:
-        this.secretsStore.getSecret('llm.ask-sage.token')
-        ?? this.configService.get<string>('ASK_SAGE_TOKEN')
-        ?? '',
-      anthropicApiKey:
-        this.secretsStore.getSecret('llm.anthropic.apiKey')
-        ?? this.configService.get<string>('ANTHROPIC_API_KEY')
-        ?? '',
-      openaiApiKey:
-        this.secretsStore.getSecret('llm.openai.apiKey')
-        ?? this.configService.get<string>('OPENAI_API_KEY')
-        ?? '',
-      // Base URLs: providerSettings > env var > undefined (adapter uses its default)
-      askSageBaseUrl: ps?.['ask-sage']?.baseUrl ?? undefined,
-      anthropicBaseUrl: ps?.['anthropic']?.baseUrl ?? undefined,
-      openaiBaseUrl: ps?.['openai']?.baseUrl ?? undefined,
-      ollamaBaseUrl:
-        ps?.['ollama']?.baseUrl
-        ?? this.configService.get<string>('OLLAMA_BASE_URL'),
-      defaultModel: appConfig.llmModel,
-    });
+    const fallbackProviders = parseFallbackProviders(
+      this.configService.get<string>('LLM_FALLBACK_PROVIDERS'),
+    ).filter((name) => name !== appConfig.llmProvider);
+
+    const logger = this.logger;
+
+    return createResilientLlmProvider(
+      {
+        provider: appConfig.llmProvider,
+        // Credentials: SecretsStore > env var > empty
+        askSageToken:
+          this.secretsStore.getSecret('llm.ask-sage.token')
+          ?? this.configService.get<string>('ASK_SAGE_TOKEN')
+          ?? '',
+        anthropicApiKey:
+          this.secretsStore.getSecret('llm.anthropic.apiKey')
+          ?? this.configService.get<string>('ANTHROPIC_API_KEY')
+          ?? '',
+        openaiApiKey:
+          this.secretsStore.getSecret('llm.openai.apiKey')
+          ?? this.configService.get<string>('OPENAI_API_KEY')
+          ?? '',
+        // Base URLs: providerSettings > env var > undefined (adapter uses its default)
+        askSageBaseUrl: ps?.['ask-sage']?.baseUrl ?? undefined,
+        anthropicBaseUrl: ps?.['anthropic']?.baseUrl ?? undefined,
+        openaiBaseUrl: ps?.['openai']?.baseUrl ?? undefined,
+        ollamaBaseUrl:
+          ps?.['ollama']?.baseUrl
+          ?? this.configService.get<string>('OLLAMA_BASE_URL'),
+        defaultModel: appConfig.llmModel,
+      },
+      fallbackProviders,
+      {
+        onAttemptError: (event) => {
+          const action = event.willRetry
+            ? 'will retry'
+            : event.willFallback
+              ? 'falling back'
+              : 'giving up';
+          logger.warn(
+            `LLM attempt ${event.attempt} on ${event.providerName} failed (${action}): ${event.error}`,
+          );
+        },
+      },
+    );
   }
 }
 

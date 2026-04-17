@@ -19,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
 import { NotesModule } from './notes/notes.module';
 import { PresetsModule } from './presets/presets.module';
 import { WikiModule } from './wiki/wiki.module';
+import { VaultModule } from './vault/vault.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { WikiModule } from './wiki/wiki.module';
     NotesModule,
     PresetsModule,
     WikiModule,
+    VaultModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

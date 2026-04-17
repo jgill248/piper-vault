@@ -4,6 +4,11 @@ import { AskSageProvider } from './ask-sage.js';
 import { AnthropicProvider } from './anthropic.js';
 import { OpenAiProvider } from './openai.js';
 import { OllamaProvider } from './ollama.js';
+import {
+  ResilientLlmProvider,
+  type ResilientProviderEntry,
+  type ResilientProviderOptions,
+} from './resilient-provider.js';
 
 /**
  * Configuration for constructing an LLM provider via the factory.
@@ -40,4 +45,40 @@ export function createLlmProvider(config: ProviderConfig): LlmProvider {
     case 'ollama':
       return new OllamaProvider(config.ollamaBaseUrl, config.defaultModel);
   }
+}
+
+/**
+ * Builds a ResilientLlmProvider that wraps the primary provider plus any
+ * configured fallbacks with exponential-backoff retry on transient failures.
+ *
+ * `fallbackProviders` lists provider names to try (in order) when the primary
+ * exhausts retries or returns a terminal error. Each named provider uses the
+ * same shared credentials in `config` — this lets an OpenAI primary fail over
+ * to Ollama without re-entering keys.
+ */
+export function createResilientLlmProvider(
+  config: ProviderConfig,
+  fallbackProviders: readonly LlmProviderName[] = [],
+  options: ResilientProviderOptions = {},
+): LlmProvider {
+  const entries: ResilientProviderEntry[] = [];
+
+  entries.push({ name: config.provider, provider: createLlmProvider(config) });
+
+  const seen = new Set<LlmProviderName>([config.provider]);
+  for (const name of fallbackProviders) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+    entries.push({
+      name,
+      provider: createLlmProvider({ ...config, provider: name }),
+    });
+  }
+
+  if (entries.length === 1) {
+    // A lone primary still benefits from retry, so keep the wrapper.
+    return new ResilientLlmProvider(entries, options);
+  }
+
+  return new ResilientLlmProvider(entries, options);
 }

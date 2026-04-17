@@ -312,6 +312,36 @@ export const api = {
     return response.text();
   },
 
+  // Vault export / import — take-my-data portability
+  exportVault: async (options?: {
+    collectionId?: string;
+    includeConversations?: boolean;
+  }): Promise<Blob> => {
+    const sp = new URLSearchParams();
+    if (options?.collectionId) sp.set('collectionId', options.collectionId);
+    if (options?.includeConversations === false) sp.set('includeConversations', 'false');
+    const qs = sp.toString();
+    const authHeaders: Record<string, string> =
+      _authToken ? { Authorization: `Bearer ${_authToken}` } : {};
+    const response = await fetch(`${BASE_URL}/vault/export${qs ? `?${qs}` : ''}`, {
+      headers: authHeaders,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+      throw new Error(
+        (error as { error?: { message?: string } }).error?.message ?? 'Vault export failed',
+      );
+    }
+    return response.blob();
+  },
+
+  importVault: (payload: unknown): Promise<{
+    ok: boolean;
+    imported: Record<string, number>;
+    reprocessRecommended: boolean;
+  }> =>
+    request('/vault/import', { method: 'POST', body: JSON.stringify(payload) }),
+
   // Health
   health: (): Promise<HealthResponse> => request<HealthResponse>('/health'),
 

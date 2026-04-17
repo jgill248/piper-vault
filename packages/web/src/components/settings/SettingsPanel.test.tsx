@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { ToastProvider } from '../../context/ToastContext';
+
+function renderWithProviders(ui: ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>);
+}
 
 // ---------------------------------------------------------------------------
 // Mock hooks — factories must not reference top-level variables (hoisted)
@@ -109,12 +115,12 @@ describe('SettingsPanel', () => {
   });
 
   it('renders the settings header', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.getByText('System Configuration')).toBeDefined();
   });
 
   it('renders LLM provider dropdown with all options', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     // ASK_SAGE appears in both config editor and system info, so use getAllByText
     expect(screen.getAllByText('ASK_SAGE').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('ANTHROPIC').length).toBeGreaterThanOrEqual(1);
@@ -123,49 +129,49 @@ describe('SettingsPanel', () => {
   });
 
   it('renders hybrid search toggle', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.getByLabelText('Toggle hybrid search')).toBeDefined();
   });
 
   it('renders re-ranking toggle', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.getByLabelText('Toggle re-ranking')).toBeDefined();
   });
 
   it('renders follow-up questions toggle', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.getByLabelText('Toggle follow-up questions')).toBeDefined();
   });
 
   it('save button is disabled when no changes are made', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     const saveBtn = screen.getByLabelText('Save configuration changes');
     expect((saveBtn as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('enables save button after a change is made', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
     const saveBtn = screen.getByLabelText('Save configuration changes');
     expect((saveBtn as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('shows HYBRID_WEIGHT slider when hybrid search is enabled', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.queryByText('HYBRID_WEIGHT')).toBeNull();
     fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
     expect(screen.getByText('HYBRID_WEIGHT')).toBeDefined();
   });
 
   it('shows RERANK_TOP_N when re-ranking is enabled', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.queryByText('RERANK_TOP_N')).toBeNull();
     fireEvent.click(screen.getByLabelText('Toggle re-ranking'));
     expect(screen.getByText('RERANK_TOP_N')).toBeDefined();
   });
 
   it('resets draft when reset button is clicked', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
     expect((screen.getByLabelText('Save configuration changes') as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByLabelText('Reset to last saved values'));
@@ -173,14 +179,14 @@ describe('SettingsPanel', () => {
   });
 
   it('calls mutate when save is clicked', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     fireEvent.click(screen.getByLabelText('Toggle hybrid search'));
     fireEvent.click(screen.getByLabelText('Save configuration changes'));
     expect(mockMutate).toHaveBeenCalledTimes(1);
   });
 
   it('renders theme toggle', () => {
-    render(<SettingsPanel />);
+    renderWithProviders(<SettingsPanel />);
     expect(screen.getByLabelText('Switch to light mode')).toBeDefined();
   });
 });
