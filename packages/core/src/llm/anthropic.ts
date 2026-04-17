@@ -134,13 +134,19 @@ export class AnthropicProvider implements LlmProvider {
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      yield { delta: `[Error: ${message}]`, done: true };
+      yield {
+        delta: `[Error: Could not reach Anthropic at ${this.baseUrl} (${message}). Check your network connection.]`,
+        done: true,
+      };
       return;
     }
 
     if (!rawResponse.ok) {
       const text = await rawResponse.text().catch(() => rawResponse.statusText);
-      yield { delta: `[Error: HTTP ${rawResponse.status} — ${text}]`, done: true };
+      yield {
+        delta: `[Error: Anthropic returned HTTP ${rawResponse.status} — ${text}. If this is 401/403, verify your API key in Settings → LLM.]`,
+        done: true,
+      };
       return;
     }
 
