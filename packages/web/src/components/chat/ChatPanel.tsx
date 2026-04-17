@@ -446,7 +446,7 @@ export function ChatPanel() {
 
               {/* Suggested follow-ups */}
               {followUps.length > 0 && !isStreaming && (
-                <div className="flex flex-col gap-1.5 mb-4 max-w-[80%]">
+                <div className="flex flex-col gap-1.5 mb-4 max-w-full md:max-w-[80%]">
                   <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
                     SUGGESTED FOLLOW-UPS
                   </span>

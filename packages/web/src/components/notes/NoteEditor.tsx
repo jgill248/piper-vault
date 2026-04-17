@@ -165,7 +165,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   return (
     <div className="flex flex-col h-full">
       {/* Title bar */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant/20">
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant/20 min-w-0">
         <input
           type="text"
           value={title}
@@ -173,8 +173,9 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
             setTitle(e.target.value);
             setIsDirty(true);
           }}
-          className="flex-1 bg-transparent font-headline text-lg text-on-surface outline-none placeholder:text-on-surface-variant"
+          className="flex-1 min-w-0 bg-transparent font-headline text-lg text-on-surface outline-none placeholder:text-on-surface-variant"
           placeholder="Note title..."
+          title={title}
         />
         <div className="flex items-center gap-1">
           {isDirty && (

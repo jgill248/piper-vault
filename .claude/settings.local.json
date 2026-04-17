@@ -103,7 +103,8 @@
       "Bash(docker rm:*)",
       "Bash(docker images:*)",
       "Bash(docker info:*)",
-      "mcp__plugin_playwright_playwright__browser_close"
+      "mcp__plugin_playwright_playwright__browser_close",
+      "Bash(pnpm db:migrate)"
     ],
     "additionalDirectories": [
       "d:\\_source\\delve\\spec\\stitch\\slate_syntax"

@@ -88,6 +88,10 @@ export default {
             table: { width: '100%', borderCollapse: 'collapse' },
             'thead th': { borderBottomColor: 'var(--color-primary)', paddingBottom: '0.4rem' },
             'tbody td': { borderTopColor: 'var(--color-outline-variant)', paddingTop: '0.35rem', paddingBottom: '0.35rem' },
+            // Long URLs and unbreakable tokens should never push the container
+            a: { overflowWrap: 'anywhere', wordBreak: 'break-word' },
+            ':not(pre) > code': { wordBreak: 'break-all' },
+            pre: { maxWidth: '100%', overflowX: 'auto' },
           },
         },
       },

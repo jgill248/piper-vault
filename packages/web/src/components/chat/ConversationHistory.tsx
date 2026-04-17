@@ -88,16 +88,14 @@ function ConversationItem({ conversation, isActive, onSelect, onDelete }: Conver
         />
       )}
 
-      <div className="flex items-start justify-between gap-2 pr-6">
+      <div className="flex items-start justify-between gap-2 pr-6 min-w-0">
         <span
-          className={`font-body text-[11px] leading-snug truncate flex-1 ${
+          className={`font-body text-[11px] leading-snug truncate flex-1 min-w-0 ${
             isActive ? 'text-on-surface' : 'text-secondary group-hover:text-on-surface'
           }`}
           title={conversation.title}
         >
-          {conversation.title.length > 36
-            ? `${conversation.title.slice(0, 36)}...`
-            : conversation.title}
+          {conversation.title}
         </span>
       </div>
 
@@ -133,7 +131,7 @@ function ConversationItem({ conversation, isActive, onSelect, onDelete }: Conver
           <button
             onClick={handleDeleteClick}
             aria-label={`Delete conversation: ${conversation.title}`}
-            className="opacity-0 group-hover:opacity-100 text-on-surface-variant hover:text-red-400 transition-all duration-100 p-0.5"
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 text-on-surface-variant hover:text-red-400 transition-all duration-100 p-0.5"
           >
             <Trash2 size={10} strokeWidth={1.5} />
           </button>

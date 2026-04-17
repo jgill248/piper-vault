@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { WikiLog } from './WikiLog';
 import { WikiIndex } from './WikiIndex';
 import { WikiDetail } from './WikiDetail';
@@ -31,7 +32,7 @@ export function WikiPanel() {
             AI-GENERATED KNOWLEDGE BASE
           </p>
         </div>
-        <span className="material-symbols-outlined text-primary text-lg">auto_awesome</span>
+        <Sparkles size={18} strokeWidth={1.5} className="text-primary" aria-hidden="true" />
       </div>
 
       {/* Tab bar */}

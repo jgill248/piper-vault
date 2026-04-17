@@ -147,12 +147,13 @@ function SourceRow({ source }: SourceRowProps) {
       </td>
 
       {/* Tags */}
-      <td className="px-3 py-2">
+      <td className="px-3 py-2" style={{ maxWidth: '220px' }}>
         <div className="flex flex-wrap gap-1">
           {source.tags.map((tag) => (
             <span
               key={tag}
-              className="font-label text-[9px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider"
+              title={tag}
+              className="font-label text-[9px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 uppercase tracking-wider max-w-[140px] truncate"
             >
               {tag}
             </span>
@@ -172,7 +173,7 @@ function SourceRow({ source }: SourceRowProps) {
 
       {/* Actions */}
       <td className="px-3 py-2">
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-100">
           <button
             onClick={handleReindex}
             disabled={reindexSource.isPending}
