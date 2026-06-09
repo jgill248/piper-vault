@@ -1,3 +1,3 @@
 export class ListTagsQuery {
-  constructor() {}
+  constructor(public readonly collectionId?: string) {}
 }

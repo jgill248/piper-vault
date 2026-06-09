@@ -24,6 +24,11 @@ vi.mock('../../context/CollectionContext', () => ({
   useActiveCollection: () => ({ activeCollectionId: 'col-1' }),
 }));
 
+// Mock toast context (TagManager reports rename/delete outcomes via toasts)
+vi.mock('../../context/ToastContext', () => ({
+  useToast: () => ({ addToast: vi.fn() }),
+}));
+
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },

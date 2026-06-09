@@ -16,12 +16,16 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { z } from 'zod';
-import type { Source, PaginatedResponse } from '@delve/shared';
+import type { Result, Source, PaginatedResponse, TagCount } from '@delve/shared';
 import { IngestSourceCommand } from './commands/ingest-source.command';
 import type { IngestSourceResult } from './commands/ingest-source.handler';
 import { DeleteSourceCommand } from './commands/delete-source.command';
 import { ReindexSourceCommand } from './commands/reindex-source.command';
 import { UpdateSourceTagsCommand } from './commands/update-source-tags.command';
+import { RenameTagCommand } from './commands/rename-tag.command';
+import type { RenameTagResult } from './commands/rename-tag.handler';
+import { DeleteTagCommand } from './commands/delete-tag.command';
+import type { DeleteTagResult } from './commands/delete-tag.handler';
 import { ListSourcesQuery } from './queries/list-sources.query';
 import { GetSourceQuery } from './queries/get-source.query';
 import { ListTagsQuery } from './queries/list-tags.query';
@@ -36,6 +40,17 @@ const UpdateTagsSchema = z.object({
 const BulkImportSchema = z.object({
   directoryPath: z.string().min(1),
   tags: z.array(z.string().min(1).max(50)).optional(),
+  collectionId: z.string().uuid().optional(),
+});
+
+const RenameTagSchema = z.object({
+  oldTag: z.string().min(1).max(50),
+  newTag: z.string().min(1).max(50),
+  collectionId: z.string().uuid().optional(),
+});
+
+const DeleteTagSchema = z.object({
+  tag: z.string().min(1).max(50),
   collectionId: z.string().uuid().optional(),
 });
 
@@ -99,8 +114,68 @@ export class SourcesController {
    * Declared before GET /:id so NestJS does not match "tags" as an id param.
    */
   @Get('tags')
-  async listTags(): Promise<string[]> {
-    return this.queryBus.execute(new ListTagsQuery());
+  async listTags(@Query('collectionId') collectionId?: string): Promise<TagCount[]> {
+    return this.queryBus.execute(new ListTagsQuery(collectionId));
+  }
+
+  /**
+   * POST /api/v1/sources/tags/rename
+   * Renames a tag across all sources/notes. Renaming onto an existing tag
+   * merges the two (the resulting tag arrays are deduplicated).
+   */
+  @Post('tags/rename')
+  @HttpCode(HttpStatus.OK)
+  async renameTag(@Body() body: unknown): Promise<RenameTagResult> {
+    const parsed = RenameTagSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request body',
+          details: parsed.error.flatten(),
+        },
+      });
+    }
+
+    const result: Result<RenameTagResult, string> = await this.commandBus.execute(
+      new RenameTagCommand(parsed.data.oldTag, parsed.data.newTag, parsed.data.collectionId),
+    );
+    if (!result.ok) {
+      throw new BadRequestException({
+        error: { code: 'INVALID_TAG_OPERATION', message: result.error },
+      });
+    }
+    return result.value;
+  }
+
+  /**
+   * POST /api/v1/sources/tags/delete
+   * Removes a tag from every source/note carrying it. Body-based (rather
+   * than a :tag path param) so hierarchical tags containing "/" work.
+   */
+  @Post('tags/delete')
+  @HttpCode(HttpStatus.OK)
+  async deleteTag(@Body() body: unknown): Promise<DeleteTagResult> {
+    const parsed = DeleteTagSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request body',
+          details: parsed.error.flatten(),
+        },
+      });
+    }
+
+    const result: Result<DeleteTagResult, string> = await this.commandBus.execute(
+      new DeleteTagCommand(parsed.data.tag, parsed.data.collectionId),
+    );
+    if (!result.ok) {
+      throw new BadRequestException({
+        error: { code: 'INVALID_TAG_OPERATION', message: result.error },
+      });
+    }
+    return result.value;
   }
 
   /**

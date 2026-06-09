@@ -45,6 +45,12 @@ export interface WikiLogEntry {
   readonly createdAt: Date;
 }
 
+/** A tag with the number of sources/notes carrying it. */
+export interface TagCount {
+  readonly tag: string;
+  readonly count: number;
+}
+
 export interface CreateSourceInput {
   readonly filename: string;
   readonly fileType: string;

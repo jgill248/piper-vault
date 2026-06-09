@@ -28,6 +28,7 @@ import type {
   SystemPromptPreset,
   CreatePresetInput,
   UpdatePresetInput,
+  TagCount,
 } from '@delve/shared';
 
 export type { AppConfig };
@@ -282,7 +283,22 @@ export const api = {
     request<void>(`/conversations/${id}`, { method: 'DELETE' }),
 
   // Tags
-  listTags: (): Promise<string[]> => request<string[]>('/sources/tags'),
+  listTags: (collectionId?: string): Promise<TagCount[]> => {
+    const qs = collectionId ? `?collectionId=${collectionId}` : '';
+    return request<TagCount[]>(`/sources/tags${qs}`);
+  },
+
+  renameTag: (body: { oldTag: string; newTag: string; collectionId?: string }): Promise<{ affectedCount: number }> =>
+    request<{ affectedCount: number }>('/sources/tags/rename', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  deleteTag: (body: { tag: string; collectionId?: string }): Promise<{ affectedCount: number }> =>
+    request<{ affectedCount: number }>('/sources/tags/delete', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   updateSourceTags: (id: string, tags: string[]): Promise<{ tags: string[] }> =>
     request<{ tags: string[] }>(`/sources/${id}/tags`, {
