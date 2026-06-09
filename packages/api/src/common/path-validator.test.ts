@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { sanitizePath } from './path-validator';
-import { resolve } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 
 describe('sanitizePath', () => {
   it('rejects paths containing null bytes', () => {
@@ -16,7 +16,7 @@ describe('sanitizePath', () => {
 
   it('returns an absolute path for relative input', () => {
     const result = sanitizePath('some/relative/path');
-    expect(result).toMatch(/^[A-Z]:\\/i); // Windows absolute path
+    expect(isAbsolute(result)).toBe(true);
   });
 
   it('resolves . to current directory', () => {
