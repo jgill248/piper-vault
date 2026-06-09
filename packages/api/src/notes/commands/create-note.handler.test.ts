@@ -3,7 +3,9 @@ import type { EventBus } from '@nestjs/cqrs';
 import { CreateNoteHandler } from './create-note.handler';
 import { CreateNoteCommand } from './create-note.command';
 import type { Database } from '../../database/connection';
-import type { IngestionPipeline, Embedder } from '@delve/core';
+import type { IngestionPipeline } from '@delve/core';
+import type { ChunkIndexingService } from '../../indexing/services/chunk-indexing.service';
+import type { WikiLinkIndexingService } from '../../indexing/services/wiki-link-indexing.service';
 
 function makeEventBus(): EventBus {
   return { publish: vi.fn() } as unknown as EventBus;
@@ -41,18 +43,31 @@ function makePipeline(chunks = [{ index: 0, content: 'test chunk', tokenCount: 1
   } as unknown as IngestionPipeline;
 }
 
-function makeEmbedder(embeddings = [[0.1, 0.2, 0.3]]) {
+function makeChunkIndexing(override?: Partial<ChunkIndexingService>): ChunkIndexingService {
   return {
-    embedBatch: vi.fn().mockResolvedValue({ ok: true, value: embeddings }),
-  } as unknown as Embedder;
+    embedAndStoreChunks: vi.fn().mockResolvedValue({ ok: true, value: 1 }),
+    ...override,
+  } as unknown as ChunkIndexingService;
+}
+
+function makeWikiLinkIndexing(): WikiLinkIndexingService {
+  return {
+    storeAndResolveOutgoingLinks: vi.fn().mockResolvedValue(undefined),
+    backfillIncomingLinks: vi.fn().mockResolvedValue(undefined),
+  } as unknown as WikiLinkIndexingService;
 }
 
 describe('CreateNoteHandler', () => {
   it('creates a note and returns sourceId and chunkCount', async () => {
     const { db } = makeDb();
     const pipeline = makePipeline();
-    const embedder = makeEmbedder();
-    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
+    const handler = new CreateNoteHandler(
+      db,
+      pipeline,
+      makeChunkIndexing(),
+      makeWikiLinkIndexing(),
+      makeEventBus(),
+    );
 
     const result = await handler.execute(
       new CreateNoteCommand('My Note', 'Hello [[World]]', 'col-1', null, ['test']),
@@ -68,8 +83,13 @@ describe('CreateNoteHandler', () => {
   it('extracts frontmatter tags and merges with provided tags', async () => {
     const { db, insertValues } = makeDb();
     const pipeline = makePipeline();
-    const embedder = makeEmbedder();
-    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
+    const handler = new CreateNoteHandler(
+      db,
+      pipeline,
+      makeChunkIndexing(),
+      makeWikiLinkIndexing(),
+      makeEventBus(),
+    );
 
     await handler.execute(
       new CreateNoteCommand(
@@ -96,8 +116,13 @@ describe('CreateNoteHandler', () => {
     const pipeline = {
       ingest: vi.fn().mockResolvedValue({ ok: false, error: 'Parse error' }),
     } as unknown as IngestionPipeline;
-    const embedder = makeEmbedder();
-    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
+    const handler = new CreateNoteHandler(
+      db,
+      pipeline,
+      makeChunkIndexing(),
+      makeWikiLinkIndexing(),
+      makeEventBus(),
+    );
 
     const result = await handler.execute(
       new CreateNoteCommand('Fail', 'content', 'col-1'),
@@ -112,10 +137,18 @@ describe('CreateNoteHandler', () => {
   it('returns error when embedding fails', async () => {
     const { db } = makeDb();
     const pipeline = makePipeline();
-    const embedder = {
-      embedBatch: vi.fn().mockResolvedValue({ ok: false, error: 'Embed error' }),
-    } as unknown as Embedder;
-    const handler = new CreateNoteHandler(db, pipeline, embedder, makeEventBus());
+    const chunkIndexing = makeChunkIndexing({
+      embedAndStoreChunks: vi
+        .fn()
+        .mockResolvedValue({ ok: false, error: 'Embedding failed: Embed error' }),
+    });
+    const handler = new CreateNoteHandler(
+      db,
+      pipeline,
+      chunkIndexing,
+      makeWikiLinkIndexing(),
+      makeEventBus(),
+    );
 
     const result = await handler.execute(
       new CreateNoteCommand('Note', 'content', 'col-1'),
@@ -125,5 +158,33 @@ describe('CreateNoteHandler', () => {
     if (!result.ok) {
       expect(result.error).toContain('Embedding failed');
     }
+  });
+
+  it('stores outgoing links and backfills incoming links scoped to the collection', async () => {
+    const { db } = makeDb();
+    const pipeline = makePipeline();
+    const wikiLinkIndexing = makeWikiLinkIndexing();
+    const handler = new CreateNoteHandler(
+      db,
+      pipeline,
+      makeChunkIndexing(),
+      wikiLinkIndexing,
+      makeEventBus(),
+    );
+
+    await handler.execute(
+      new CreateNoteCommand('My Note', 'Hello [[World]]', 'col-1'),
+    );
+
+    expect(wikiLinkIndexing.storeAndResolveOutgoingLinks).toHaveBeenCalledWith(
+      'note-1',
+      'col-1',
+      expect.arrayContaining([expect.objectContaining({ targetFilename: 'World' })]),
+    );
+    expect(wikiLinkIndexing.backfillIncomingLinks).toHaveBeenCalledWith(
+      'note-1',
+      'col-1',
+      'My Note',
+    );
   });
 });

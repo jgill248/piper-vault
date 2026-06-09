@@ -3,9 +3,10 @@ import { ConflictException } from '@nestjs/common';
 import { IngestSourceHandler } from './ingest-source.handler';
 import { IngestSourceCommand } from './ingest-source.command';
 import type { IngestionPipeline } from '@delve/core';
-import type { Embedder } from '@delve/core';
 import type { Database } from '../../database/connection';
 import type { EventBus } from '@nestjs/cqrs';
+import type { ChunkIndexingService } from '../../indexing/services/chunk-indexing.service';
+import type { WikiLinkIndexingService } from '../../indexing/services/wiki-link-indexing.service';
 
 // ---------------------------------------------------------------------------
 // Helpers / factories
@@ -31,13 +32,18 @@ function makeIngestionPipeline(override?: Partial<IngestionPipeline>): Ingestion
   };
 }
 
-function makeEmbedder(override?: Partial<Embedder>): Embedder {
+function makeChunkIndexing(override?: Partial<ChunkIndexingService>): ChunkIndexingService {
   return {
-    dimensions: 384,
-    embed: vi.fn().mockResolvedValue({ ok: true, value: new Array(384).fill(0.1) }),
-    embedBatch: vi.fn().mockResolvedValue({ ok: true, value: [new Array(384).fill(0.1)] }),
+    embedAndStoreChunks: vi.fn().mockResolvedValue({ ok: true, value: 1 }),
     ...override,
-  };
+  } as unknown as ChunkIndexingService;
+}
+
+function makeWikiLinkIndexing(): WikiLinkIndexingService {
+  return {
+    storeAndResolveOutgoingLinks: vi.fn().mockResolvedValue(undefined),
+    backfillIncomingLinks: vi.fn().mockResolvedValue(undefined),
+  } as unknown as WikiLinkIndexingService;
 }
 
 function makeDb(): Database {
@@ -68,14 +74,21 @@ describe('IngestSourceHandler', () => {
   let handler: IngestSourceHandler;
   let db: Database;
   let pipeline: IngestionPipeline;
-  let embedder: Embedder;
+  let chunkIndexing: ChunkIndexingService;
+  let wikiLinkIndexing: WikiLinkIndexingService;
+  let eventBus: EventBus;
+
+  function buildHandler(): IngestSourceHandler {
+    return new IngestSourceHandler(db, pipeline, chunkIndexing, wikiLinkIndexing, eventBus);
+  }
 
   beforeEach(() => {
     db = makeDb();
     pipeline = makeIngestionPipeline();
-    embedder = makeEmbedder();
-    const eventBus = { publish: vi.fn() } as unknown as EventBus;
-    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
+    chunkIndexing = makeChunkIndexing();
+    wikiLinkIndexing = makeWikiLinkIndexing();
+    eventBus = { publish: vi.fn() } as unknown as EventBus;
+    handler = buildHandler();
   });
 
   it('returns ok result with sourceId and chunkCount on success', async () => {
@@ -102,8 +115,7 @@ describe('IngestSourceHandler', () => {
         error: 'No parser available for MIME type "application/x-unknown"',
       }),
     });
-    const eventBus = { publish: vi.fn() } as unknown as EventBus;
-    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
+    handler = buildHandler();
 
     const command = new IngestSourceCommand(
       makeBuffer(),
@@ -120,12 +132,13 @@ describe('IngestSourceHandler', () => {
     }
   });
 
-  it('returns err result when embedding fails', async () => {
-    embedder = makeEmbedder({
-      embedBatch: vi.fn().mockResolvedValue({ ok: false, error: 'Embedding model unavailable' }),
+  it('returns err result and marks the source errored when chunk indexing fails', async () => {
+    chunkIndexing = makeChunkIndexing({
+      embedAndStoreChunks: vi
+        .fn()
+        .mockResolvedValue({ ok: false, error: 'Embedding failed: model unavailable' }),
     });
-    const eventBus = { publish: vi.fn() } as unknown as EventBus;
-    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
+    handler = buildHandler();
 
     const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);
 
@@ -135,6 +148,7 @@ describe('IngestSourceHandler', () => {
     if (!result.ok) {
       expect(result.error).toContain('Embedding failed');
     }
+    expect(db.update).toHaveBeenCalled();
   });
 
   it('throws ConflictException when a source with the same content_hash already exists', async () => {
@@ -149,12 +163,58 @@ describe('IngestSourceHandler', () => {
         }),
       }),
     } as unknown as Database;
-
-    const eventBus = { publish: vi.fn() } as unknown as EventBus;
-    handler = new IngestSourceHandler(db, pipeline, embedder, eventBus);
+    handler = buildHandler();
 
     const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);
 
     await expect(handler.execute(command)).rejects.toThrow(ConflictException);
+  });
+
+  it('backfills incoming backlinks for markdown files even with no outgoing links', async () => {
+    const command = new IngestSourceCommand(
+      makeBuffer('plain markdown, no links'),
+      'Target Note.md',
+      'text/markdown',
+      24,
+      'coll-1',
+    );
+
+    const result = await handler.execute(command);
+
+    expect(result.ok).toBe(true);
+    expect(wikiLinkIndexing.backfillIncomingLinks).toHaveBeenCalledWith(
+      'source-uuid-1',
+      'coll-1',
+      'Target Note',
+    );
+  });
+
+  it('stores and resolves outgoing links for markdown files with wiki-links', async () => {
+    const command = new IngestSourceCommand(
+      makeBuffer('see [[Other Note]]'),
+      'My Note.md',
+      'text/markdown',
+      18,
+      'coll-1',
+    );
+
+    await handler.execute(command);
+
+    expect(wikiLinkIndexing.storeAndResolveOutgoingLinks).toHaveBeenCalledWith(
+      'source-uuid-1',
+      'coll-1',
+      expect.arrayContaining([
+        expect.objectContaining({ targetFilename: 'Other Note' }),
+      ]),
+    );
+  });
+
+  it('does not touch wiki-link indexing for non-markdown files', async () => {
+    const command = new IngestSourceCommand(makeBuffer(), 'test.txt', 'text/plain', 11);
+
+    await handler.execute(command);
+
+    expect(wikiLinkIndexing.storeAndResolveOutgoingLinks).not.toHaveBeenCalled();
+    expect(wikiLinkIndexing.backfillIncomingLinks).not.toHaveBeenCalled();
   });
 });

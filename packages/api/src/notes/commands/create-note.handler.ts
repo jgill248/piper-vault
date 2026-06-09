@@ -1,15 +1,17 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Inject, Logger, InternalServerErrorException } from '@nestjs/common';
-import { eq, and, isNull, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
-import type { IngestionPipeline, Embedder } from '@delve/core';
+import type { IngestionPipeline } from '@delve/core';
 import { extractFrontmatter, parseWikiLinks } from '@delve/core';
 import { CreateNoteCommand } from './create-note.command';
 import { SourceIngestedEvent } from '../../sources/events/source-ingested.event';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { sources, chunks, sourceLinks } from '../../database/schema';
+import { sources } from '../../database/schema';
+import { ChunkIndexingService } from '../../indexing/services/chunk-indexing.service';
+import { WikiLinkIndexingService } from '../../indexing/services/wiki-link-indexing.service';
 import { createHash, randomUUID } from 'crypto';
 
 export interface CreateNoteResult {
@@ -24,7 +26,8 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject('INGESTION_PIPELINE') private readonly pipeline: IngestionPipeline,
-    @Inject('EMBEDDER') private readonly embedder: Embedder,
+    private readonly chunkIndexing: ChunkIndexingService,
+    private readonly wikiLinkIndexing: WikiLinkIndexingService,
     @Inject(EventBus) private readonly eventBus: EventBus,
   ) {}
 
@@ -101,42 +104,14 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
 
       const { chunks: textChunks } = ingestionResult.value;
 
-      // Generate embeddings
-      const contents = textChunks.map((c) => c.content);
-      const embeddingResult = await this.embedder.embedBatch(contents);
+      const indexResult = await this.chunkIndexing.embedAndStoreChunks(sourceId, textChunks);
 
-      if (!embeddingResult.ok) {
+      if (!indexResult.ok) {
         await this.db
           .update(sources)
           .set({ status: 'error', updatedAt: new Date() })
           .where(eq(sources.id, sourceId));
-        return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
-      }
-
-      const embeddings = embeddingResult.value;
-
-      // Insert chunks with embeddings
-      try {
-        const chunkRows = textChunks.map((chunk, index) => ({
-          sourceId,
-          chunkIndex: chunk.index,
-          content: chunk.content,
-          embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
-          tokenCount: chunk.tokenCount,
-          metadata: chunk.metadata as Record<string, unknown>,
-        }));
-
-        if (chunkRows.length > 0) {
-          await this.db.insert(chunks).values(chunkRows);
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        this.logger.error(`Failed to insert chunks for note ${sourceId}: ${message}`);
-        await this.db
-          .update(sources)
-          .set({ status: 'error', updatedAt: new Date() })
-          .where(eq(sources.id, sourceId));
-        return { ok: false, error: `Failed to store chunks: ${message}` };
+        return { ok: false, error: indexResult.error };
       }
 
       chunkCount = textChunks.length;
@@ -144,49 +119,7 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
 
     // Parse and store wiki-links
     const wikiLinks = parseWikiLinks(content);
-    if (wikiLinks.length > 0) {
-      try {
-        const linkRows = wikiLinks.map((link) => ({
-          sourceId,
-          targetFilename: link.targetFilename,
-          linkType: link.linkType,
-          displayText: link.displayText,
-          section: link.section,
-        }));
-        await this.db.insert(sourceLinks).values(linkRows);
-
-        // Resolve target_source_id for links where target already exists
-        for (const link of wikiLinks) {
-          const targets = await this.db
-            .select({ id: sources.id })
-            .from(sources)
-            .where(
-              and(
-                eq(sources.filename, `${link.targetFilename}.md`),
-                eq(sources.collectionId, collectionId),
-              ),
-            )
-            .limit(1);
-
-          if (targets.length > 0 && targets[0] !== undefined) {
-            await this.db
-              .update(sourceLinks)
-              .set({ targetSourceId: targets[0].id })
-              .where(
-                and(
-                  eq(sourceLinks.sourceId, sourceId),
-                  eq(sourceLinks.targetFilename, link.targetFilename),
-                ),
-              );
-          }
-        }
-
-        this.logger.log(`Stored ${wikiLinks.length} wiki-links for note ${sourceId}`);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        this.logger.warn(`Failed to store wiki-links for note ${sourceId}: ${message}`);
-      }
-    }
+    await this.wikiLinkIndexing.storeAndResolveOutgoingLinks(sourceId, collectionId, wikiLinks);
 
     // Mark as ready (if not already set for empty notes)
     if (!isEmpty) {
@@ -199,31 +132,7 @@ export class CreateNoteHandler implements ICommandHandler<CreateNoteCommand> {
     // Backfill targetSourceId on any pre-existing links pointing to this note's title.
     // This handles the case where another note already contained [[This Note]] before
     // this note was created, leaving targetSourceId = NULL.
-    try {
-      const collectionSources = await this.db
-        .select({ id: sources.id })
-        .from(sources)
-        .where(eq(sources.collectionId, collectionId));
-
-      if (collectionSources.length > 0) {
-        await this.db
-          .update(sourceLinks)
-          .set({ targetSourceId: sourceId })
-          .where(
-            and(
-              eq(sourceLinks.targetFilename, resolvedTitle),
-              isNull(sourceLinks.targetSourceId),
-              inArray(
-                sourceLinks.sourceId,
-                collectionSources.map((s) => s.id),
-              ),
-            ),
-          );
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Failed to backfill incoming backlinks for note ${sourceId}: ${message}`);
-    }
+    await this.wikiLinkIndexing.backfillIncomingLinks(sourceId, collectionId, resolvedTitle);
 
     this.logger.log(`Created note "${resolvedTitle}" → ${sourceId} (${chunkCount} chunks)`);
 

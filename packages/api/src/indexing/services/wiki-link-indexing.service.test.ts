@@ -8,7 +8,7 @@ function makeLink(target: string): ParsedWikiLink {
     targetFilename: target,
     displayText: null,
     section: null,
-    linkType: 'standard',
+    linkType: 'wiki-link',
     position: { start: 0, end: target.length + 4 },
   };
 }

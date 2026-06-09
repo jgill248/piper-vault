@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
+import { IndexingModule } from '../indexing/indexing.module';
 import { SourcesController } from './sources.controller';
 import { IngestSourceHandler } from './commands/ingest-source.handler';
 import { DeleteSourceHandler } from './commands/delete-source.handler';
@@ -14,7 +15,7 @@ const CommandHandlers = [IngestSourceHandler, DeleteSourceHandler, ReindexSource
 const QueryHandlers = [ListSourcesHandler, GetSourceHandler, ListTagsHandler];
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, IndexingModule],
   controllers: [SourcesController],
   providers: [...CommandHandlers, ...QueryHandlers],
 })
