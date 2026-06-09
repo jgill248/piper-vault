@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   Query,
   HttpCode,
   HttpStatus,
@@ -79,7 +80,7 @@ export class WatchedFoldersController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     // Stop the watcher before deleting the record
     await this.watcherManager.stopWatching(id);
     await this.commandBus.execute(new RemoveWatchedFolderCommand(id));
@@ -91,7 +92,7 @@ export class WatchedFoldersController {
    */
   @Post(':id/scan')
   @HttpCode(HttpStatus.OK)
-  async scan(@Param('id') id: string): Promise<ScanWatchedFolderResult> {
+  async scan(@Param('id', ParseUUIDPipe) id: string): Promise<ScanWatchedFolderResult> {
     return this.commandBus.execute(new ScanWatchedFolderCommand(id));
   }
 }

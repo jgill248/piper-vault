@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   Query,
   Res,
   HttpCode,
@@ -138,7 +139,7 @@ export class ChatController {
    * GET /api/v1/conversations/:id
    */
   @Get('conversations/:id')
-  async getConversation(@Param('id') id: string): Promise<ConversationWithMessages> {
+  async getConversation(@Param('id', ParseUUIDPipe) id: string): Promise<ConversationWithMessages> {
     return this.queryBus.execute(new GetConversationQuery(id));
   }
 
@@ -149,7 +150,7 @@ export class ChatController {
   @Get('conversations/:id/export')
   @Header('Content-Type', 'text/markdown')
   async exportConversation(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query('format') format?: string,
   ): Promise<string> {
     const resolvedFormat = format === 'wikilink' ? 'wikilink' : 'markdown';
@@ -161,7 +162,7 @@ export class ChatController {
    */
   @Delete('conversations/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteConversation(@Param('id') id: string): Promise<void> {
+  async deleteConversation(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.commandBus.execute(new DeleteConversationCommand(id));
   }
 }

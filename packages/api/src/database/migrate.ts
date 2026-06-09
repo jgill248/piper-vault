@@ -297,6 +297,7 @@ export async function runMigrations(connectionString: string): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_source_links_source ON source_links(source_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_source_links_target ON source_links(target_source_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_source_links_target_filename ON source_links(target_filename)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_source_links_backlinks ON source_links(target_source_id, source_id)`;
   console.log('  table: source_links');
 
   // Phase 5: note_folders table for note organization

@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   HttpCode,
   HttpStatus,
   BadRequestException,
@@ -56,13 +57,13 @@ export class PresetsController {
   }
 
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<SystemPromptPreset> {
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<SystemPromptPreset> {
     return this.queryBus.execute(new GetPresetQuery(id));
   }
 
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ): Promise<SystemPromptPreset> {
     const parsed = UpdatePresetSchema.safeParse(body);
@@ -84,7 +85,7 @@ export class PresetsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.commandBus.execute(new DeletePresetCommand(id));
   }
 }
