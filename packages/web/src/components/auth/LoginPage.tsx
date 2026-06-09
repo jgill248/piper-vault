@@ -72,12 +72,6 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 required
                 disabled={isSubmitting}
                 className="input-cmd disabled:opacity-50"
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-primary)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-outline)';
-                }}
               />
             </div>
 
@@ -98,12 +92,6 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                 required
                 disabled={isSubmitting}
                 className="input-cmd disabled:opacity-50"
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-primary)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-outline)';
-                }}
               />
             </div>
 

@@ -67,9 +67,9 @@ function EmptyState({ onQuerySelect }: EmptyStateProps) {
 
       {/* Starter queries */}
       <div className="flex flex-col gap-2 w-full max-w-md">
-        {STARTER_QUERIES.map((q, i) => (
+        {STARTER_QUERIES.map((q) => (
           <button
-            key={i}
+            key={q.text}
             onClick={() => onQuerySelect(q.text)}
             className="flex items-center gap-3 text-left bg-surface border border-outline-variant/30 hover:border-primary/40 px-4 py-3 transition-all duration-100 cursor-pointer group"
           >
@@ -450,9 +450,9 @@ export function ChatPanel() {
                   <span className="font-label text-[9px] text-on-surface-variant uppercase tracking-widest">
                     SUGGESTED FOLLOW-UPS
                   </span>
-                  {followUps.map((q, i) => (
+                  {followUps.map((q) => (
                     <button
-                      key={i}
+                      key={q}
                       onClick={() => handleFollowUpClick(q)}
                       className="text-left bg-surface border border-outline-variant/30 hover:border-primary/40 px-3 py-2 font-body text-[12px] text-secondary hover:text-on-surface transition-all duration-100 cursor-pointer"
                     >

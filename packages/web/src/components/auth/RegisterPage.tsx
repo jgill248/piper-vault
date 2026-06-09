@@ -45,14 +45,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
     }
   }
 
-  function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
-    e.currentTarget.style.borderColor = 'var(--color-primary)';
-  }
-
-  function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
-    e.currentTarget.style.borderColor = 'var(--color-outline)';
-  }
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-full max-w-sm px-4">
@@ -92,8 +84,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 required
                 disabled={isSubmitting}
                 className="input-cmd disabled:opacity-50"
-                onFocus={handleFocus}
-                onBlur={handleBlur}
               />
               <p className="mt-1 font-label text-[8px] text-on-surface-variant uppercase tracking-widest">
                 Letters, numbers, underscores, hyphens only
@@ -116,8 +106,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
                 className="input-cmd disabled:opacity-50"
-                onFocus={handleFocus}
-                onBlur={handleBlur}
               />
             </div>
 
@@ -138,8 +126,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 required
                 disabled={isSubmitting}
                 className="input-cmd disabled:opacity-50"
-                onFocus={handleFocus}
-                onBlur={handleBlur}
               />
               <p className="mt-1 font-label text-[8px] text-on-surface-variant uppercase tracking-widest">
                 Minimum 8 characters
@@ -163,8 +149,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 required
                 disabled={isSubmitting}
                 className="input-cmd disabled:opacity-50"
-                onFocus={handleFocus}
-                onBlur={handleBlur}
               />
             </div>
 
