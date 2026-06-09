@@ -3,5 +3,6 @@ export class GetWikiLogQuery {
     public readonly limit: number = 50,
     public readonly offset: number = 0,
     public readonly operation?: string,
+    public readonly collectionId?: string,
   ) {}
 }

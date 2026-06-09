@@ -86,12 +86,16 @@ export class WikiController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('operation') operation?: string,
+    @Query('collectionId') collectionId?: string,
   ) {
+    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
     const result = await this.queryBus.execute(
       new GetWikiLogQuery(
-        limit ? parseInt(limit, 10) : 50,
-        offset ? parseInt(offset, 10) : 0,
+        isNaN(parsedLimit) ? 50 : Math.min(Math.max(parsedLimit, 1), 200),
+        isNaN(parsedOffset) ? 0 : Math.max(parsedOffset, 0),
         operation,
+        collectionId,
       ),
     );
     return {

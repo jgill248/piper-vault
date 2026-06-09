@@ -1,6 +1,6 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { desc, eq, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, ne, sql } from 'drizzle-orm';
 import { GetWikiLogQuery } from './get-wiki-log.query';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
@@ -12,13 +12,17 @@ export class GetWikiLogHandler implements IQueryHandler<GetWikiLogQuery> {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   async execute(query: GetWikiLogQuery): Promise<{ items: WikiLogRow[]; total: number }> {
-    const { limit, offset, operation } = query;
+    const { limit, offset, operation, collectionId } = query;
 
     // When filtering by a specific operation, show it.
     // Otherwise exclude internal 'index' cache entries from the user-facing log.
-    const condition = operation
+    const operationCondition = operation
       ? eq(wikiLog.operation, operation)
       : ne(wikiLog.operation, 'index');
+
+    const condition = collectionId
+      ? and(operationCondition, eq(wikiLog.collectionId, collectionId))
+      : operationCondition;
 
     const [items, countResult] = await Promise.all([
       this.db

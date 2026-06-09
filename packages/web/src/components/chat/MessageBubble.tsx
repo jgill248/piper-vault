@@ -3,6 +3,7 @@ import { User, Cpu, Sparkles } from 'lucide-react';
 import type { Message } from '@delve/shared';
 import { MESSAGE_ROLE } from '@delve/shared';
 import { usePromoteToWiki } from '../../hooks/use-wiki';
+import { useActiveCollection } from '../../context/CollectionContext';
 
 interface MessageBubbleProps {
   message: Message;
@@ -36,13 +37,18 @@ export function MessageBubble({ message, conversationId, onSourceClick }: Messag
   const isUser = message.role === MESSAGE_ROLE.USER;
   const isAssistant = message.role === MESSAGE_ROLE.ASSISTANT;
   const promoteMutation = usePromoteToWiki();
+  const { activeCollectionId } = useActiveCollection();
 
   const sourceNames = message.sourceNames;
 
   async function handlePromoteToWiki() {
     if (!conversationId) return;
     try {
-      await promoteMutation.mutateAsync({ conversationId, messageId: message.id });
+      await promoteMutation.mutateAsync({
+        conversationId,
+        messageId: message.id,
+        collectionId: activeCollectionId,
+      });
     } catch {
       // Error state handled by mutation
     }

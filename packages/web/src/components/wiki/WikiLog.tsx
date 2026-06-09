@@ -1,4 +1,5 @@
 import { useWikiLog } from '../../hooks/use-wiki';
+import { useActiveCollection } from '../../context/CollectionContext';
 
 const OPERATION_LABELS: Record<string, string> = {
   ingest: 'INGEST',
@@ -17,7 +18,8 @@ const OPERATION_COLORS: Record<string, string> = {
 };
 
 export function WikiLog() {
-  const { data, isLoading, isError } = useWikiLog({ limit: 50 });
+  const { activeCollectionId } = useActiveCollection();
+  const { data, isLoading, isError } = useWikiLog({ limit: 50, collectionId: activeCollectionId });
   const items = data?.items ?? [];
 
   if (isLoading) {

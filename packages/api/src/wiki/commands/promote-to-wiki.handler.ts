@@ -115,6 +115,7 @@ export class PromoteToWikiHandler implements ICommandHandler<PromoteToWikiComman
       operation: 'query',
       summary,
       affectedSourceIds: [sourceId],
+      collectionId,
       metadata: { conversationId, title },
     });
 

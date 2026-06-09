@@ -200,6 +200,8 @@ export const wikiLog = pgTable('wiki_log', {
   summary: text('summary').notNull(),
   affectedSourceIds: textArray('affected_source_ids').notNull().default(sql`ARRAY[]::text[]`),
   sourceTriggerIds: uuid('source_trigger_id'),
+  // Nullable: legacy rows predate collection scoping and cannot be attributed.
+  collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }),
   metadata: jsonb('metadata').notNull().default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
@@ -214,6 +216,7 @@ export const wikiPageVersions = pgTable('wiki_page_versions', {
   changeType: text('change_type').notNull().default('synthesis'),
   changeSummary: text('change_summary'),
   triggeredBy: uuid('triggered_by'),
+  collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

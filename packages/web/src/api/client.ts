@@ -507,11 +507,12 @@ export const api = {
   }> =>
     request('/wiki/initialize', { method: 'POST', body: JSON.stringify(body ?? {}) }),
 
-  getWikiLog: (params?: { limit?: number; offset?: number; operation?: string }): Promise<{ items: WikiLogItem[]; total: number }> => {
+  getWikiLog: (params?: { limit?: number; offset?: number; operation?: string; collectionId?: string }): Promise<{ items: WikiLogItem[]; total: number }> => {
     const qs = new URLSearchParams();
     if (params?.limit) qs.set('limit', String(params.limit));
     if (params?.offset) qs.set('offset', String(params.offset));
     if (params?.operation) qs.set('operation', params.operation);
+    if (params?.collectionId) qs.set('collectionId', params.collectionId);
     const query = qs.toString();
     return request(`/wiki/log${query ? `?${query}` : ''}`);
   },
