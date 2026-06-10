@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { eq, and, isNull, inArray } from 'drizzle-orm';
+import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import type { ParsedWikiLink } from '@delve/core';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
@@ -40,26 +40,39 @@ export class WikiLinkIndexingService {
       }));
       await this.db.insert(sourceLinks).values(linkRows);
 
+      // Resolution is case-insensitive ([[note a]] resolves to "Note A.md"),
+      // matching how wiki software treats link targets. An exact-case match
+      // wins when several sources differ only by case.
       const distinctTargets = [...new Set(wikiLinks.map((l) => l.targetFilename))];
       const targetRows = await this.db
         .select({ id: sources.id, filename: sources.filename })
         .from(sources)
         .where(
           and(
-            inArray(sources.filename, distinctTargets.map((t) => `${t}.md`)),
+            inArray(
+              sql`LOWER(${sources.filename})`,
+              distinctTargets.map((t) => `${t.toLowerCase()}.md`),
+            ),
             eq(sources.collectionId, collectionId),
           ),
         );
 
-      const idByFilename = new Map<string, string>();
+      const idByExactFilename = new Map<string, string>();
+      const idByLowerFilename = new Map<string, string>();
       for (const row of targetRows) {
-        if (!idByFilename.has(row.filename)) {
-          idByFilename.set(row.filename, row.id);
+        if (!idByExactFilename.has(row.filename)) {
+          idByExactFilename.set(row.filename, row.id);
+        }
+        const lower = row.filename.toLowerCase();
+        if (!idByLowerFilename.has(lower)) {
+          idByLowerFilename.set(lower, row.id);
         }
       }
 
       for (const target of distinctTargets) {
-        const targetId = idByFilename.get(`${target}.md`);
+        const targetId =
+          idByExactFilename.get(`${target}.md`) ??
+          idByLowerFilename.get(`${target.toLowerCase()}.md`);
         if (targetId === undefined) continue;
         await this.db
           .update(sourceLinks)
@@ -97,12 +110,13 @@ export class WikiLinkIndexingService {
 
       if (collectionSources.length === 0) return;
 
+      // Case-insensitive to mirror outgoing-link resolution.
       await this.db
         .update(sourceLinks)
         .set({ targetSourceId: sourceId })
         .where(
           and(
-            eq(sourceLinks.targetFilename, targetName),
+            eq(sql`LOWER(${sourceLinks.targetFilename})`, targetName.toLowerCase()),
             isNull(sourceLinks.targetSourceId),
             inArray(
               sourceLinks.sourceId,

@@ -191,7 +191,9 @@ function ConfigEditor({ draft, onChange }: ConfigEditorProps) {
   const modelOptions = (() => {
     const fetched = modelsData?.models ?? [];
     const current = draft.llmModel;
-    const all = fetched.includes(current) ? fetched : [current, ...fetched];
+    // Dedupe — provider model lists (e.g. Ask Sage) can contain duplicates,
+    // which break React keys and confuse the dropdown.
+    const all = [...new Set(fetched.includes(current) ? fetched : [current, ...fetched])];
     return all.map((m) => ({ value: m, label: m }));
   })();
 

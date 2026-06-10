@@ -7,6 +7,7 @@ const OPERATION_LABELS: Record<string, string> = {
   lint: 'LINT',
   update: 'UPDATE',
   initialize: 'INIT',
+  error: 'ERROR',
 };
 
 const OPERATION_COLORS: Record<string, string> = {
@@ -15,6 +16,7 @@ const OPERATION_COLORS: Record<string, string> = {
   lint: 'text-yellow-500',
   update: 'text-green-500',
   initialize: 'text-purple-400',
+  error: 'text-error',
 };
 
 export function WikiLog() {

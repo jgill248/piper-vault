@@ -1,17 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 
-export function useWikiIndex(collectionId?: string) {
+export function useWikiIndex(collectionId?: string, options?: { refetchInterval?: number | false }) {
   return useQuery({
     queryKey: ['wiki', 'index', collectionId],
     queryFn: () => api.getWikiIndex(collectionId),
+    refetchInterval: options?.refetchInterval ?? false,
   });
 }
 
-export function useWikiLog(params?: { limit?: number; offset?: number; operation?: string; collectionId?: string }) {
+export function useWikiLog(
+  params?: { limit?: number; offset?: number; operation?: string; collectionId?: string },
+  options?: { refetchInterval?: number | false },
+) {
   return useQuery({
     queryKey: ['wiki', 'log', params],
     queryFn: () => api.getWikiLog(params),
+    refetchInterval: options?.refetchInterval ?? false,
   });
 }
 

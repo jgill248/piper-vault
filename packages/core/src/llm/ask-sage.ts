@@ -3,7 +3,9 @@ import type { Result } from '@delve/shared';
 import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
 
 const ASK_SAGE_BASE_URL = 'https://api.asksage.ai/server';
-const LLM_FETCH_TIMEOUT_MS = 30_000;
+// Long-form generations (e.g. wiki page creation) routinely exceed 30s, so
+// allow up to 5 minutes before aborting a non-streaming query.
+const LLM_FETCH_TIMEOUT_MS = 300_000;
 
 /**
  * Shape of the JSON body sent to Ask Sage's /server/query endpoint.

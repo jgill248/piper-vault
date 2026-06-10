@@ -2,6 +2,7 @@
  * Core wiki generation engine. Framework-agnostic — consumes an LlmProvider
  * and produces structured wiki page drafts.
  */
+import { jsonrepair } from 'jsonrepair';
 import type { Result } from '@delve/shared';
 import type { LlmProvider } from '../llm/provider.js';
 import {
@@ -66,6 +67,18 @@ export function parseJsonResponse<T>(raw: string): Result<T, string> {
   try {
     return { ok: true, value: JSON.parse(cleaned) as T };
   } catch {
+    // Smaller local models routinely emit slightly-malformed JSON (literal
+    // newlines inside string values, trailing commas, truncated tails).
+    // Attempt a repair pass before giving up — but only on input that is
+    // recognizably an object/array, since jsonrepair would coerce arbitrary
+    // prose into a bare JSON string.
+    if (cleaned.startsWith('{') || cleaned.startsWith('[')) {
+      try {
+        return { ok: true, value: JSON.parse(jsonrepair(cleaned)) as T };
+      } catch {
+        // fall through to the error below
+      }
+    }
     return { ok: false, error: `Failed to parse LLM JSON response: ${cleaned.slice(0, 200)}` };
   }
 }

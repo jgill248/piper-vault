@@ -11,6 +11,18 @@ import { ConfigStore } from '../../config/config.store';
 import { CreateNoteCommand } from '../../notes/commands/create-note.command';
 import { UpdateNoteCommand } from '../../notes/commands/update-note.command';
 
+/**
+ * Outcome of a wiki generation run for a single source. Returned so callers
+ * (the initialize flow, the ingest event listener) can report honest
+ * success/failure counts instead of treating every run as processed.
+ */
+export interface WikiGenerationOutcome {
+  readonly status: 'generated' | 'skipped' | 'failed';
+  readonly pagesCreated: number;
+  readonly pagesSynthesized: number;
+  readonly error?: string;
+}
+
 /** Similarity threshold for matching new source content to existing wiki pages. */
 const SYNTHESIS_SIMILARITY_THRESHOLD = 0.35;
 /** Similarity threshold for deduplication — new page draft vs existing pages. */
@@ -30,18 +42,20 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     @Inject(CommandBus) private readonly commandBus: CommandBus,
   ) {}
 
-  async execute(command: GenerateWikiPagesCommand): Promise<void> {
+  async execute(command: GenerateWikiPagesCommand): Promise<WikiGenerationOutcome> {
     const { sourceId, collectionId } = command;
     const cfg = this.configStore.get();
 
     if (!cfg.wikiEnabled || (!cfg.wikiAutoIngest && !command.force)) {
       this.logger.debug('Wiki auto-ingest disabled, skipping');
-      return;
+      return { status: 'skipped', pagesCreated: 0, pagesSynthesized: 0 };
     }
 
     // ── Step 1: Load source content ──────────────────────────────────────
     const sourceContent = await this.loadSourceContent(sourceId);
-    if (!sourceContent) return;
+    if (!sourceContent) {
+      return { status: 'skipped', pagesCreated: 0, pagesSynthesized: 0 };
+    }
 
     const sourceRows = await this.db
       .select({ filename: sources.filename })
@@ -54,7 +68,9 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     const sourceEmbeddingResult = await this.embedder.embed(sourceContent);
     if (!sourceEmbeddingResult.ok) {
       this.logger.error(`Failed to embed source ${sourceId}: ${sourceEmbeddingResult.error}`);
-      return;
+      const error = `Embedding failed: ${sourceEmbeddingResult.error}`;
+      await this.logFailure(sourceId, collectionId, sourceFilename, error);
+      return { status: 'failed', pagesCreated: 0, pagesSynthesized: 0, error };
     }
     const sourceEmbedding = sourceEmbeddingResult.value;
 
@@ -146,12 +162,15 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
 
     if (!genResult.ok) {
       this.logger.error(`Wiki generation failed for source ${sourceId}: ${genResult.error}`);
-      // Still log synthesis results even if new-page generation fails
-      if (synthesizedIds.length > 0) {
-        await this.logOperation(synthesizedIds, [], sourceId, collectionId, sourceFilename,
-          `Synthesized ${synthesizedIds.length} pages (new page generation failed)`);
-      }
-      return;
+      // Record only a failure entry (no 'ingest' row) so the source stays
+      // eligible for a retry on the next initialization run.
+      await this.logFailure(sourceId, collectionId, sourceFilename, genResult.error, synthesizedIds.length);
+      return {
+        status: 'failed',
+        pagesCreated: 0,
+        pagesSynthesized: synthesizedIds.length,
+        error: genResult.error,
+      };
     }
 
     const { pages, summary } = genResult.value;
@@ -237,10 +256,23 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     }
 
     // ── Step 9: Log the operation ────────────────────────────────────────
-    const allAffectedIds = [...new Set([...synthesizedIds, ...createdIds])];
-    if (allAffectedIds.length > 0) {
-      await this.logOperation(synthesizedIds, createdIds, sourceId, collectionId, sourceFilename, summary);
-    }
+    // Always log on success — even a zero-page run must be recorded, or the
+    // initialize flow would treat the source as unprocessed and re-run it
+    // on every initialization.
+    await this.logOperation(
+      synthesizedIds,
+      createdIds,
+      sourceId,
+      collectionId,
+      sourceFilename,
+      summary || `No wiki-worthy content found in "${sourceFilename}"`,
+    );
+
+    return {
+      status: 'generated',
+      pagesCreated: createdIds.length,
+      pagesSynthesized: synthesizedIds.length,
+    };
   }
 
   // ── Private helpers ──────────────────────────────────────────────────────
@@ -353,6 +385,34 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       triggeredBy,
       collectionId,
     });
+  }
+
+  /**
+   * Records a failed generation run in wiki_log under the 'error' operation so
+   * the failure is visible in the Wiki Log UI instead of only in server logs.
+   * Uses a distinct operation (not 'ingest') so the source remains eligible
+   * for retry on the next initialization run.
+   */
+  private async logFailure(
+    sourceId: string,
+    collectionId: string,
+    sourceFilename: string,
+    error: string,
+    pagesSynthesized = 0,
+  ): Promise<void> {
+    try {
+      await this.db.insert(wikiLog).values({
+        operation: 'error',
+        summary: `Wiki generation failed for "${sourceFilename}": ${error}`,
+        affectedSourceIds: [],
+        sourceTriggerIds: sourceId,
+        collectionId,
+        metadata: { error, sourceFilename, pagesSynthesized },
+      });
+    } catch (logErr) {
+      const message = logErr instanceof Error ? logErr.message : String(logErr);
+      this.logger.warn(`Failed to record wiki generation failure for ${sourceId}: ${message}`);
+    }
   }
 
   private async logOperation(

@@ -1,3 +1,4 @@
+import { Agent, fetch as undiciFetch } from 'undici';
 import { ok, err } from '@delve/shared';
 import type { Result } from '@delve/shared';
 import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
@@ -44,7 +45,18 @@ interface OllamaTagsResponse {
   readonly error?: string;
 }
 
-const LLM_FETCH_TIMEOUT_MS = 30_000;
+// Local models can take minutes to cold-load before generating (large models
+// on constrained hardware even longer), so the non-streaming timeout must be
+// generous or background work like wiki generation aborts mid-load.
+const LLM_FETCH_TIMEOUT_MS = 600_000;
+
+// Node's built-in fetch enforces a 300s headers timeout via its bundled
+// undici, which fires before our AbortSignal while Ollama is still loading a
+// model. Use an explicit undici dispatcher so the full window applies.
+const ollamaDispatcher = new Agent({
+  headersTimeout: LLM_FETCH_TIMEOUT_MS,
+  bodyTimeout: LLM_FETCH_TIMEOUT_MS,
+});
 
 /**
  * OllamaProvider implements LlmProvider by calling the Ollama local REST API
@@ -80,15 +92,16 @@ export class OllamaProvider implements LlmProvider {
       stream: false,
     };
 
-    let rawResponse: Response;
+    let rawResponse: Awaited<ReturnType<typeof undiciFetch>>;
     try {
-      rawResponse = await fetch(`${this.baseUrl}/api/chat`, {
+      rawResponse = await undiciFetch(`${this.baseUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
+        dispatcher: ollamaDispatcher,
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -138,13 +151,16 @@ export class OllamaProvider implements LlmProvider {
       stream: true,
     };
 
-    let rawResponse: Response;
+    let rawResponse: Awaited<ReturnType<typeof undiciFetch>>;
     try {
-      rawResponse = await fetch(`${this.baseUrl}/api/chat`, {
+      // Same generous timeout as query(): a cold model load can take minutes
+      // before the first streamed token arrives.
+      rawResponse = await undiciFetch(`${this.baseUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120_000),
+        signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
+        dispatcher: ollamaDispatcher,
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
