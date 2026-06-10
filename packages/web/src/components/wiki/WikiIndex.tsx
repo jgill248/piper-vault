@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useWikiIndex, useWikiLog, useInitializeWiki } from '../../hooks/use-wiki';
 import { useConfig } from '../../hooks/use-config';
 import { useVaultStatus } from '../../hooks/use-vault-status';
@@ -37,8 +37,8 @@ export function WikiIndex({ selectedPageId, onSelectPage }: WikiIndexProps) {
 
   // The background run writes a final 'initialize' wiki_log entry — when one
   // newer than our start appears, the run is done.
-  useEffect(() => {
-    if (generationStartedAt === undefined) return;
+  // Adjust state during render to avoid cascading effect re-renders.
+  if (generationStartedAt !== undefined) {
     const completed = (logData?.items ?? []).find(
       (item) => new Date(item.createdAt).getTime() >= generationStartedAt,
     );
@@ -46,7 +46,7 @@ export function WikiIndex({ selectedPageId, onSelectPage }: WikiIndexProps) {
       setGenerationStartedAt(undefined);
       setInitSummary(completed.summary);
     }
-  }, [logData, generationStartedAt]);
+  }
 
   async function handleInitialize() {
     try {
