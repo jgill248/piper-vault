@@ -1,24 +1,61 @@
-import { useState } from 'react';
-import { useWikiIndex, useInitializeWiki } from '../../hooks/use-wiki';
+import { useEffect, useState } from 'react';
+import { useWikiIndex, useWikiLog, useInitializeWiki } from '../../hooks/use-wiki';
+import { useConfig } from '../../hooks/use-config';
+import { useVaultStatus } from '../../hooks/use-vault-status';
 import { useActiveCollection } from '../../context/CollectionContext';
+import { useNavigation } from '../../context/NavigationContext';
 
 interface WikiIndexProps {
   readonly selectedPageId?: string;
   readonly onSelectPage: (pageId: string) => void;
 }
 
+/** Poll cadence while a background initialization run is in flight. */
+const GENERATION_POLL_MS = 5000;
+
 export function WikiIndex({ selectedPageId, onSelectPage }: WikiIndexProps) {
   const { activeCollectionId } = useActiveCollection();
-  const { data, isLoading, isError } = useWikiIndex(activeCollectionId);
-  const categories = data?.categories ?? [];
+  const { navigate } = useNavigation();
+  const { data: config } = useConfig();
+  const { isEmpty: vaultIsEmpty } = useVaultStatus();
   const initMutation = useInitializeWiki();
   const [initSummary, setInitSummary] = useState<string>('');
+  // Timestamp of when the user kicked off a background initialization run;
+  // undefined when no run is being tracked.
+  const [generationStartedAt, setGenerationStartedAt] = useState<number | undefined>();
+
+  const generating = generationStartedAt !== undefined;
+  const { data, isLoading, isError } = useWikiIndex(activeCollectionId, {
+    refetchInterval: generating ? GENERATION_POLL_MS : false,
+  });
+  const { data: logData } = useWikiLog(
+    { limit: 5, operation: 'initialize', collectionId: activeCollectionId },
+    { refetchInterval: generating ? GENERATION_POLL_MS : false },
+  );
+  const categories = data?.categories ?? [];
+  const wikiEnabled = config?.wikiEnabled ?? false;
+
+  // The background run writes a final 'initialize' wiki_log entry — when one
+  // newer than our start appears, the run is done.
+  useEffect(() => {
+    if (generationStartedAt === undefined) return;
+    const completed = (logData?.items ?? []).find(
+      (item) => new Date(item.createdAt).getTime() >= generationStartedAt,
+    );
+    if (completed) {
+      setGenerationStartedAt(undefined);
+      setInitSummary(completed.summary);
+    }
+  }, [logData, generationStartedAt]);
 
   async function handleInitialize() {
     try {
       const result = await initMutation.mutateAsync({ collectionId: activeCollectionId });
       if (result.ok && result.value) {
         setInitSummary(result.value.summary);
+        if (result.value.totalEligible > 0) {
+          setGenerationStartedAt(Date.now());
+        }
       } else {
         setInitSummary(result.error ?? 'Initialization failed');
       }
@@ -51,20 +88,59 @@ export function WikiIndex({ selectedPageId, onSelectPage }: WikiIndexProps) {
   }
 
   if (categories.length === 0) {
+    // Wiki disabled — initialization cannot work, so guide to Settings
+    // instead of offering a button that will only error.
+    if (!wikiEnabled) {
+      return (
+        <div className="text-center py-12">
+          <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
+            WIKI_DISABLED
+          </span>
+          <p className="font-body text-[11px] text-on-surface-variant mt-2">
+            The LLM Wiki is turned off. Enable it in Settings (and configure an LLM
+            provider) to generate wiki pages from your sources.
+          </p>
+          <button
+            onClick={() => navigate('settings')}
+            className="font-label text-[10px] uppercase tracking-wider px-4 py-2 mt-4 border border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all duration-100"
+          >
+            OPEN SETTINGS
+          </button>
+        </div>
+      );
+    }
+
+    // Wiki enabled but the vault has nothing to generate from.
+    if (vaultIsEmpty) {
+      return (
+        <div className="text-center py-12">
+          <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
+            NO_SOURCES_YET
+          </span>
+          <p className="font-body text-[11px] text-on-surface-variant mt-2">
+            The wiki is generated from your vault. Upload documents or create notes
+            first, then wiki pages will be generated automatically.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="text-center py-12">
         <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">
-          NO_WIKI_PAGES_YET
+          {generating ? 'GENERATING_WIKI_PAGES...' : 'NO_WIKI_PAGES_YET'}
         </span>
         <p className="font-body text-[11px] text-on-surface-variant mt-2">
-          Enable the LLM Wiki in Settings to start generating wiki pages from your sources.
+          {generating
+            ? 'Wiki pages are being generated in the background. New pages appear here as they are created; details are in the Log tab.'
+            : 'Generate wiki pages from the sources already in your vault. Generation runs in the background and can take a few minutes per source with local models.'}
         </p>
         <button
           onClick={handleInitialize}
-          disabled={initMutation.isPending}
+          disabled={initMutation.isPending || generating}
           className="font-label text-[10px] uppercase tracking-wider px-4 py-2 mt-4 border border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all duration-100 disabled:opacity-40"
         >
-          {initMutation.isPending ? 'INITIALIZING...' : 'INITIALIZE FROM EXISTING SOURCES'}
+          {initMutation.isPending || generating ? 'GENERATING...' : 'INITIALIZE FROM EXISTING SOURCES'}
         </button>
         {initSummary && (
           <p className="font-label text-[10px] text-secondary uppercase tracking-wider mt-3">
@@ -82,10 +158,10 @@ export function WikiIndex({ selectedPageId, onSelectPage }: WikiIndexProps) {
         <div className="flex-1 h-px bg-outline-variant/20" />
         <button
           onClick={handleInitialize}
-          disabled={initMutation.isPending}
+          disabled={initMutation.isPending || generating}
           className="font-label text-[9px] uppercase tracking-wider px-3 py-1.5 border border-outline-variant/20 text-on-surface-variant hover:border-primary/30 hover:text-primary transition-all duration-100 disabled:opacity-40"
         >
-          {initMutation.isPending ? 'INITIALIZING...' : 'INITIALIZE'}
+          {initMutation.isPending || generating ? 'GENERATING...' : 'INITIALIZE'}
         </button>
       </div>
       {initSummary && (

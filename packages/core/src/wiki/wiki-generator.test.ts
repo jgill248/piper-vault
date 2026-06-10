@@ -80,6 +80,30 @@ describe('parseJsonResponse', () => {
     const result = parseJsonResponse<{ v: boolean }>('  \n  {"v": true}  \n  ');
     expect(result).toEqual({ ok: true, value: { v: true } });
   });
+
+  it('repairs literal newlines inside string values (common with small local models)', () => {
+    const malformed = '{"pages": [{"title": "History", "content": "Line one.\nLine two.", "tags": []}]}';
+    const result = parseJsonResponse<{ pages: { title: string; content: string }[] }>(malformed);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.pages[0]!.title).toBe('History');
+      expect(result.value.pages[0]!.content).toContain('Line two.');
+    }
+  });
+
+  it('repairs trailing commas', () => {
+    const result = parseJsonResponse<{ a: number[] }>('{"a": [1, 2, 3,],}');
+    expect(result).toEqual({ ok: true, value: { a: [1, 2, 3] } });
+  });
+
+  it('repairs a truncated object tail', () => {
+    const truncated = '{"pages": [{"title": "Cut off", "content": "Partial conte';
+    const result = parseJsonResponse<{ pages: { title: string }[] }>(truncated);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.pages[0]!.title).toBe('Cut off');
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

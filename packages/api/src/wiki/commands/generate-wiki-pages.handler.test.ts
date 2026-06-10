@@ -205,6 +205,70 @@ describe('GenerateWikiPagesHandler', () => {
     expect(embedder.embed).toHaveBeenCalledWith('Test content');
   });
 
+  it('returns a skipped outcome when wiki is disabled', async () => {
+    const configStore = makeConfigStore({ wikiEnabled: false });
+    const { db } = makeDb();
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
+
+    const outcome = await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
+
+    expect(outcome.status).toBe('skipped');
+  });
+
+  it('returns a failed outcome and records an error log entry when generation fails', async () => {
+    const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
+    const { db, insertValues } = makeDb();
+    (generateWikiPages as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      error: 'LLM query failed: timeout',
+    });
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
+
+    const outcome = await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
+
+    expect(outcome.status).toBe('failed');
+    expect(outcome.error).toContain('timeout');
+    expect(insertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: 'error',
+        summary: expect.stringContaining('timeout'),
+        sourceTriggerIds: 'src-1',
+      }),
+    );
+  });
+
+  it('returns a generated outcome and logs an ingest entry on success', async () => {
+    const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
+    const { db, insertValues } = makeDb();
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
+
+    const outcome = await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
+
+    expect(outcome.status).toBe('generated');
+    expect(outcome.pagesCreated).toBe(1);
+    expect(insertValues).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'ingest', sourceTriggerIds: 'src-1' }),
+    );
+  });
+
+  it('logs an ingest entry even when zero pages are produced so the source is marked processed', async () => {
+    const configStore = makeConfigStore({ wikiEnabled: true, wikiAutoIngest: true });
+    const { db, insertValues } = makeDb();
+    (generateWikiPages as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      value: { pages: [], updatedPages: [], summary: '' },
+    });
+    const handler = new GenerateWikiPagesHandler(db, llm, embedder, configStore, commandBus);
+
+    const outcome = await handler.execute(new GenerateWikiPagesCommand('src-1', 'col-1'));
+
+    expect(outcome.status).toBe('generated');
+    expect(outcome.pagesCreated).toBe(0);
+    expect(insertValues).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: 'ingest', sourceTriggerIds: 'src-1' }),
+    );
+  });
+
   it('default force is false', () => {
     const cmd = new GenerateWikiPagesCommand('src-1', 'col-1');
     expect(cmd.force).toBe(false);

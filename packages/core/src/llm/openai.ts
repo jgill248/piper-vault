@@ -3,7 +3,9 @@ import type { Result } from '@delve/shared';
 import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provider.js';
 
 const OPENAI_BASE_URL = 'https://api.openai.com/v1';
-const LLM_FETCH_TIMEOUT_MS = 30_000;
+// Long-form generations (e.g. wiki page creation) routinely exceed 30s, so
+// allow up to 5 minutes before aborting a non-streaming query.
+const LLM_FETCH_TIMEOUT_MS = 300_000;
 
 /**
  * A single message in the OpenAI Chat Completions format.

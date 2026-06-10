@@ -100,6 +100,32 @@ describe('WikiLinkIndexingService', () => {
         service.storeAndResolveOutgoingLinks('source-1', 'coll-1', [makeLink('Note A')]),
       ).resolves.toBeUndefined();
     });
+
+    it('resolves targets case-insensitively', async () => {
+      const service = new WikiLinkIndexingService(mocks.db);
+
+      await service.storeAndResolveOutgoingLinks('source-1', 'coll-1', [
+        makeLink('note a'),
+        makeLink('NOTE B'),
+      ]);
+
+      expect(mocks.updateSet).toHaveBeenCalledTimes(2);
+      expect(mocks.updateSet).toHaveBeenCalledWith({ targetSourceId: 'target-a' });
+      expect(mocks.updateSet).toHaveBeenCalledWith({ targetSourceId: 'target-b' });
+    });
+
+    it('prefers an exact-case match when sources differ only by case', async () => {
+      mocks = makeDb([
+        { id: 'lower-note', filename: 'note a.md' },
+        { id: 'upper-note', filename: 'Note A.md' },
+      ]);
+      const service = new WikiLinkIndexingService(mocks.db);
+
+      await service.storeAndResolveOutgoingLinks('source-1', 'coll-1', [makeLink('Note A')]);
+
+      expect(mocks.updateSet).toHaveBeenCalledTimes(1);
+      expect(mocks.updateSet).toHaveBeenCalledWith({ targetSourceId: 'upper-note' });
+    });
   });
 
   describe('backfillIncomingLinks', () => {

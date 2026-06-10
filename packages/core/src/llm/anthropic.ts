@@ -4,7 +4,9 @@ import type { LlmProvider, LlmQuery, LlmResponse, LlmStreamChunk } from './provi
 
 const ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1';
 const ANTHROPIC_VERSION = '2023-06-01';
-const LLM_FETCH_TIMEOUT_MS = 30_000;
+// Long-form generations (e.g. wiki page creation) routinely exceed 30s, so
+// allow up to 5 minutes before aborting a non-streaming query.
+const LLM_FETCH_TIMEOUT_MS = 300_000;
 
 /**
  * Shape of the JSON body sent to the Anthropic Messages API.

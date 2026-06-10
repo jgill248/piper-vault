@@ -17,9 +17,16 @@ export class SourceIngestedListener implements IEventHandler<SourceIngestedEvent
 
     this.logger.debug(`Source ingested: ${event.sourceId} (${event.filename}), triggering wiki generation`);
     try {
-      await this.commandBus.execute(
+      const outcome = await this.commandBus.execute(
         new GenerateWikiPagesCommand(event.sourceId, event.collectionId),
       );
+      if (outcome?.status === 'failed') {
+        // The handler already recorded the failure in wiki_log; this log line
+        // is for operators tailing the server output.
+        this.logger.error(
+          `Wiki generation failed for source ${event.sourceId} (${event.filename}): ${outcome.error}`,
+        );
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.error(`Wiki generation failed for source ${event.sourceId}: ${message}`);
