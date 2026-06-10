@@ -297,11 +297,16 @@ export function ChatPanel() {
             setStreamError(event.message);
             break;
           case 'done':
-            // Stream complete — invalidate queries to load persisted messages
+            // Stream complete — invalidate queries to load persisted messages.
+            // Use resolvedConvId (set by the meta event) so new sessions that
+            // start with activeConversationId === undefined still invalidate the
+            // correct query key.
             void queryClient.invalidateQueries({ queryKey: ['conversations'] });
-            void queryClient.invalidateQueries({
-              queryKey: ['conversation', resolvedConvId],
-            });
+            if (resolvedConvId) {
+              void queryClient.invalidateQueries({
+                queryKey: ['conversation', resolvedConvId],
+              });
+            }
             break;
         }
       }

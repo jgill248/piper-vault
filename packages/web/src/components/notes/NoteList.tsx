@@ -68,6 +68,31 @@ function MoveFolderMenu({
   );
 }
 
+/**
+ * Returns true if the note is a wiki-generated entry.
+ * Matches isGenerated flag or a parentPath that starts with "wiki/".
+ */
+function isWikiNote(note: Source): boolean {
+  return note.isGenerated || (note.parentPath ?? '').startsWith('wiki/') || note.parentPath === 'wiki';
+}
+
+/**
+ * Build a set of normalised titles that appear more than once in the list
+ * so we can show disambiguators for collisions only.
+ */
+function buildDuplicateTitleSet(notes: readonly Source[]): Set<string> {
+  const seen = new Map<string, number>();
+  for (const note of notes) {
+    const key = (note.title || note.filename).toLowerCase();
+    seen.set(key, (seen.get(key) ?? 0) + 1);
+  }
+  const dupes = new Set<string>();
+  for (const [key, count] of seen) {
+    if (count > 1) dupes.add(key);
+  }
+  return dupes;
+}
+
 export function NoteList({
   notes,
   selectedNoteId,
@@ -95,11 +120,19 @@ export function NoteList({
     );
   }
 
+  // Bug 5: Determine which titles have collisions so we can show disambiguators.
+  const duplicateTitles = buildDuplicateTitleSet(notes);
+
   return (
     <div className="flex flex-col">
       {notes.map((note) => {
         const isSelected = note.id === selectedNoteId;
         const showMoveMenu = moveMenuNoteId === note.id;
+        const displayTitle = note.title || note.filename;
+        const titleKey = displayTitle.toLowerCase();
+        const hasDuplicate = duplicateTitles.has(titleKey);
+        const wikiNote = isWikiNote(note);
+
         return (
           <div
             key={note.id}
@@ -119,9 +152,20 @@ export function NoteList({
                 strokeWidth={1.5}
                 className={`shrink-0 ${isSelected ? 'text-primary' : 'text-on-surface-variant'}`}
               />
-              <span className="flex-1 text-xs font-label truncate">
-                {note.title || note.filename}
+              <span className="flex-1 text-xs font-label truncate min-w-0">
+                {displayTitle}
               </span>
+
+              {/* Bug 5: wiki badge — shown when the note is generated/wiki */}
+              {wikiNote && (
+                <span
+                  className="shrink-0 text-[9px] font-mono uppercase tracking-wider px-1 bg-surface-container-high text-on-surface-variant border border-outline-variant/30"
+                  title="Wiki-generated note"
+                >
+                  wiki
+                </span>
+              )}
+
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -129,7 +173,7 @@ export function NoteList({
                 }}
                 className="opacity-0 group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 p-0.5 text-on-surface-variant hover:text-primary transition-all"
                 title="Move to folder"
-                aria-label={`Move ${note.title || note.filename} to folder`}
+                aria-label={`Move ${displayTitle} to folder`}
               >
                 <FolderInput size={10} strokeWidth={1.5} />
               </button>
@@ -140,11 +184,21 @@ export function NoteList({
                 }}
                 className="opacity-0 group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100 p-0.5 text-on-surface-variant hover:text-red-400 transition-all"
                 title="Delete note"
-                aria-label={`Delete ${note.title || note.filename}`}
+                aria-label={`Delete ${displayTitle}`}
               >
                 <Trash2 size={10} strokeWidth={1.5} />
               </button>
             </div>
+
+            {/* Bug 5: folder-path disambiguator under the title when collision detected */}
+            {hasDuplicate && note.parentPath && (
+              <div className="ml-5 mt-0.5">
+                <span className="text-[9px] font-mono text-on-surface-variant truncate block">
+                  {note.parentPath}/
+                </span>
+              </div>
+            )}
+
             {note.tags && note.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-1 ml-5 min-w-0 overflow-hidden">
                 {note.tags.slice(0, 3).map((tag) => (
