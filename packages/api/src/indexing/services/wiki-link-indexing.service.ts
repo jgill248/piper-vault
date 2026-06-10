@@ -6,6 +6,28 @@ import type { Database } from '../../database/connection';
 import { sources, sourceLinks } from '../../database/schema';
 
 /**
+ * When multiple sources share the same filename (title collision between a
+ * user-authored note and a wiki-generated copy), resolveByPreference picks the
+ * winner using a stable, deterministic rule:
+ *   1. Prefer non-generated notes (is_generated = false) over generated ones.
+ *   2. Among ties at the same generation status, prefer the most recently
+ *      updated row (later updatedAt wins).
+ */
+export function resolveByPreference(
+  rows: readonly { id: string; isGenerated: boolean; updatedAt: Date }[],
+): string | undefined {
+  if (rows.length === 0) return undefined;
+  const sorted = [...rows].sort((a, b) => {
+    // Non-generated notes rank first (false = 0, true = 1 so ascending sort)
+    const genDiff = (a.isGenerated ? 1 : 0) - (b.isGenerated ? 1 : 0);
+    if (genDiff !== 0) return genDiff;
+    // Among equals, prefer the more recently updated
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
+  });
+  return sorted[0]!.id;
+}
+
+/**
  * Shared wiki-link persistence and resolution used by source ingestion and
  * note create/update. Link storage failures are non-fatal by design: a
  * source/note must never fail to ingest because its graph edges couldn't
@@ -42,10 +64,17 @@ export class WikiLinkIndexingService {
 
       // Resolution is case-insensitive ([[note a]] resolves to "Note A.md"),
       // matching how wiki software treats link targets. An exact-case match
-      // wins when several sources differ only by case.
+      // wins when several sources differ only by case. When multiple sources
+      // share the same filename (title collision), resolveByPreference picks
+      // the user-authored note over any wiki-generated copy.
       const distinctTargets = [...new Set(wikiLinks.map((l) => l.targetFilename))];
       const targetRows = await this.db
-        .select({ id: sources.id, filename: sources.filename })
+        .select({
+          id: sources.id,
+          filename: sources.filename,
+          isGenerated: sources.isGenerated,
+          updatedAt: sources.updatedAt,
+        })
         .from(sources)
         .where(
           and(
@@ -57,22 +86,26 @@ export class WikiLinkIndexingService {
           ),
         );
 
-      const idByExactFilename = new Map<string, string>();
-      const idByLowerFilename = new Map<string, string>();
+      // Group all rows by exact filename, then by lower filename, so we can
+      // apply the preference resolver when duplicates exist.
+      const rowsByExactFilename = new Map<string, typeof targetRows>();
+      const rowsByLowerFilename = new Map<string, typeof targetRows>();
       for (const row of targetRows) {
-        if (!idByExactFilename.has(row.filename)) {
-          idByExactFilename.set(row.filename, row.id);
-        }
+        const group = rowsByExactFilename.get(row.filename) ?? [];
+        group.push(row);
+        rowsByExactFilename.set(row.filename, group);
+
         const lower = row.filename.toLowerCase();
-        if (!idByLowerFilename.has(lower)) {
-          idByLowerFilename.set(lower, row.id);
-        }
+        const lowerGroup = rowsByLowerFilename.get(lower) ?? [];
+        lowerGroup.push(row);
+        rowsByLowerFilename.set(lower, lowerGroup);
       }
 
       for (const target of distinctTargets) {
-        const targetId =
-          idByExactFilename.get(`${target}.md`) ??
-          idByLowerFilename.get(`${target.toLowerCase()}.md`);
+        const candidates =
+          rowsByExactFilename.get(`${target}.md`) ??
+          rowsByLowerFilename.get(`${target.toLowerCase()}.md`);
+        const targetId = resolveByPreference(candidates ?? []);
         if (targetId === undefined) continue;
         await this.db
           .update(sourceLinks)

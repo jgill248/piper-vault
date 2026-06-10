@@ -5,6 +5,31 @@ import { GetSuggestionsQuery } from './get-suggestions.query';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 
+/**
+ * Given a ranked list of candidate suggestions, deduplicate by lowercase title
+ * keeping only the highest-scoring row per title (the list is already sorted
+ * descending by score, so the first occurrence of each title wins).
+ *
+ * Rows with a null title are treated as unique (never merged with each other
+ * or with titled rows — a null title cannot collide).
+ */
+export function dedupeByTitle(
+  rows: ReadonlyArray<{ sourceId: string; title: string | null; filename: string; score: number }>,
+): Array<{ sourceId: string; title: string | null; filename: string; score: number }> {
+  const seen = new Set<string>();
+  const result: Array<{ sourceId: string; title: string | null; filename: string; score: number }> =
+    [];
+  for (const row of rows) {
+    const key = row.title !== null ? row.title.toLowerCase() : null;
+    if (key !== null) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    result.push(row);
+  }
+  return result;
+}
+
 export interface SuggestionEntry {
   readonly sourceId: string;
   readonly title: string | null;
@@ -18,6 +43,16 @@ export class GetSuggestionsHandler implements IQueryHandler<GetSuggestionsQuery>
 
   async execute(query: GetSuggestionsQuery): Promise<readonly SuggestionEntry[]> {
     const { noteId, limit } = query;
+
+    // Step 0: Fetch the title of the current note so we can exclude notes that
+    // share its title (a note must never see itself or a generated copy of itself
+    // in its own Suggested Links).
+    const noteRows = await this.db.execute(
+      sql`SELECT title FROM sources WHERE id = ${noteId}::uuid LIMIT 1`,
+    );
+    const currentNoteTitle =
+      (noteRows as unknown as { title: string | null }[])[0]?.title ?? null;
+    const currentNoteTitleLower = currentNoteTitle !== null ? currentNoteTitle.toLowerCase() : null;
 
     // Step 1: Compute centroid embedding from the note's chunks.
     // Average all chunk embeddings for this note into a single representative vector.
@@ -80,12 +115,15 @@ export class GetSuggestionsHandler implements IQueryHandler<GetSuggestionsQuery>
           AND c.source_id != ${noteId}::uuid
         GROUP BY c.source_id, s.title, s.filename
         ORDER BY MAX(1 - (c.embedding <=> ${vectorLiteral}::vector)) DESC
-        LIMIT ${limit + linkedIds.size}
+        LIMIT ${(limit * 3) + linkedIds.size}
       `,
     );
 
-    // Step 4: Filter out already-linked and below threshold
-    const suggestions: SuggestionEntry[] = [];
+    // Step 4: Filter out already-linked, below-threshold, and same-title notes.
+    // Collect all passing rows first, then dedupe by title so that a
+    // user-authored note and its wiki-generated copy don't both appear as
+    // separate suggestions (the highest-scoring one is kept).
+    const passing: Array<{ sourceId: string; title: string | null; filename: string; score: number }> = [];
     for (const r of results as unknown as {
       source_id: string;
       title: string | null;
@@ -94,15 +132,28 @@ export class GetSuggestionsHandler implements IQueryHandler<GetSuggestionsQuery>
     }[]) {
       if (linkedIds.has(r.source_id)) continue;
       if (r.score < 0.3) continue;
-      suggestions.push({
+      // Exclude notes whose title matches the current note (case-insensitive).
+      // This prevents a generated wiki copy from appearing as a suggestion to
+      // the source note (and vice versa).
+      if (
+        currentNoteTitleLower !== null &&
+        r.title !== null &&
+        r.title.toLowerCase() === currentNoteTitleLower
+      ) {
+        continue;
+      }
+      passing.push({
         sourceId: r.source_id,
         title: r.title,
         filename: r.filename,
         score: Math.round(r.score * 100) / 100,
       });
-      if (suggestions.length >= limit) break;
     }
 
-    return suggestions;
+    // Dedupe by lowercase title, keeping the highest-scoring row per title
+    // (rows are already sorted descending by score from the SQL query).
+    const deduped = dedupeByTitle(passing);
+
+    return deduped.slice(0, limit);
   }
 }

@@ -10,6 +10,7 @@ import { sources, chunks, wikiLog, wikiPageVersions } from '../../database/schem
 import { ConfigStore } from '../../config/config.store';
 import { CreateNoteCommand } from '../../notes/commands/create-note.command';
 import { UpdateNoteCommand } from '../../notes/commands/update-note.command';
+import { ProviderAvailabilityService } from '../services/provider-availability.service';
 
 /**
  * Outcome of a wiki generation run for a single source. Returned so callers
@@ -40,6 +41,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     @Inject('EMBEDDER') private readonly embedder: Embedder,
     @Inject(ConfigStore) private readonly configStore: ConfigStore,
     @Inject(CommandBus) private readonly commandBus: CommandBus,
+    private readonly providerAvailability: ProviderAvailabilityService,
   ) {}
 
   async execute(command: GenerateWikiPagesCommand): Promise<WikiGenerationOutcome> {
@@ -48,6 +50,17 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
 
     if (!cfg.wikiEnabled || (!cfg.wikiAutoIngest && !command.force)) {
       this.logger.debug('Wiki auto-ingest disabled, skipping');
+      return { status: 'skipped', pagesCreated: 0, pagesSynthesized: 0 };
+    }
+
+    // ── Provider availability check ──────────────────────────────────────
+    // Probe before running any expensive work. The service caches results and
+    // backs off after repeated failures, emitting at most one log warning per
+    // failure window instead of a stack trace per upload.
+    const providerReachable = await this.providerAvailability.isAvailable();
+    if (!providerReachable) {
+      // Log the skip in wiki_log so the UI can surface it (operation 'skipped')
+      await this.logProviderSkip(sourceId, collectionId);
       return { status: 'skipped', pagesCreated: 0, pagesSynthesized: 0 };
     }
 
@@ -180,7 +193,21 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     const refreshedPages = await this.loadExistingWikiPages(collectionId);
     const refreshedEmbeddings = await this.computePageEmbeddings(refreshedPages);
 
+    // Pre-fetch all user-authored note titles in this collection so we can
+    // detect title collisions before inserting a wiki-generated page.
+    const userAuthoredTitles = await this.loadUserAuthoredTitles(collectionId);
+
     for (const page of pages) {
+      // ── Collision guard: skip if a user-authored note has the same title ──
+      // Prefer the user's version; log the skip so the UI can surface it.
+      if (userAuthoredTitles.has(page.title.toLowerCase())) {
+        this.logger.debug(
+          `Wiki collision: user-authored note with title "${page.title}" already exists in collection — skipping wiki generation for this title`,
+        );
+        await this.logCollision(page.title, sourceId, collectionId, sourceFilename);
+        continue;
+      }
+
       try {
         // Embed the draft page content for dedup check
         const draftEmbResult = await this.embedder.embed(`${page.title}\n\n${page.content}`);
@@ -308,6 +335,57 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     return content;
   }
 
+  /**
+   * Returns a Set of lowercased titles for all user-authored (non-generated)
+   * notes in the collection. Used for title collision detection before creating
+   * a wiki-generated page.
+   */
+  private async loadUserAuthoredTitles(collectionId: string): Promise<Set<string>> {
+    const rows = await this.db
+      .select({ title: sources.title })
+      .from(sources)
+      .where(
+        and(
+          eq(sources.collectionId, collectionId),
+          eq(sources.isNote, true),
+          eq(sources.isGenerated, false),
+          eq(sources.status, 'ready'),
+        ),
+      );
+    const set = new Set<string>();
+    for (const row of rows) {
+      if (row.title) set.add(row.title.toLowerCase());
+    }
+    return set;
+  }
+
+  /**
+   * Records a collision-skip in wiki_log so the UI (Wiki Log) can surface it.
+   * Uses operation 'collision' — distinct from 'ingest' so it doesn't mark the
+   * source as processed, and distinct from 'error' so it isn't treated as a
+   * failure requiring retry.
+   */
+  private async logCollision(
+    pageTitle: string,
+    sourceId: string,
+    collectionId: string,
+    sourceFilename: string,
+  ): Promise<void> {
+    try {
+      await this.db.insert(wikiLog).values({
+        operation: 'collision',
+        summary: `Wiki generation skipped for "${pageTitle}": a user-authored note with this title already exists`,
+        affectedSourceIds: [],
+        sourceTriggerIds: sourceId,
+        collectionId,
+        metadata: { pageTitle, sourceFilename },
+      });
+    } catch (logErr) {
+      const message = logErr instanceof Error ? logErr.message : String(logErr);
+      this.logger.warn(`Failed to record wiki collision for "${pageTitle}": ${message}`);
+    }
+  }
+
   private async loadExistingWikiPages(collectionId: string) {
     return this.db
       .select({
@@ -385,6 +463,31 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       triggeredBy,
       collectionId,
     });
+  }
+
+  /**
+   * Records a provider-unavailable skip in wiki_log so the UI can surface it.
+   * Uses operation 'skipped' — intentionally distinct from 'error' so it does
+   * not trigger retry logic, and from 'ingest' so the source stays eligible for
+   * the next initialization run.
+   */
+  private async logProviderSkip(
+    sourceId: string,
+    collectionId: string,
+  ): Promise<void> {
+    try {
+      await this.db.insert(wikiLog).values({
+        operation: 'skipped',
+        summary: 'Wiki generation skipped: LLM provider is unreachable',
+        affectedSourceIds: [],
+        sourceTriggerIds: sourceId,
+        collectionId,
+        metadata: { reason: 'provider_unavailable' },
+      });
+    } catch (logErr) {
+      const message = logErr instanceof Error ? logErr.message : String(logErr);
+      this.logger.warn(`Failed to record provider-skip wiki log for ${sourceId}: ${message}`);
+    }
   }
 
   /**
