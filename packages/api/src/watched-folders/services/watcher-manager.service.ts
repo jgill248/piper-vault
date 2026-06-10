@@ -15,6 +15,10 @@ import { IngestSourceCommand } from '../../sources/commands/ingest-source.comman
 import type { IngestSourceResult } from '../../sources/commands/ingest-source.handler';
 import { DeleteSourceCommand } from '../../sources/commands/delete-source.command';
 
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 @Injectable()
 export class WatcherManagerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WatcherManagerService.name);
@@ -60,13 +64,19 @@ export class WatcherManagerService implements OnModuleInit, OnModuleDestroy {
       folderPath,
       {
         onAdd: (filePath) => {
-          void this.handleFileAdded(filePath, collectionId);
+          this.handleFileAdded(filePath, collectionId).catch((err: unknown) => {
+            this.logger.error(`Failed to handle added file "${filePath}": ${errorMessage(err)}`);
+          });
         },
         onChange: (filePath) => {
-          void this.handleFileChanged(filePath, collectionId);
+          this.handleFileChanged(filePath, collectionId).catch((err: unknown) => {
+            this.logger.error(`Failed to handle changed file "${filePath}": ${errorMessage(err)}`);
+          });
         },
         onUnlink: (filePath) => {
-          void this.handleFileRemoved(filePath, collectionId);
+          this.handleFileRemoved(filePath, collectionId).catch((err: unknown) => {
+            this.logger.error(`Failed to handle removed file "${filePath}": ${errorMessage(err)}`);
+          });
         },
         onError: (error) => {
           this.logger.error(`Watcher error for "${folderPath}": ${error.message}`);

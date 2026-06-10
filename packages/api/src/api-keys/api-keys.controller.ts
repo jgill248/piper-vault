@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   Query,
   HttpCode,
   HttpStatus,
@@ -72,7 +73,7 @@ export class ApiKeysController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async revoke(@Param('id') id: string): Promise<void> {
+  async revoke(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.commandBus.execute(new RevokeApiKeyCommand(id));
   }
 }

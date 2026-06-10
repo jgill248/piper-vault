@@ -1,16 +1,17 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Inject, Logger, ConflictException, InternalServerErrorException } from '@nestjs/common';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
 import type { IngestionPipeline } from '@delve/core';
-import type { Embedder } from '@delve/core';
 import { extractFrontmatter, parseWikiLinks } from '@delve/core';
 import { IngestSourceCommand } from './ingest-source.command';
 import { SourceIngestedEvent } from '../events/source-ingested.event';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
-import { sources, chunks, sourceLinks } from '../../database/schema';
+import { sources } from '../../database/schema';
+import { ChunkIndexingService } from '../../indexing/services/chunk-indexing.service';
+import { WikiLinkIndexingService } from '../../indexing/services/wiki-link-indexing.service';
 
 export interface IngestSourceResult {
   readonly sourceId: string;
@@ -24,7 +25,8 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject('INGESTION_PIPELINE') private readonly pipeline: IngestionPipeline,
-    @Inject('EMBEDDER') private readonly embedder: Embedder,
+    private readonly chunkIndexing: ChunkIndexingService,
+    private readonly wikiLinkIndexing: WikiLinkIndexingService,
     private readonly eventBus: EventBus,
   ) {}
 
@@ -109,104 +111,27 @@ export class IngestSourceHandler implements ICommandHandler<IngestSourceCommand>
       throw new InternalServerErrorException('Failed to create source record');
     }
 
-    // --- Step 4: Generate embeddings for all chunks ---
-    const contents = textChunks.map((c) => c.content);
-    const embeddingResult = await this.embedder.embedBatch(contents);
+    // --- Step 4: Embed and store chunks ---
+    const indexResult = await this.chunkIndexing.embedAndStoreChunks(sourceId, textChunks);
 
-    if (!embeddingResult.ok) {
+    if (!indexResult.ok) {
       await this.db
         .update(sources)
         .set({ status: 'error', updatedAt: new Date() })
         .where(eq(sources.id, sourceId));
-      return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
+      return { ok: false, error: indexResult.error };
     }
 
-    const embeddings = embeddingResult.value;
-
-    // --- Step 5: Insert chunks with embeddings ---
-    try {
-      const chunkRows = textChunks.map((chunk, index) => ({
+    // --- Step 5: Store outgoing wiki-links and resolve incoming ones ---
+    if (isMarkdown) {
+      await this.wikiLinkIndexing.storeAndResolveOutgoingLinks(sourceId, collectionId, wikiLinks);
+      // Runs even when this file has no outgoing links: other sources may
+      // already contain unresolved [[links]] pointing at it.
+      await this.wikiLinkIndexing.backfillIncomingLinks(
         sourceId,
-        chunkIndex: chunk.index,
-        content: chunk.content,
-        embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
-        tokenCount: chunk.tokenCount,
-        pageNumber: typeof chunk.metadata['pageNumber'] === 'number'
-          ? chunk.metadata['pageNumber']
-          : undefined,
-        metadata: chunk.metadata as Record<string, unknown>,
-      }));
-
-      if (chunkRows.length > 0) {
-        await this.db.insert(chunks).values(chunkRows);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.error(`Failed to insert chunks for source ${sourceId}: ${message}`);
-      await this.db
-        .update(sources)
-        .set({ status: 'error', updatedAt: new Date() })
-        .where(eq(sources.id, sourceId));
-      return { ok: false, error: `Failed to store chunks: ${message}` };
-    }
-
-    // --- Step 5b: Store wiki-links in source_links table ---
-    if (wikiLinks.length > 0) {
-      try {
-        const linkRows = wikiLinks.map((link) => ({
-          sourceId,
-          targetFilename: link.targetFilename,
-          linkType: link.linkType,
-          displayText: link.displayText,
-          section: link.section,
-        }));
-
-        await this.db.insert(sourceLinks).values(linkRows);
-
-        // Resolve target_source_id for links where target already exists
-        for (const link of wikiLinks) {
-          const targets = await this.db
-            .select({ id: sources.id })
-            .from(sources)
-            .where(
-              and(
-                eq(sources.filename, `${link.targetFilename}.md`),
-                eq(sources.collectionId, collectionId),
-              ),
-            )
-            .limit(1);
-
-          if (targets.length > 0 && targets[0] !== undefined) {
-            await this.db
-              .update(sourceLinks)
-              .set({ targetSourceId: targets[0].id })
-              .where(
-                and(
-                  eq(sourceLinks.sourceId, sourceId),
-                  eq(sourceLinks.targetFilename, link.targetFilename),
-                ),
-              );
-          }
-        }
-
-        // Re-resolve any unresolved links from OTHER sources that point to this file
-        const filenameWithoutExt = filename.replace(/\.md$/, '');
-        await this.db
-          .update(sourceLinks)
-          .set({ targetSourceId: sourceId })
-          .where(
-            and(
-              eq(sourceLinks.targetFilename, filenameWithoutExt),
-              isNull(sourceLinks.targetSourceId),
-            ),
-          );
-
-        this.logger.log(`Stored ${wikiLinks.length} wiki-links for source ${sourceId}`);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        this.logger.warn(`Failed to store wiki-links for source ${sourceId}: ${message}`);
-        // Non-fatal — don't fail the ingestion for link storage issues
-      }
+        collectionId,
+        filename.replace(/\.md$/, ''),
+      );
     }
 
     // --- Step 6: Mark source as ready ---

@@ -39,10 +39,35 @@ export function useReindexSource() {
   });
 }
 
-export function useListTags() {
+export function useListTags(collectionId?: string) {
   return useQuery({
-    queryKey: ['tags'],
-    queryFn: () => api.listTags(),
+    queryKey: ['tags', collectionId],
+    queryFn: () => api.listTags(collectionId),
+  });
+}
+
+export function useRenameTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { oldTag: string; newTag: string; collectionId?: string }) =>
+      api.renameTag(body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tags'] });
+      void queryClient.invalidateQueries({ queryKey: ['sources'] });
+      void queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+}
+
+export function useDeleteTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { tag: string; collectionId?: string }) => api.deleteTag(body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tags'] });
+      void queryClient.invalidateQueries({ queryKey: ['sources'] });
+      void queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
   });
 }
 

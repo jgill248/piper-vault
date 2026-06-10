@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
+import { IndexingModule } from '../indexing/indexing.module';
 import { SourcesController } from './sources.controller';
 import { IngestSourceHandler } from './commands/ingest-source.handler';
 import { DeleteSourceHandler } from './commands/delete-source.handler';
 import { ReindexSourceHandler } from './commands/reindex-source.handler';
 import { UpdateSourceTagsHandler } from './commands/update-source-tags.handler';
+import { RenameTagHandler } from './commands/rename-tag.handler';
+import { DeleteTagHandler } from './commands/delete-tag.handler';
 import { BulkImportHandler } from './commands/bulk-import.handler';
 import { ListSourcesHandler } from './queries/list-sources.handler';
 import { GetSourceHandler } from './queries/get-source.handler';
 import { ListTagsHandler } from './queries/list-tags.handler';
 
-const CommandHandlers = [IngestSourceHandler, DeleteSourceHandler, ReindexSourceHandler, UpdateSourceTagsHandler, BulkImportHandler];
+const CommandHandlers = [IngestSourceHandler, DeleteSourceHandler, ReindexSourceHandler, UpdateSourceTagsHandler, RenameTagHandler, DeleteTagHandler, BulkImportHandler];
 const QueryHandlers = [ListSourcesHandler, GetSourceHandler, ListTagsHandler];
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, IndexingModule],
   controllers: [SourcesController],
   providers: [...CommandHandlers, ...QueryHandlers],
 })

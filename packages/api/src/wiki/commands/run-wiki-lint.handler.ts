@@ -54,7 +54,8 @@ export class RunWikiLintHandler implements ICommandHandler<RunWikiLintCommand> {
 
     // --- Structural checks ---
 
-    // Broken links: source_links where target_source_id IS NULL and source is a wiki page
+    // Broken links: source_links where target_source_id IS NULL and the link
+    // originates from one of this collection's wiki pages
     const wikiPageIds = wikiPages.map((p) => p.id);
     const brokenLinkRows = await this.db
       .select({
@@ -66,7 +67,7 @@ export class RunWikiLintHandler implements ICommandHandler<RunWikiLintCommand> {
       .where(
         and(
           isNull(sourceLinks.targetSourceId),
-          eq(sources.isGenerated, true),
+          inArray(sourceLinks.sourceId, wikiPageIds),
         ),
       );
 
@@ -75,11 +76,17 @@ export class RunWikiLintHandler implements ICommandHandler<RunWikiLintCommand> {
       targetFilename: r.targetFilename,
     }));
 
-    // Orphaned pages: wiki pages with zero incoming links
+    // Orphaned pages: wiki pages with zero incoming links from this collection
     const pagesWithBacklinks = await this.db
       .select({ targetId: sourceLinks.targetSourceId })
       .from(sourceLinks)
-      .where(sql`${sourceLinks.targetSourceId} IS NOT NULL`);
+      .innerJoin(sources, eq(sourceLinks.sourceId, sources.id))
+      .where(
+        and(
+          sql`${sourceLinks.targetSourceId} IS NOT NULL`,
+          eq(sources.collectionId, collectionId),
+        ),
+      );
 
     const linkedIds = new Set(pagesWithBacklinks.map((r) => r.targetId));
     const orphanedPages = wikiPages
@@ -153,6 +160,7 @@ export class RunWikiLintHandler implements ICommandHandler<RunWikiLintCommand> {
       operation: 'lint',
       summary,
       affectedSourceIds: wikiPageIds,
+      collectionId,
       metadata: {
         totalIssues: allIssues.length,
         structuralIssues: structuralIssues.length,

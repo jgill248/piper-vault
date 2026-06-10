@@ -8,7 +8,7 @@ export function useWikiIndex(collectionId?: string) {
   });
 }
 
-export function useWikiLog(params?: { limit?: number; offset?: number; operation?: string }) {
+export function useWikiLog(params?: { limit?: number; offset?: number; operation?: string; collectionId?: string }) {
   return useQuery({
     queryKey: ['wiki', 'log', params],
     queryFn: () => api.getWikiLog(params),

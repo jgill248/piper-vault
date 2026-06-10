@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
   Query,
   HttpCode,
   HttpStatus,
@@ -94,7 +95,7 @@ export class CollectionsController {
    * GET /api/v1/collections/:id
    */
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<Collection> {
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<Collection> {
     return this.queryBus.execute(new GetCollectionQuery(id));
   }
 
@@ -103,7 +104,7 @@ export class CollectionsController {
    */
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ): Promise<Collection> {
     const parsed = UpdateCollectionSchema.safeParse(body);
@@ -135,7 +136,7 @@ export class CollectionsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query('mode') mode?: string,
     @CurrentUser() user?: UserRow,
   ): Promise<void> {

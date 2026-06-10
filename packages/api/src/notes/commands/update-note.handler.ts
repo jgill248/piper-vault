@@ -1,15 +1,17 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Inject, Logger, NotFoundException } from '@nestjs/common';
-import { eq, and, isNull, inArray } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { Result } from '@delve/shared';
 import { DEFAULT_CONFIG } from '@delve/shared';
-import type { IngestionPipeline, Embedder } from '@delve/core';
+import type { IngestionPipeline } from '@delve/core';
 import { extractFrontmatter, parseWikiLinks } from '@delve/core';
 import { UpdateNoteCommand } from './update-note.command';
 import { SourceIngestedEvent } from '../../sources/events/source-ingested.event';
 import { DATABASE } from '../../database/database.providers';
 import type { Database } from '../../database/connection';
 import { sources, chunks, sourceLinks } from '../../database/schema';
+import { ChunkIndexingService } from '../../indexing/services/chunk-indexing.service';
+import { WikiLinkIndexingService } from '../../indexing/services/wiki-link-indexing.service';
 import { createHash } from 'crypto';
 
 @CommandHandler(UpdateNoteCommand)
@@ -19,7 +21,8 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject('INGESTION_PIPELINE') private readonly pipeline: IngestionPipeline,
-    @Inject('EMBEDDER') private readonly embedder: Embedder,
+    private readonly chunkIndexing: ChunkIndexingService,
+    private readonly wikiLinkIndexing: WikiLinkIndexingService,
     @Inject(EventBus) private readonly eventBus: EventBus,
   ) {}
 
@@ -102,32 +105,14 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
 
         const { chunks: textChunks } = ingestionResult.value;
 
-        // Generate embeddings
-        const contents = textChunks.map((c) => c.content);
-        const embeddingResult = await this.embedder.embedBatch(contents);
+        const indexResult = await this.chunkIndexing.embedAndStoreChunks(noteId, textChunks);
 
-        if (!embeddingResult.ok) {
+        if (!indexResult.ok) {
           await this.db
             .update(sources)
             .set({ status: 'error', updatedAt: new Date() })
             .where(eq(sources.id, noteId));
-          return { ok: false, error: `Embedding failed: ${embeddingResult.error}` };
-        }
-
-        const embeddings = embeddingResult.value;
-
-        // Insert new chunks
-        const chunkRows = textChunks.map((chunk, index) => ({
-          sourceId: noteId,
-          chunkIndex: chunk.index,
-          content: chunk.content,
-          embedding: embeddings[index] !== undefined ? [...embeddings[index]] : undefined,
-          tokenCount: chunk.tokenCount,
-          metadata: chunk.metadata as Record<string, unknown>,
-        }));
-
-        if (chunkRows.length > 0) {
-          await this.db.insert(chunks).values(chunkRows);
+          return { ok: false, error: indexResult.error };
         }
 
         updates['chunkCount'] = textChunks.length;
@@ -138,50 +123,11 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
       // Re-parse and store wiki-links
       await this.db.delete(sourceLinks).where(eq(sourceLinks.sourceId, noteId));
       const wikiLinks = parseWikiLinks(content);
-      if (wikiLinks.length > 0) {
-        try {
-          const linkRows = wikiLinks.map((link) => ({
-            sourceId: noteId,
-            targetFilename: link.targetFilename,
-            linkType: link.linkType,
-            displayText: link.displayText,
-            section: link.section,
-          }));
-          await this.db.insert(sourceLinks).values(linkRows);
-
-          // Resolve target_source_id where target exists
-          const collectionId = note.collectionId;
-          for (const link of wikiLinks) {
-            const targets = await this.db
-              .select({ id: sources.id })
-              .from(sources)
-              .where(
-                and(
-                  eq(sources.filename, `${link.targetFilename}.md`),
-                  eq(sources.collectionId, collectionId),
-                ),
-              )
-              .limit(1);
-
-            if (targets.length > 0 && targets[0] !== undefined) {
-              await this.db
-                .update(sourceLinks)
-                .set({ targetSourceId: targets[0].id })
-                .where(
-                  and(
-                    eq(sourceLinks.sourceId, noteId),
-                    eq(sourceLinks.targetFilename, link.targetFilename),
-                  ),
-                );
-            }
-          }
-
-          this.logger.log(`Updated ${wikiLinks.length} wiki-links for note ${noteId}`);
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          this.logger.warn(`Failed to store wiki-links for note ${noteId}: ${message}`);
-        }
-      }
+      await this.wikiLinkIndexing.storeAndResolveOutgoingLinks(
+        noteId,
+        note.collectionId,
+        wikiLinks,
+      );
     } else {
       // No content change — just update metadata fields
       if (title !== undefined) {
@@ -208,31 +154,7 @@ export class UpdateNoteHandler implements ICommandHandler<UpdateNoteCommand> {
     if (content !== undefined || title !== undefined) {
       const resolvedTitle = (updates['title'] as string | undefined) ?? note.title;
       if (resolvedTitle) {
-        try {
-          const collectionSources = await this.db
-            .select({ id: sources.id })
-            .from(sources)
-            .where(eq(sources.collectionId, note.collectionId));
-
-          if (collectionSources.length > 0) {
-            await this.db
-              .update(sourceLinks)
-              .set({ targetSourceId: noteId })
-              .where(
-                and(
-                  eq(sourceLinks.targetFilename, resolvedTitle),
-                  isNull(sourceLinks.targetSourceId),
-                  inArray(
-                    sourceLinks.sourceId,
-                    collectionSources.map((s) => s.id),
-                  ),
-                ),
-              );
-          }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          this.logger.warn(`Failed to backfill incoming backlinks for note ${noteId}: ${message}`);
-        }
+        await this.wikiLinkIndexing.backfillIncomingLinks(noteId, note.collectionId, resolvedTitle);
       }
     }
 

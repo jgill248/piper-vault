@@ -39,7 +39,8 @@ export function SearchFilters({ filters, onChange }: SearchFiltersProps) {
   const [expanded, setExpanded] = useState(false);
   const { activeCollectionId } = useActiveCollection();
   const { data: sourcesData } = useListSources(1, 100, activeCollectionId);
-  const { data: availableTags } = useListTags();
+  const { data: tagCounts } = useListTags();
+  const availableTags = tagCounts?.map((t) => t.tag);
   const sources = sourcesData?.data ?? [];
 
   const activeCount = activeFilterCount(filters);

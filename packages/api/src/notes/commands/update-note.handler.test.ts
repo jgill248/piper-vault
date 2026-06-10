@@ -4,7 +4,9 @@ import type { EventBus } from '@nestjs/cqrs';
 import { UpdateNoteHandler } from './update-note.handler';
 import { UpdateNoteCommand } from './update-note.command';
 import type { Database } from '../../database/connection';
-import type { IngestionPipeline, Embedder } from '@delve/core';
+import type { IngestionPipeline } from '@delve/core';
+import type { ChunkIndexingService } from '../../indexing/services/chunk-indexing.service';
+import type { WikiLinkIndexingService } from '../../indexing/services/wiki-link-indexing.service';
 
 function makeEventBus(): EventBus {
   return { publish: vi.fn() } as unknown as EventBus;
@@ -50,10 +52,17 @@ function makePipeline() {
   } as unknown as IngestionPipeline;
 }
 
-function makeEmbedder() {
+function makeChunkIndexing(): ChunkIndexingService {
   return {
-    embedBatch: vi.fn().mockResolvedValue({ ok: true, value: [[0.1]] }),
-  } as unknown as Embedder;
+    embedAndStoreChunks: vi.fn().mockResolvedValue({ ok: true, value: 1 }),
+  } as unknown as ChunkIndexingService;
+}
+
+function makeWikiLinkIndexing(): WikiLinkIndexingService {
+  return {
+    storeAndResolveOutgoingLinks: vi.fn().mockResolvedValue(undefined),
+    backfillIncomingLinks: vi.fn().mockResolvedValue(undefined),
+  } as unknown as WikiLinkIndexingService;
 }
 
 const NOTE = {
@@ -68,7 +77,13 @@ const NOTE = {
 describe('UpdateNoteHandler', () => {
   it('throws NotFoundException when note does not exist', async () => {
     const { db } = makeDb(null);
-    const handler = new UpdateNoteHandler(db, makePipeline(), makeEmbedder(), makeEventBus());
+    const handler = new UpdateNoteHandler(
+      db,
+      makePipeline(),
+      makeChunkIndexing(),
+      makeWikiLinkIndexing(),
+      makeEventBus(),
+    );
 
     await expect(
       handler.execute(new UpdateNoteCommand('missing-id', 'new content')),
@@ -78,8 +93,9 @@ describe('UpdateNoteHandler', () => {
   it('updates content, re-chunks, and re-embeds', async () => {
     const { db } = makeDb(NOTE);
     const pipeline = makePipeline();
-    const embedder = makeEmbedder();
-    const handler = new UpdateNoteHandler(db, pipeline, embedder, makeEventBus());
+    const chunkIndexing = makeChunkIndexing();
+    const wikiLinkIndexing = makeWikiLinkIndexing();
+    const handler = new UpdateNoteHandler(db, pipeline, chunkIndexing, wikiLinkIndexing, makeEventBus());
 
     const result = await handler.execute(
       new UpdateNoteCommand('note-1', 'updated content [[Link]]'),
@@ -87,14 +103,28 @@ describe('UpdateNoteHandler', () => {
 
     expect(result.ok).toBe(true);
     expect(pipeline.ingest).toHaveBeenCalled();
-    expect(embedder.embedBatch).toHaveBeenCalled();
+    expect(chunkIndexing.embedAndStoreChunks).toHaveBeenCalledWith(
+      'note-1',
+      expect.any(Array),
+    );
+    expect(wikiLinkIndexing.storeAndResolveOutgoingLinks).toHaveBeenCalledWith(
+      'note-1',
+      'col-1',
+      expect.arrayContaining([expect.objectContaining({ targetFilename: 'Link' })]),
+    );
   });
 
   it('updates metadata fields without re-chunking when content is unchanged', async () => {
     const { db } = makeDb(NOTE);
     const pipeline = makePipeline();
-    const embedder = makeEmbedder();
-    const handler = new UpdateNoteHandler(db, pipeline, embedder, makeEventBus());
+    const chunkIndexing = makeChunkIndexing();
+    const handler = new UpdateNoteHandler(
+      db,
+      pipeline,
+      chunkIndexing,
+      makeWikiLinkIndexing(),
+      makeEventBus(),
+    );
 
     const result = await handler.execute(
       new UpdateNoteCommand('note-1', undefined, 'New Title', undefined, ['new-tag']),
@@ -102,6 +132,28 @@ describe('UpdateNoteHandler', () => {
 
     expect(result.ok).toBe(true);
     expect(pipeline.ingest).not.toHaveBeenCalled();
-    expect(embedder.embedBatch).not.toHaveBeenCalled();
+    expect(chunkIndexing.embedAndStoreChunks).not.toHaveBeenCalled();
+  });
+
+  it('backfills incoming links against the new title on rename', async () => {
+    const { db } = makeDb(NOTE);
+    const wikiLinkIndexing = makeWikiLinkIndexing();
+    const handler = new UpdateNoteHandler(
+      db,
+      makePipeline(),
+      makeChunkIndexing(),
+      wikiLinkIndexing,
+      makeEventBus(),
+    );
+
+    await handler.execute(
+      new UpdateNoteCommand('note-1', undefined, 'New Title'),
+    );
+
+    expect(wikiLinkIndexing.backfillIncomingLinks).toHaveBeenCalledWith(
+      'note-1',
+      'col-1',
+      'New Title',
+    );
   });
 });

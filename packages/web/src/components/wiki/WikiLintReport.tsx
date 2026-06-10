@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRunWikiLint } from '../../hooks/use-wiki';
+import { useActiveCollection } from '../../context/CollectionContext';
 import type { WikiLintIssue } from '../../api/client';
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -18,6 +19,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function WikiLintReport() {
+  const { activeCollectionId } = useActiveCollection();
   const [issues, setIssues] = useState<WikiLintIssue[]>([]);
   const [summary, setSummary] = useState<string>('');
   const [hasRun, setHasRun] = useState(false);
@@ -25,7 +27,7 @@ export function WikiLintReport() {
 
   async function handleRunLint() {
     try {
-      const result = await lintMutation.mutateAsync({});
+      const result = await lintMutation.mutateAsync({ collectionId: activeCollectionId });
       if (result.ok && result.value) {
         setIssues(result.value.issues);
         setSummary(result.value.summary);

@@ -297,6 +297,7 @@ export async function runMigrations(connectionString: string): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_source_links_source ON source_links(source_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_source_links_target ON source_links(target_source_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_source_links_target_filename ON source_links(target_filename)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_source_links_backlinks ON source_links(target_source_id, source_id)`;
   console.log('  table: source_links');
 
   // Phase 5: note_folders table for note organization
@@ -377,6 +378,29 @@ export async function runMigrations(connectionString: string): Promise<void> {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_wiki_page_versions_source ON wiki_page_versions(source_id, version_number DESC)`;
   console.log('  table: wiki_page_versions');
+
+  // Collection-scoped wikis: wiki activity and version history belong to a
+  // collection. Legacy wiki_log rows that can't be attributed via their
+  // trigger source stay NULL and are excluded from collection-filtered views.
+  await sql`ALTER TABLE wiki_log ADD COLUMN IF NOT EXISTS collection_id UUID REFERENCES collections(id) ON DELETE CASCADE`;
+  await sql`ALTER TABLE wiki_page_versions ADD COLUMN IF NOT EXISTS collection_id UUID REFERENCES collections(id) ON DELETE CASCADE`;
+  await sql`
+    UPDATE wiki_log
+    SET collection_id = s.collection_id
+    FROM sources s
+    WHERE wiki_log.collection_id IS NULL
+      AND wiki_log.source_trigger_id = s.id
+  `;
+  await sql`
+    UPDATE wiki_page_versions
+    SET collection_id = s.collection_id
+    FROM sources s
+    WHERE wiki_page_versions.collection_id IS NULL
+      AND wiki_page_versions.source_id = s.id
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_wiki_log_collection ON wiki_log(collection_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_wiki_page_versions_collection ON wiki_page_versions(collection_id)`;
+  console.log('  migration: collection scoping for wiki_log and wiki_page_versions');
 
     console.log('Migrations complete.');
   } finally {

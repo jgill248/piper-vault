@@ -15,7 +15,10 @@ vi.mock('../../hooks/use-sources', () => ({
     },
   }),
   useListTags: () => ({
-    data: ['alpha', 'beta'],
+    data: [
+      { tag: 'alpha', count: 2 },
+      { tag: 'beta', count: 1 },
+    ],
   }),
 }));
 

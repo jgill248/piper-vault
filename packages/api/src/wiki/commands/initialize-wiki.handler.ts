@@ -36,11 +36,12 @@ export class InitializeWikiHandler implements ICommandHandler<InitializeWikiComm
 
     const collectionId = command.collectionId ?? DEFAULT_COLLECTION_ID;
 
-    // Find sources already processed by wiki generation (via wikiLog 'ingest' entries)
+    // Find sources already processed by wiki generation (via wikiLog 'ingest'
+    // entries for this collection)
     const existingLogs = await this.db
       .select({ sourceTriggerIds: wikiLog.sourceTriggerIds })
       .from(wikiLog)
-      .where(eq(wikiLog.operation, 'ingest'));
+      .where(and(eq(wikiLog.operation, 'ingest'), eq(wikiLog.collectionId, collectionId)));
 
     const alreadyProcessedIds = new Set(
       existingLogs
@@ -101,6 +102,7 @@ export class InitializeWikiHandler implements ICommandHandler<InitializeWikiComm
       operation: 'initialize',
       summary,
       affectedSourceIds: [],
+      collectionId,
       metadata: {
         totalEligible: eligibleSources.length,
         sourcesProcessed,

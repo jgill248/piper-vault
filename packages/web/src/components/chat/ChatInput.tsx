@@ -63,8 +63,7 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false }: ChatI
             rows={1}
             placeholder="Enter query..."
             aria-label="Chat message input"
-            className="input-cmd pl-10 resize-none overflow-hidden min-h-[40px] max-h-[160px]"
-            style={{ lineHeight: '1.5' }}
+            className="input-cmd pl-10 resize-none overflow-hidden min-h-[40px] max-h-[160px] leading-normal"
           />
         </div>
 

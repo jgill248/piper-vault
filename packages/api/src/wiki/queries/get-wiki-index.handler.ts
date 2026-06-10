@@ -54,7 +54,7 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
     }
 
     // Check for a cached index that's still valid
-    const cached = await this.getCachedIndex(titleToId);
+    const cached = await this.getCachedIndex(collectionId, titleToId);
     if (cached) {
       this.logger.debug('Returning cached wiki index');
       return cached;
@@ -81,7 +81,7 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
     }
 
     // Cache the generated index
-    await this.cacheIndex(index);
+    await this.cacheIndex(collectionId, index);
 
     return index;
   }
@@ -134,12 +134,15 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
    * Check for a cached 'index' entry in wikiLog that is newer than
    * the latest invalidating operation.
    */
-  private async getCachedIndex(titleToId: Map<string, string>): Promise<WikiIndex | null> {
-    // Find the most recent 'index' cache entry
+  private async getCachedIndex(
+    collectionId: string,
+    titleToId: Map<string, string>,
+  ): Promise<WikiIndex | null> {
+    // Find the most recent 'index' cache entry for this collection
     const cachedRows = await this.db
       .select({ metadata: wikiLog.metadata, createdAt: wikiLog.createdAt })
       .from(wikiLog)
-      .where(eq(wikiLog.operation, 'index'))
+      .where(and(eq(wikiLog.operation, 'index'), eq(wikiLog.collectionId, collectionId)))
       .orderBy(desc(wikiLog.createdAt))
       .limit(1);
 
@@ -147,11 +150,16 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
 
     const cachedEntry = cachedRows[0]!;
 
-    // Find the most recent invalidating operation
+    // Find the most recent invalidating operation in this collection
     const latestChange = await this.db
       .select({ createdAt: wikiLog.createdAt })
       .from(wikiLog)
-      .where(inArray(wikiLog.operation, INVALIDATING_OPS))
+      .where(
+        and(
+          inArray(wikiLog.operation, INVALIDATING_OPS),
+          eq(wikiLog.collectionId, collectionId),
+        ),
+      )
       .orderBy(desc(wikiLog.createdAt))
       .limit(1);
 
@@ -173,12 +181,13 @@ export class GetWikiIndexHandler implements IQueryHandler<GetWikiIndexQuery> {
   /**
    * Store the generated index in wikiLog for caching.
    */
-  private async cacheIndex(index: WikiIndex): Promise<void> {
+  private async cacheIndex(collectionId: string, index: WikiIndex): Promise<void> {
     try {
       await this.db.insert(wikiLog).values({
         operation: 'index',
         summary: `Index generated: ${index.categories.length} categories`,
         affectedSourceIds: [],
+        collectionId,
         metadata: index as unknown as Record<string, unknown>,
       });
     } catch (err) {

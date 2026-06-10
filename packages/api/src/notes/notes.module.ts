@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
+import { IndexingModule } from '../indexing/indexing.module';
 import { NotesController } from './notes.controller';
 import { CreateNoteHandler } from './commands/create-note.handler';
 import { UpdateNoteHandler } from './commands/update-note.handler';
@@ -25,7 +26,7 @@ const CommandHandlers = [
 const QueryHandlers = [ListNotesHandler, GetNoteHandler, GetBacklinksHandler, GetSuggestionsHandler, GetGraphHandler, ListFoldersHandler];
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, IndexingModule],
   controllers: [NotesController],
   providers: [...CommandHandlers, ...QueryHandlers],
 })

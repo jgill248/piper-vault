@@ -113,7 +113,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
         }
 
         // Snapshot current version before rewriting
-        await this.snapshotVersion(page.id, page.content, 'synthesis', result.value.summary, sourceId);
+        await this.snapshotVersion(page.id, collectionId, page.content, 'synthesis', result.value.summary, sourceId);
 
         // Update the page with synthesized content (automated — do not set userReviewed)
         await this.commandBus.execute(
@@ -148,7 +148,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       this.logger.error(`Wiki generation failed for source ${sourceId}: ${genResult.error}`);
       // Still log synthesis results even if new-page generation fails
       if (synthesizedIds.length > 0) {
-        await this.logOperation(synthesizedIds, [], sourceId, sourceFilename,
+        await this.logOperation(synthesizedIds, [], sourceId, collectionId, sourceFilename,
           `Synthesized ${synthesizedIds.length} pages (new page generation failed)`);
       }
       return;
@@ -192,7 +192,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
               );
 
               if (synthResult.ok && synthResult.value.changeType !== 'no_change') {
-                await this.snapshotVersion(target.id, target.content, 'synthesis', synthResult.value.summary, sourceId);
+                await this.snapshotVersion(target.id, collectionId, target.content, 'synthesis', synthResult.value.summary, sourceId);
                 await this.commandBus.execute(
                   new UpdateNoteCommand(target.id, synthResult.value.content, undefined, undefined, undefined, false),
                 );
@@ -239,7 +239,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     // ── Step 9: Log the operation ────────────────────────────────────────
     const allAffectedIds = [...new Set([...synthesizedIds, ...createdIds])];
     if (allAffectedIds.length > 0) {
-      await this.logOperation(synthesizedIds, createdIds, sourceId, sourceFilename, summary);
+      await this.logOperation(synthesizedIds, createdIds, sourceId, collectionId, sourceFilename, summary);
     }
   }
 
@@ -328,6 +328,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
 
   private async snapshotVersion(
     pageId: string,
+    collectionId: string,
     content: string,
     changeType: string,
     changeSummary: string,
@@ -350,6 +351,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       changeType,
       changeSummary,
       triggeredBy,
+      collectionId,
     });
   }
 
@@ -357,6 +359,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
     synthesizedIds: string[],
     createdIds: string[],
     sourceId: string,
+    collectionId: string,
     sourceFilename: string,
     summary: string,
   ): Promise<void> {
@@ -366,6 +369,7 @@ export class GenerateWikiPagesHandler implements ICommandHandler<GenerateWikiPag
       summary,
       affectedSourceIds: allAffectedIds,
       sourceTriggerIds: sourceId,
+      collectionId,
       metadata: {
         pagesGenerated: createdIds.length,
         pagesSynthesized: synthesizedIds.length,

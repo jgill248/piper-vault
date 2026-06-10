@@ -28,13 +28,7 @@ export function WikiLink({
         type="button"
         onClick={onClick}
         title={label}
-        className="font-label text-xs text-primary underline decoration-primary/30 underline-offset-2 cursor-pointer hover:decoration-primary transition-all inline [overflow-wrap:anywhere] [word-break:break-word]"
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          margin: 0,
-        }}
+        className="font-label text-xs text-primary underline decoration-primary/30 underline-offset-2 cursor-pointer hover:decoration-primary transition-all inline [overflow-wrap:anywhere] [word-break:break-word] bg-transparent border-none p-0 m-0"
       >
         {label}
       </button>

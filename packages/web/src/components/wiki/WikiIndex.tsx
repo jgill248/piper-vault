@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useWikiIndex, useInitializeWiki } from '../../hooks/use-wiki';
+import { useActiveCollection } from '../../context/CollectionContext';
 
 interface WikiIndexProps {
   readonly selectedPageId?: string;
@@ -7,14 +8,15 @@ interface WikiIndexProps {
 }
 
 export function WikiIndex({ selectedPageId, onSelectPage }: WikiIndexProps) {
-  const { data, isLoading, isError } = useWikiIndex();
+  const { activeCollectionId } = useActiveCollection();
+  const { data, isLoading, isError } = useWikiIndex(activeCollectionId);
   const categories = data?.categories ?? [];
   const initMutation = useInitializeWiki();
   const [initSummary, setInitSummary] = useState<string>('');
 
   async function handleInitialize() {
     try {
-      const result = await initMutation.mutateAsync({});
+      const result = await initMutation.mutateAsync({ collectionId: activeCollectionId });
       if (result.ok && result.value) {
         setInitSummary(result.value.summary);
       } else {

@@ -146,6 +146,7 @@ export class RegenerateWikiPageHandler implements ICommandHandler<RegenerateWiki
       content: currentContent,
       changeType: 'regenerate',
       changeSummary: `Regenerated from ${sourceContents.length} sources`,
+      collectionId: page.collectionId,
     });
 
     // Update the page (automated — do not set userReviewed)
@@ -163,6 +164,7 @@ export class RegenerateWikiPageHandler implements ICommandHandler<RegenerateWiki
       operation: 'regenerate',
       summary: `Regenerated "${pageTitle}" from ${sourceContents.length} sources`,
       affectedSourceIds: [pageId],
+      collectionId: page.collectionId,
       metadata: {
         sourceCount: sourceContents.length,
         sourceIds: allSourceIds,

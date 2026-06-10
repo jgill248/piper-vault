@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Tag, Plus, Minus, X } from 'lucide-react';
+import { Tag, Plus, Minus, X, ArrowRight } from 'lucide-react';
 import { useNotes, useUpdateNote } from '../../hooks/use-notes';
+import { useRenameTag, useDeleteTag } from '../../hooks/use-sources';
 import { useActiveCollection } from '../../context/CollectionContext';
+import { useToast } from '../../context/ToastContext';
 
 interface TagManagerProps {
   readonly onFilterByTag: (tag: string) => void;
@@ -15,10 +17,14 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
     pageSize: 100,
   });
   const updateNote = useUpdateNote();
+  const renameTag = useRenameTag();
+  const deleteTag = useDeleteTag();
+  const { addToast } = useToast();
 
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [newTag, setNewTag] = useState('');
+  const [renameValue, setRenameValue] = useState('');
 
   const notes = notesData?.data ?? [];
 
@@ -50,18 +56,44 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
   };
 
   const handleBulkRemove = async () => {
-    for (const tag of selectedTags) {
-      const noteIds = tagNoteIds.get(tag) ?? [];
-      for (const noteId of noteIds) {
-        const note = notes.find((n) => n.id === noteId);
-        if (!note) continue;
-        const currentTags = (note.tags ?? []) as string[];
-        const updatedTags = currentTags.filter((t) => !selectedTags.has(t));
-        await updateNote.mutateAsync({ id: noteId, tags: updatedTags });
+    const tags = [...selectedTags];
+    try {
+      // Server-side removal covers every source carrying the tag, not just
+      // the notes loaded in this panel.
+      for (const tag of tags) {
+        await deleteTag.mutateAsync({ tag, collectionId: activeCollectionId });
       }
+      addToast(`Removed ${tags.length} tag${tags.length > 1 ? 's' : ''} from the vault`, 'success');
+      if (activeTag && tags.includes(activeTag)) onFilterByTag('');
+    } catch {
+      addToast('Failed to remove tags', 'error');
     }
     setSelectedTags(new Set());
     setBulkMode(false);
+  };
+
+  const singleSelectedTag = selectedTags.size === 1 ? [...selectedTags][0] : undefined;
+  const renameTarget = renameValue.trim().replace(/^#/, '');
+  const isMerge = renameTarget.length > 0 && tagCounts.has(renameTarget);
+
+  const handleRename = async () => {
+    if (!singleSelectedTag || !renameTarget || renameTarget === singleSelectedTag) return;
+    try {
+      const result = await renameTag.mutateAsync({
+        oldTag: singleSelectedTag,
+        newTag: renameTarget,
+        collectionId: activeCollectionId,
+      });
+      addToast(
+        `${isMerge ? 'Merged' : 'Renamed'} #${singleSelectedTag} → #${renameTarget} (${result.affectedCount} note${result.affectedCount === 1 ? '' : 's'})`,
+        'success',
+      );
+      if (activeTag === singleSelectedTag) onFilterByTag('');
+    } catch {
+      addToast(`Failed to rename #${singleSelectedTag}`, 'error');
+    }
+    setRenameValue('');
+    setSelectedTags(new Set());
   };
 
   const handleBulkAdd = async () => {
@@ -149,15 +181,46 @@ export function TagManager({ onFilterByTag, activeTag }: TagManagerProps) {
         </div>
       )}
 
+      {/* Rename / merge — available when exactly one tag is selected */}
+      {bulkMode && singleSelectedTag && (
+        <div className="flex items-center gap-1 mb-2">
+          <span className="text-[10px] font-label text-secondary truncate max-w-[80px]">
+            #{singleSelectedTag}
+          </span>
+          <ArrowRight size={10} strokeWidth={1.5} className="text-on-surface-variant shrink-0" />
+          <input
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void handleRename();
+            }}
+            placeholder="New tag name..."
+            className="flex-1 min-w-0 bg-surface-container-high px-2 py-1 text-[10px] font-label text-on-surface outline-none placeholder:text-on-surface-variant"
+          />
+          <button
+            onClick={() => void handleRename()}
+            disabled={!renameTarget || renameTarget === singleSelectedTag || renameTag.isPending}
+            className="px-2 py-1 text-[10px] font-label text-on-surface-variant hover:text-primary disabled:opacity-30 transition-colors shrink-0"
+            title={isMerge ? `Merge into existing #${renameTarget}` : 'Rename tag everywhere'}
+          >
+            {renameTag.isPending ? '...' : isMerge ? 'Merge' : 'Rename'}
+          </button>
+        </div>
+      )}
+
       {/* Bulk remove selected */}
       {bulkMode && selectedTags.size > 0 && (
         <div className="flex items-center gap-2 mb-2">
           <button
             onClick={() => void handleBulkRemove()}
-            className="flex items-center gap-1 px-2 py-1 text-[10px] font-label text-red-400 bg-surface-container-high hover:bg-red-400/10 transition-colors"
+            disabled={deleteTag.isPending}
+            className="flex items-center gap-1 px-2 py-1 text-[10px] font-label text-red-400 bg-surface-container-high hover:bg-red-400/10 disabled:opacity-40 transition-colors"
           >
             <Minus size={10} strokeWidth={1.5} />
-            Remove {selectedTags.size} tag{selectedTags.size > 1 ? 's' : ''} from all notes
+            {deleteTag.isPending
+              ? 'Removing...'
+              : `Remove ${selectedTags.size} tag${selectedTags.size > 1 ? 's' : ''} everywhere`}
           </button>
         </div>
       )}
