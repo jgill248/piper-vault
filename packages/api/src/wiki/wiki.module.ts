@@ -10,6 +10,7 @@ import { GetWikiLogHandler } from './queries/get-wiki-log.handler';
 import { GetWikiIndexHandler } from './queries/get-wiki-index.handler';
 import { SourceIngestedListener } from './events/source-ingested.listener';
 import { WikiSchedulerService } from './services/wiki-scheduler.service';
+import { ProviderAvailabilityService } from './services/provider-availability.service';
 
 const CommandHandlers = [GenerateWikiPagesHandler, PromoteToWikiHandler, RunWikiLintHandler, InitializeWikiHandler, RegenerateWikiPageHandler];
 const QueryHandlers = [GetWikiLogHandler, GetWikiIndexHandler];
@@ -18,6 +19,6 @@ const EventHandlers = [SourceIngestedListener];
 @Module({
   imports: [CqrsModule],
   controllers: [WikiController],
-  providers: [...CommandHandlers, ...QueryHandlers, ...EventHandlers, WikiSchedulerService],
+  providers: [...CommandHandlers, ...QueryHandlers, ...EventHandlers, WikiSchedulerService, ProviderAvailabilityService],
 })
 export class WikiModule {}

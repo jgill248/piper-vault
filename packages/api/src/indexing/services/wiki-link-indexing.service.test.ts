@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { WikiLinkIndexingService } from './wiki-link-indexing.service';
+import { WikiLinkIndexingService, resolveByPreference } from './wiki-link-indexing.service';
 import type { ParsedWikiLink } from '@delve/core';
 import type { Database } from '../../database/connection';
 
@@ -21,6 +21,17 @@ interface DbMocks {
   updateSet: ReturnType<typeof vi.fn>;
 }
 
+const BASE_DATE = new Date('2024-01-01T00:00:00Z');
+
+function makeSourceRow(
+  id: string,
+  filename: string,
+  isGenerated = false,
+  updatedAt: Date = BASE_DATE,
+) {
+  return { id, filename, isGenerated, updatedAt };
+}
+
 function makeDb(selectRows: unknown[] = []): DbMocks {
   const insertValues = vi.fn().mockResolvedValue([]);
   const selectWhere = vi.fn().mockResolvedValue(selectRows);
@@ -36,14 +47,66 @@ function makeDb(selectRows: unknown[] = []): DbMocks {
   return { db, insertValues, selectWhere, updateWhere, updateSet };
 }
 
+// ---------------------------------------------------------------------------
+// Unit tests for the pure resolveByPreference helper
+// ---------------------------------------------------------------------------
+
+describe('resolveByPreference', () => {
+  it('returns undefined for an empty array', () => {
+    expect(resolveByPreference([])).toBeUndefined();
+  });
+
+  it('returns the only row when there is a single candidate', () => {
+    expect(
+      resolveByPreference([{ id: 'a', isGenerated: false, updatedAt: BASE_DATE }]),
+    ).toBe('a');
+  });
+
+  it('prefers user-authored (isGenerated=false) over generated (isGenerated=true)', () => {
+    const rows = [
+      { id: 'wiki-copy', isGenerated: true, updatedAt: new Date('2024-06-01') },
+      { id: 'user-note', isGenerated: false, updatedAt: new Date('2024-01-01') },
+    ];
+    expect(resolveByPreference(rows)).toBe('user-note');
+  });
+
+  it('among two user-authored notes, prefers the most recently updated', () => {
+    const rows = [
+      { id: 'older', isGenerated: false, updatedAt: new Date('2024-01-01') },
+      { id: 'newer', isGenerated: false, updatedAt: new Date('2024-06-01') },
+    ];
+    expect(resolveByPreference(rows)).toBe('newer');
+  });
+
+  it('among two generated notes, prefers the most recently updated', () => {
+    const rows = [
+      { id: 'gen-old', isGenerated: true, updatedAt: new Date('2024-01-01') },
+      { id: 'gen-new', isGenerated: true, updatedAt: new Date('2024-06-01') },
+    ];
+    expect(resolveByPreference(rows)).toBe('gen-new');
+  });
+
+  it('user-authored beats generated even when generated is more recently updated', () => {
+    const rows = [
+      { id: 'wiki-copy', isGenerated: true, updatedAt: new Date('2024-12-31') },
+      { id: 'user-note', isGenerated: false, updatedAt: new Date('2024-01-01') },
+    ];
+    expect(resolveByPreference(rows)).toBe('user-note');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Integration-style tests for the service
+// ---------------------------------------------------------------------------
+
 describe('WikiLinkIndexingService', () => {
   describe('storeAndResolveOutgoingLinks', () => {
     let mocks: DbMocks;
 
     beforeEach(() => {
       mocks = makeDb([
-        { id: 'target-a', filename: 'Note A.md' },
-        { id: 'target-b', filename: 'Note B.md' },
+        makeSourceRow('target-a', 'Note A.md'),
+        makeSourceRow('target-b', 'Note B.md'),
       ]);
     });
 
@@ -116,8 +179,8 @@ describe('WikiLinkIndexingService', () => {
 
     it('prefers an exact-case match when sources differ only by case', async () => {
       mocks = makeDb([
-        { id: 'lower-note', filename: 'note a.md' },
-        { id: 'upper-note', filename: 'Note A.md' },
+        makeSourceRow('lower-note', 'note a.md'),
+        makeSourceRow('upper-note', 'Note A.md'),
       ]);
       const service = new WikiLinkIndexingService(mocks.db);
 
@@ -125,6 +188,21 @@ describe('WikiLinkIndexingService', () => {
 
       expect(mocks.updateSet).toHaveBeenCalledTimes(1);
       expect(mocks.updateSet).toHaveBeenCalledWith({ targetSourceId: 'upper-note' });
+    });
+
+    it('resolves to the user-authored note when a wiki-generated copy shares the title', async () => {
+      // Both rows share the same filename (title collision)
+      mocks = makeDb([
+        makeSourceRow('wiki-copy', 'My Topic.md', true, new Date('2024-06-01')),
+        makeSourceRow('user-note', 'My Topic.md', false, new Date('2024-01-01')),
+      ]);
+      const service = new WikiLinkIndexingService(mocks.db);
+
+      await service.storeAndResolveOutgoingLinks('source-1', 'coll-1', [makeLink('My Topic')]);
+
+      expect(mocks.updateSet).toHaveBeenCalledTimes(1);
+      // The user-authored note must win even though the wiki copy is newer
+      expect(mocks.updateSet).toHaveBeenCalledWith({ targetSourceId: 'user-note' });
     });
   });
 

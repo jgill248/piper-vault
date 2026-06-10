@@ -216,6 +216,10 @@ importers:
         version: 5.4.21(@types/node@20.19.37)(terser@5.46.1)
 
   packages/shared:
+    dependencies:
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
     devDependencies:
       vitest:
         specifier: ^1.6.1

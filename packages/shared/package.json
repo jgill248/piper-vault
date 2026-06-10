@@ -11,6 +11,9 @@
     "lint": "eslint src/",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
   "devDependencies": {
     "vitest": "^1.6.1"
   }

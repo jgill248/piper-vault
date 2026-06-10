@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { SUPPORTED_FILE_TYPES } from '@delve/shared';
-import { MAX_FILE_SIZE } from '@delve/shared';
+import { SUPPORTED_FILE_TYPES, MAX_FILE_SIZE, FilenameSchema } from '@delve/shared';
 
 /**
  * Request body for POST /api/v1/sources/upload.
@@ -9,10 +8,7 @@ import { MAX_FILE_SIZE } from '@delve/shared';
  * to keep the upload path simple. Multipart support will be added in Phase 2.
  */
 export const CreateSourceSchema = z.object({
-  filename: z.string().min(1).max(500).refine(
-    (f) => !f.includes('..') && !f.includes('/') && !f.includes('\\'),
-    'Filename must not contain path separators or traversal sequences',
-  ),
+  filename: FilenameSchema,
   content: z.string().min(1), // base64-encoded file bytes
   mimeType: z.string().refine(
     (v): v is (typeof SUPPORTED_FILE_TYPES)[number] =>
